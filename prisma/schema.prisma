@@ -1,0 +1,159 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+}
+
+enum Status {
+  ACTIVE
+  DISABLED
+}
+
+model User {
+  id          String    @id @default(cuid())
+  username    String    @unique
+  firstName   String?
+  lastName    String?
+  email       String?
+  handphone   Int?
+  institution String?
+  position    String?
+  image       Bytes?
+  password    String?
+  status      Status    @default(ACTIVE)
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @updatedAt
+  role        UserRole  @default(ADMIN)
+
+  countryId Int? // Menyimpan ID negara
+
+  // Relations
+  country       Country?       @relation(fields: [countryId], references: [id]) // Relasi dengan model Country
+  notifications Notification[] // One user can have multiple notifications
+  contents      Content[] // One user can create multiple content items
+  bookmarks     Bookmark[] // One user can bookmark multiple contents
+}
+
+model VisitorHistory {
+  id             Int       @id @default(autoincrement())
+  year           Int?
+  month          Int?
+  visitor_public Int?
+  createdAt      DateTime? @default(now())
+  updatedAt      DateTime? @updatedAt
+}
+
+model Notification {
+  id             Int       @id @default(autoincrement())
+  userId         String?
+  announcementId Int?
+  isRead         Boolean?
+  createdAt      DateTime? @default(now())
+  updatedAt      DateTime? @updatedAt
+
+  // Relations
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade) // Many-to-one relation with User
+  announcement Announcement? @relation(fields: [announcementId], references: [id], onDelete: SetNull) // Optional link to Announcement
+}
+
+model Country {
+  id                 Int       @id @default(autoincrement())
+  countryName        String?   @unique
+  latitude           Float?
+  longitude          Float?
+  landAreas          String?
+  forestAreas        String?
+  totalForestAreas   String?
+  mangroveAreas      String?
+  totalMangroveAreas Int?
+  percentage         Float?
+  challenges         String?
+  recommendation     String?
+  programActivities  String?
+  policy             String?
+  createdAt          DateTime? @default(now())
+  updatedAt          DateTime? @updatedAt
+
+  // Relations
+  users    User[] // Many users can have one country
+  contents Content[] // One country can have multiple associated content items
+}
+
+model Content {
+  id                  Int       @id @default(autoincrement())
+  userId              String?
+  email               String?
+  countryId           Int?
+  title               String?
+  author              String?
+  institution         String?
+  cover               Bytes?
+  summary             String?
+  keyword             String?
+  ecologyDim          String?
+  socialDim           String?
+  economyDim          String?
+  institutionalDim    String?
+  technologyDim       String?
+  sustainability      String?
+  videoLink           String?
+  attachmentDoc       Bytes?
+  supportingDoc       Bytes?
+  visitorRegistered   Int?
+  visitorPublic       Int?
+  createdAt           DateTime? @default(now())
+  updatedAt           DateTime? @updatedAt
+  existingCondition1  String?
+  existingCondition2  String?
+  existingCondition3  String?
+  existingCondition4  String?
+  existingCondition5  String?
+  existingCondition6  String?
+  existingCondition7  String?
+  existingCondition8  String?
+  existingCondition9  String?
+  existingCondition10 String?
+
+  // Relations
+  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade) // Many-to-one relation with User
+  country   Country?   @relation(fields: [countryId], references: [id], onDelete: SetNull) // Many-to-one relation with Country
+  bookmarks Bookmark[] // One content item can have multiple bookmarks
+}
+
+model Bookmark {
+  id        Int       @id @default(autoincrement())
+  userId    String?
+  contentId Int?
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+
+  // Relations
+  user    User?    @relation(fields: [userId], references: [id], onDelete: Cascade) // Many-to-one relation with User
+  content Content? @relation(fields: [contentId], references: [id], onDelete: Cascade) // Many-to-one relation with Content
+}
+
+model Announcement {
+  id         Int       @id @default(autoincrement())
+  title      String?
+  content    String?
+  attachment String?
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+
+  // Relations
+  notifications Notification[] // One announcement can have multiple associated notifications
+}
