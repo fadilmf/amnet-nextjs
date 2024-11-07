@@ -46,6 +46,19 @@ interface Content {
   existingCondition8: string | null;
   existingCondition9: string | null;
   existingCondition10: string | null;
+  existingCondition11: string | null;
+  existingCondition12: string | null;
+  existingCondition13: string | null;
+  existingCondition14: string | null;
+  existingCondition15: string | null;
+  existingCondition16: string | null;
+  existingCondition17: string | null;
+  existingCondition18: string | null;
+  existingCondition19: string | null;
+  existingCondition20: string | null;
+  existingCondition21: string | null;
+  existingCondition22: string | null;
+  existingCondition23: string | null;
 }
 
 export default function ArticleDetail() {
@@ -147,46 +160,106 @@ export default function ArticleDetail() {
               <AccordionContent>{content.existingCondition1}</AccordionContent>
             </AccordionItem>
             <AccordionItem value="condition2">
-              <AccordionTrigger>Pond Conditions</AccordionTrigger>
+              <AccordionTrigger>Regional Administration</AccordionTrigger>
               <AccordionContent>{content.existingCondition2}</AccordionContent>
             </AccordionItem>
             <AccordionItem value="condition3">
-              <AccordionTrigger>Pond Design & Constructions</AccordionTrigger>
+              <AccordionTrigger>Population Demographics</AccordionTrigger>
               <AccordionContent>{content.existingCondition3}</AccordionContent>
             </AccordionItem>
             <AccordionItem value="condition4">
-              <AccordionTrigger>Layout and Irrigation System</AccordionTrigger>
+              <AccordionTrigger>Community Education Level</AccordionTrigger>
               <AccordionContent>{content.existingCondition4}</AccordionContent>
             </AccordionItem>
             <AccordionItem value="condition5">
-              <AccordionTrigger>Water Quality Condition</AccordionTrigger>
+              <AccordionTrigger>
+                Agricultural, Plantation, and Fisheries Conditions
+              </AccordionTrigger>
               <AccordionContent>{content.existingCondition5}</AccordionContent>
             </AccordionItem>
             <AccordionItem value="condition6">
-              <AccordionTrigger>Soil Quality Condition</AccordionTrigger>
+              <AccordionTrigger>
+                Community Culture and Ethnicity
+              </AccordionTrigger>
               <AccordionContent>{content.existingCondition6}</AccordionContent>
             </AccordionItem>
             <AccordionItem value="condition7">
-              <AccordionTrigger>Cultivation</AccordionTrigger>
+              <AccordionTrigger>Topography</AccordionTrigger>
               <AccordionContent>{content.existingCondition7}</AccordionContent>
             </AccordionItem>
             <AccordionItem value="condition8">
-              <AccordionTrigger>
-                Best Practice Financial Condition
-              </AccordionTrigger>
+              <AccordionTrigger>Climate</AccordionTrigger>
               <AccordionContent>{content.existingCondition8}</AccordionContent>
             </AccordionItem>
             <AccordionItem value="condition9">
               <AccordionTrigger>
-                Financial Analysis of Livestock Farming
+                Land Cover and Mangrove Density
               </AccordionTrigger>
               <AccordionContent>{content.existingCondition9}</AccordionContent>
             </AccordionItem>
             <AccordionItem value="condition10">
+              <AccordionTrigger>Shoreline Changes</AccordionTrigger>
+              <AccordionContent>{content.existingCondition10}</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="condition11">
+              <AccordionTrigger>Species Composition</AccordionTrigger>
+              <AccordionContent>{content.existingCondition11}</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="condition12">
+              <AccordionTrigger>Dominant Mangrove Species</AccordionTrigger>
+              <AccordionContent>{content.existingCondition12}</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="condition13">
+              <AccordionTrigger>
+                Biomass, Carbon Storage, and Carbon Dioxide Absorption
+              </AccordionTrigger>
+              <AccordionContent>{content.existingCondition13}</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="condition14">
+              <AccordionTrigger>Fauna Diversity</AccordionTrigger>
+              <AccordionContent>{content.existingCondition14}</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="condition15">
+              <AccordionTrigger>Pond Conditions</AccordionTrigger>
+              <AccordionContent>{content.existingCondition15}</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="condition16">
+              <AccordionTrigger>Pond Design & Constructions</AccordionTrigger>
+              <AccordionContent>{content.existingCondition16}</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="condition17">
+              <AccordionTrigger>Layout and Irrigation System</AccordionTrigger>
+              <AccordionContent>{content.existingCondition17}</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="condition18">
+              <AccordionTrigger>Water Quality Condition</AccordionTrigger>
+              <AccordionContent>{content.existingCondition18}</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="condition19">
+              <AccordionTrigger>Soil Quality Condition</AccordionTrigger>
+              <AccordionContent>{content.existingCondition19}</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="condition20">
+              <AccordionTrigger>Cultivation</AccordionTrigger>
+              <AccordionContent>{content.existingCondition20}</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="condition21">
+              <AccordionTrigger>
+                Best Practice Financial Condition
+              </AccordionTrigger>
+              <AccordionContent>{content.existingCondition21}</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="condition22">
+              <AccordionTrigger>
+                Financial Analysis of Livestock Farming
+              </AccordionTrigger>
+              <AccordionContent>{content.existingCondition22}</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="condition23">
               <AccordionTrigger>
                 Financial Analysis of Vegetation Cultivation
               </AccordionTrigger>
-              <AccordionContent>{content.existingCondition10}</AccordionContent>
+              <AccordionContent>{content.existingCondition23}</AccordionContent>
             </AccordionItem>
           </Accordion>
         </div>
