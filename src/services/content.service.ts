@@ -2,7 +2,7 @@
 
 import { Content } from "@/models/content.model";
 
-let contentData: Content[] = []; // Simulating a database with an array
+const contentData: Content[] = []; // Simulating a database with an array
 
 export const createContent = (newContent: Content): Content => {
   newContent.id = contentData.length + 1;

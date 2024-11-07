@@ -17,11 +17,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-interface AddAdminModalProps {
-  onAddAdmin: (admin: Omit<Admin, "id">) => void;
-}
+// interface AddAdminModalProps {
+//   onAddAdmin: (admin: Omit<Admin, "id">) => void;
+// }
 
-export function AddAdminModal({ onAddAdmin }: AddAdminModalProps) {
+export function AddAdminModal({ onAddAdmin }: any) {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -31,12 +31,20 @@ export function AddAdminModal({ onAddAdmin }: AddAdminModalProps) {
     institution: "",
     position: "",
     username: "",
-    status: "active" as "active" | "inactive",
+    password: "",
+    status: "ACTIVE" as "ACTIVE" | "INACTIVE",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.password || formData.password.length < 6) {
+      alert("Password must be at least 6 characters long");
+      return;
+    }
+
     onAddAdmin(formData);
+    console.log("admin data:", formData);
     setOpen(false);
     setFormData({
       name: "",
@@ -46,7 +54,8 @@ export function AddAdminModal({ onAddAdmin }: AddAdminModalProps) {
       institution: "",
       position: "",
       username: "",
-      status: "active",
+      password: "",
+      status: "ACTIVE",
     });
   };
 
@@ -136,6 +145,16 @@ export function AddAdminModal({ onAddAdmin }: AddAdminModalProps) {
             />
           </div>
           <div className="grid w-full items-center gap-1.5">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="grid w-full items-center gap-1.5">
             <Label htmlFor="status">Status</Label>
             <Select
               name="status"
@@ -143,7 +162,7 @@ export function AddAdminModal({ onAddAdmin }: AddAdminModalProps) {
               onValueChange={(value) =>
                 setFormData({
                   ...formData,
-                  status: value as "active" | "inactive",
+                  status: value as "ACTIVE" | "INACTIVE",
                 })
               }
             >
