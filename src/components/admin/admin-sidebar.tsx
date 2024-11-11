@@ -66,7 +66,7 @@ const masterLinks = [
   //   label: "User Setting",
   // },
   {
-    href: "/admin/dashboard/admin-setting",
+    href: "/admin/dashboard/user-list",
     icon: <Settings size={20} />,
     label: "Admin Setting",
   },

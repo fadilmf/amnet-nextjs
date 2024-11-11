@@ -1,7 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import CarouselHome from "@/components/carousel-home";
 import BestPracticesDimensions from "@/components/best-practice-dimension";
 import { NewsCard } from "@/components/news/news-card";
@@ -84,9 +82,11 @@ export default function Home() {
                 key={index}
                 className="flex flex-col items-center hover:bg-gray-300 rounded-md p-4"
               >
-                <img
+                <Image
                   src={country.image}
                   alt={country.name}
+                  width={200}
+                  height={200}
                   className=" object-cover rounded-md shadow-lg"
                 />
                 <p className="text-center text-sm font-medium mt-2">

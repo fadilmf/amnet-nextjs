@@ -1,93 +1,128 @@
 import prisma from "@/lib/prisma";
-import { Status, UserRole } from "@prisma/client";
 import { NextResponse } from "next/server";
-import bcrypt from "bcrypt";
+// import { PrismaClient } from "@prisma/client";
 
-// POST /users - Create a new user (only for SUPER_ADMIN)
-export async function POST(req: Request) {
+// const prisma = new PrismaClient();
+
+// GET /api/users - Retrieve all users
+export async function GET() {
   try {
-    const {
-      username,
-      firstName,
-      lastName,
-      email,
-      handphone,
-      institution,
-      image,
-      password,
-      role,
-    } = await req.json();
-
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create new user with hashed password
-    const newUser = await prisma.user.create({
-      data: {
-        username,
-        firstName,
-        lastName,
-        email,
-        handphone,
-        institution,
-        image,
-        password: hashedPassword,
-        role,
-        status: Status.ACTIVE,
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        username: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        handphone: true,
+        institution: true,
+        position: true,
+        status: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
-    return NextResponse.json(newUser, { status: 201 });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
-
-// GET /users - Get a paginated list of users, with optional filters
-// export async function GET(req: Request) {
-//   try {
-//     const { searchParams } = new URL(req.url);
-//     const roleParam = searchParams.get("role");
-//     const statusParam = searchParams.get("status");
-
-//     // Convert the role and status params to enums if they exist
-//     const role = roleParam && UserRole[roleParam as keyof typeof UserRole];
-//     const status = statusParam && Status[statusParam as keyof typeof Status];
-
-//     const users = await prisma.user.findMany({
-//       where: {
-//         ...(role ? { role } : {}),
-//         ...(status ? { status } : {}),
-//       },
-//     });
-//     return NextResponse.json(users);
-//   } catch (error) {
-//     console.error(error);
-//     return NextResponse.json({ error: error.message }, { status: 500 });
-//   }
-// }
-
-export async function GET(req: Request) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const skip = (page - 1) * limit;
-
-    const [users, totalUsers] = await Promise.all([
-      prisma.user.findMany({
-        skip,
-        take: limit,
-        orderBy: { createdAt: "desc" }, // Bisa diubah sesuai kebutuhan
-      }),
-      prisma.user.count(),
-    ]);
-
-    return NextResponse.json({ users, totalUsers });
+    return NextResponse.json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
     return NextResponse.json(
-      { error: "Failed to fetch users" },
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
+
+// POST /api/users - Create a new user
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    console.log("Received user data:", body); // Log the received data
+
+    // Validate required fields
+    if (!body.username || !body.email) {
+      return NextResponse.json(
+        { error: "Username and email are required" },
+        { status: 400 }
+      );
+    }
+
+    const user = await prisma.user.create({
+      data: {
+        username: body.username,
+        email: body.email,
+        firstName: body.firstName,
+        lastName: body.lastName,
+        handphone: body.handphone ? parseInt(body.handphone) : null,
+        institution: body.institution,
+        position: body.position,
+        status: body.status,
+        role: body.role,
+        // Note: password should be hashed before storing
+        password: body.password,
+      },
+    });
+
+    console.log("User created:", user); // Log the created user
+    return NextResponse.json(user, { status: 201 });
+  } catch (error) {
+    console.error("Error creating user:", error);
+    // Check for specific Prisma errors
+    // if (error.code === 'P2002') {
+    //   return NextResponse.json({ error: 'A user with this username or email already exists' }, { status: 400 });
+    // }
+    return NextResponse.json(
+      { error: "Internal Server Error", details: error },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT /api/users/[id] - Update a user
+export async function PUT(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const body = await request.json();
+    const updatedUser = await prisma.user.update({
+      where: { id: params.id },
+      data: {
+        username: body.username,
+        firstName: body.firstName,
+        lastName: body.lastName,
+        email: body.email,
+        handphone: body.handphone,
+        institution: body.institution,
+        position: body.position,
+        status: body.status,
+        role: body.role,
+      },
+    });
+    return NextResponse.json(updatedUser);
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE /api/users/[id] - Delete a user
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    await prisma.user.delete({
+      where: { id: params.id },
+    });
+    return NextResponse.json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }

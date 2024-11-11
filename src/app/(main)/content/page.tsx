@@ -12,18 +12,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// interface Article {
-//   id: string;
-//   title: string;
-//   snippet: string;
-//   author: string;
-//   date: string;
-//   keywords?: string; // Make keywords optional to handle undefined case
-//   imageUrl: string;
-// }
+interface Article {
+  id: string;
+  title: string;
+  snippet: string;
+  author: string;
+  date: string;
+  cover: string;
+  keywords?: string; // Make keywords optional to handle undefined case
+  imageUrl: string;
+}
 
 export default function ArticlesPage() {
-  const [articles, setArticles] = useState<any[]>([]);
+  const [articles, setArticles] = useState<Article[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("date");
   const [loading, setLoading] = useState(true);
@@ -107,6 +108,7 @@ export default function ArticlesPage() {
               key={article.id}
               {...article}
               imageUrl={article.cover}
+              summary={article.snippet}
               keywords={
                 article.keywords
                   ? article.keywords.split(",").map((k: any) => k.trim())

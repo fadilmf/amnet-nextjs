@@ -26,7 +26,7 @@ interface Article {
 }
 
 // Sample article data
-const articles = [];
+const articles: Article[] = [];
 
 export default function AdminBookmarkPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -77,7 +77,8 @@ export default function AdminBookmarkPage() {
         {filteredArticles.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredArticles.map((article) => (
-              <ArticleCard key={article.id} {...article} />
+              // <ArticleCard key={article.id} {...article} />
+              <div>tes</div>
             ))}
           </div>
         ) : (
