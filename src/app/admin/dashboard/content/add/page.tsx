@@ -5,13 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@/components/ui/select";
 import { FileUpload } from "@/components/admin/file-upload"; // Custom component for file upload
 import { Download } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -24,22 +17,33 @@ type FormData = {
   email: string;
   summary: string;
   keyword: string;
-  existingCondition1: string;
-  existingCondition2: string;
-  existingCondition3: string;
-  existingCondition4: string;
-  existingCondition5: string;
-  existingCondition6: string;
-  existingCondition7: string;
-  existingCondition8: string;
-  existingCondition9: string;
-  existingCondition10: string;
-  ecologyDim: string;
-  socialDim: string;
-  economyDim: string;
-  institutionalDim: string;
-  technologyDim: string;
-  sustainability: string;
+  existingConditions: { [key: string]: string };
+  ecologyDim: number;
+  ecologyMethod: string | null;
+  ecologyMost1: string | null;
+  ecologyMost2: string | null;
+  ecologyMost3: string | null;
+  socialDim: number;
+  socialMethod: string | null;
+  socialMost1: string | null;
+  socialMost2: string | null;
+  socialMost3: string | null;
+  economyDim: number;
+  economyMethod: string | null;
+  economyMost1: string | null;
+  economyMost2: string | null;
+  economyMost3: string | null;
+  institutionalDim: number;
+  institutionalMethod: string | null;
+  institutionalMost1: string | null;
+  institutionalMost2: string | null;
+  institutionalMost3: string | null;
+  technologyDim: number;
+  technologyMethod: string | null;
+  technologyMost1: string | null;
+  technologyMost2: string | null;
+  technologyMost3: string | null;
+  sustainabilityindex: number;
   video: string;
 };
 
@@ -47,6 +51,16 @@ type FileData = {
   galeri: string | null;
   map: string | null;
   supportingDocument: string | null;
+  ecologyGraph: string | null;
+  ecologyLeve: string | null;
+  socialGraph: string | null;
+  socialLeve: string | null;
+  economyGraph: string | null;
+  economyLeve: string | null;
+  institutionalGraph: string | null;
+  institutionalLeve: string | null;
+  technologyGraph: string | null;
+  technologyLeve: string | null;
 };
 
 export default function AddContentPage() {
@@ -59,22 +73,57 @@ export default function AddContentPage() {
     email: "",
     summary: "",
     keyword: "",
-    existingCondition1: "",
-    existingCondition2: "",
-    existingCondition3: "",
-    existingCondition4: "",
-    existingCondition5: "",
-    existingCondition6: "",
-    existingCondition7: "",
-    existingCondition8: "",
-    existingCondition9: "",
-    existingCondition10: "",
-    ecologyDim: "",
-    socialDim: "",
-    economyDim: "",
-    institutionalDim: "",
-    technologyDim: "",
-    sustainability: "",
+    existingConditions: {
+      existingCondition1: "",
+      existingCondition2: "",
+      existingCondition3: "",
+      existingCondition4: "",
+      existingCondition5: "",
+      existingCondition6: "",
+      existingCondition7: "",
+      existingCondition8: "",
+      existingCondition9: "",
+      existingCondition10: "",
+      existingCondition11: "",
+      existingCondition12: "",
+      existingCondition13: "",
+      existingCondition14: "",
+      existingCondition15: "",
+      existingCondition16: "",
+      existingCondition17: "",
+      existingCondition18: "",
+      existingCondition19: "",
+      existingCondition20: "",
+      existingCondition21: "",
+      existingCondition22: "",
+      existingCondition23: "",
+    },
+    ecologyDim: 0.0,
+    ecologyMethod: "",
+    ecologyMost1: "",
+    ecologyMost2: "",
+    ecologyMost3: "",
+    socialDim: 0.0,
+    socialMethod: "",
+    socialMost1: "",
+    socialMost2: "",
+    socialMost3: "",
+    economyDim: 0.0,
+    economyMethod: "",
+    economyMost1: "",
+    economyMost2: "",
+    economyMost3: "",
+    institutionalDim: 0.0,
+    institutionalMethod: "",
+    institutionalMost1: "",
+    institutionalMost2: "",
+    institutionalMost3: "",
+    technologyDim: 0.0,
+    technologyMethod: "",
+    technologyMost1: "",
+    technologyMost2: "",
+    technologyMost3: "",
+    sustainabilityindex: 0.0,
     video: "",
   });
 
@@ -82,12 +131,21 @@ export default function AddContentPage() {
     galeri: null,
     map: null,
     supportingDocument: null,
+    ecologyGraph: null,
+    ecologyLeve: null,
+    socialGraph: null,
+    socialLeve: null,
+    economyGraph: null,
+    economyLeve: null,
+    institutionalGraph: null,
+    institutionalLeve: null,
+    technologyGraph: null,
+    technologyLeve: null,
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Handle form input changes
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -98,7 +156,28 @@ export default function AddContentPage() {
     });
   };
 
-  // Handle file input changes
+  const handleFieldTitleChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: string
+  ) => {
+    setFormData({
+      ...formData,
+      existingConditions: {
+        ...formData.existingConditions,
+        [field]: e.target.value,
+      },
+    });
+  };
+
+  const handleRemoveField = (field: string) => {
+    const updatedConditions = { ...formData.existingConditions };
+    delete updatedConditions[field]; // Remove the field from state
+    setFormData({
+      ...formData,
+      existingConditions: updatedConditions,
+    });
+  };
+
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     label: keyof FileData
@@ -109,14 +188,13 @@ export default function AddContentPage() {
       reader.onloadend = () => {
         setFileData((prevFileData) => ({
           ...prevFileData,
-          [label]: reader.result ? reader.result.split(",")[1] : null, // Ensure result is not null
+          [label]: reader.result ? reader.result.split(",")[1] : null,
         }));
       };
-      reader.readAsDataURL(file); // Read file as a Data URL
+      reader.readAsDataURL(file);
     }
   };
 
-  // Update handleSubmit to include binary data for file uploads
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
@@ -124,12 +202,10 @@ export default function AddContentPage() {
 
     const contentData = {
       ...formData,
-      cover: fileData.galeri, // base64 for the cover image
-      attachmentDoc: fileData.map, // base64 for the map document
-      supportingDoc: fileData.supportingDocument, // base64 for the supporting document
+      cover: fileData.galeri,
+      attachmentDoc: fileData.map,
+      supportingDoc: fileData.supportingDocument,
     };
-
-    console.log("ini content data: ", contentData);
 
     try {
       const response = await fetch("/api/content", {
@@ -143,9 +219,8 @@ export default function AddContentPage() {
       if (!response.ok) throw new Error("Failed to create content");
 
       const result = await response.json();
-      console.log("Content created:", result);
 
-      // Reset form and file data after successful submission
+      // Reset form data
       setFormData({
         title: "",
         author: "",
@@ -154,22 +229,33 @@ export default function AddContentPage() {
         email: "",
         summary: "",
         keyword: "",
-        existingCondition1: "",
-        existingCondition2: "",
-        existingCondition3: "",
-        existingCondition4: "",
-        existingCondition5: "",
-        existingCondition6: "",
-        existingCondition7: "",
-        existingCondition8: "",
-        existingCondition9: "",
-        existingCondition10: "",
-        ecologyDim: "",
-        socialDim: "",
-        economyDim: "",
-        institutionalDim: "",
-        technologyDim: "",
-        sustainability: "",
+        existingConditions: {},
+        ecologyDim: 0.0,
+        ecologyMethod: "",
+        ecologyMost1: "",
+        ecologyMost2: "",
+        ecologyMost3: "",
+        socialDim: 0.0,
+        socialMethod: "",
+        socialMost1: "",
+        socialMost2: "",
+        socialMost3: "",
+        economyDim: 0.0,
+        economyMethod: "",
+        economyMost1: "",
+        economyMost2: "",
+        economyMost3: "",
+        institutionalDim: 0.0,
+        institutionalMethod: "",
+        institutionalMost1: "",
+        institutionalMost2: "",
+        institutionalMost3: "",
+        technologyDim: 0.0,
+        technologyMethod: "",
+        technologyMost1: "",
+        technologyMost2: "",
+        technologyMost3: "",
+        sustainabilityindex: 0.0,
         video: "",
       });
 
@@ -177,26 +263,24 @@ export default function AddContentPage() {
         galeri: null,
         map: null,
         supportingDocument: null,
+        ecologyGraph: null,
+        ecologyLeve: null,
+        socialGraph: null,
+        socialLeve: null,
+        economyGraph: null,
+        economyLeve: null,
+        institutionalGraph: null,
+        institutionalLeve: null,
+        technologyGraph: null,
+        technologyLeve: null,
       });
 
       router.push("/admin/dashboard/content");
     } catch (error) {
-      console.error("Error submitting form:", error);
       setError("Failed to create content. Please try again.");
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // This function is a placeholder for file upload logic
-  const uploadFiles = async (files: any) => {
-    // Implement your file upload logic here
-    // This should return an object with URLs for each uploaded file
-    return {
-      galeri: "url_to_galeri_file",
-      map: "url_to_map_file",
-      supportingDocument: "url_to_supporting_document",
-    };
   };
 
   return (
@@ -288,136 +372,314 @@ export default function AddContentPage() {
         <div className="mt-8">
           <h2 className="text-lg font-semibold mb-4">Existing Condition</h2>
 
-          {/* Institutional Arrangement */}
           <div>
-            <Label htmlFor="existingCondition1">
-              Institutional Arrangement
-            </Label>
-            <Textarea
-              id="existingCondition1"
-              placeholder="Enter summary"
-              value={formData.existingCondition1}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+            {/* Institutional Arrangement */}
+            <div>
+              <Label htmlFor="existingCondition1">
+                Institutional Arrangement
+              </Label>
+              <Textarea
+                id="existingCondition1"
+                placeholder="Enter summary"
+                value={formData.existingCondition1}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
 
-          {/* Pond Conditions */}
-          <div>
-            <Label htmlFor="existingCondition2">Pond Conditions</Label>
-            <Textarea
-              id="existingCondition2"
-              placeholder="Enter summary"
-              value={formData.existingCondition2}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+            {/* Regional Administration */}
+            <div>
+              <Label htmlFor="existingCondition2">
+                Regional Administration
+              </Label>
+              <Textarea
+                id="existingCondition2"
+                placeholder="Enter summary"
+                value={formData.existingCondition2}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
 
-          {/* Pond Design & Constractions */}
-          <div>
-            <Label htmlFor="existingCondition3">
-              Pond Design & Constractions
-            </Label>
-            <Textarea
-              id="existingCondition3"
-              placeholder="Enter summary"
-              value={formData.existingCondition3}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+            {/* Population Demographics */}
+            <div>
+              <Label htmlFor="existingCondition3">
+                Population Demographics
+              </Label>
+              <Textarea
+                id="existingCondition3"
+                placeholder="Enter summary"
+                value={formData.existingCondition3}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
 
-          {/* existingCondition4 and Irrigation System */}
-          <div>
-            <Label htmlFor="existingCondition4">
-              existingCondition4 and Irrigation System
-            </Label>
-            <Textarea
-              id="existingCondition4"
-              placeholder="Enter summary"
-              value={formData.existingCondition4}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+            {/* Community Education Level */}
+            <div>
+              <Label htmlFor="existingCondition4">
+                Community Education Level
+              </Label>
+              <Textarea
+                id="existingCondition4"
+                placeholder="Enter summary"
+                value={formData.existingCondition4}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
 
-          {/* Water Quality Condition */}
-          <div>
-            <Label htmlFor="existingCondition5">Water Quality Condition</Label>
-            <Textarea
-              id="existingCondition5"
-              placeholder="Enter summary"
-              value={formData.existingCondition5}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+            {/* Agricultural, Plantation, and Fisheries Conditions */}
+            <div>
+              <Label htmlFor="existingCondition5">
+                Agricultural, Plantation, and Fisheries Conditions
+              </Label>
+              <Textarea
+                id="existingCondition5"
+                placeholder="Enter summary"
+                value={formData.existingCondition5}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
 
-          {/* Soil Quality Condition */}
-          <div>
-            <Label htmlFor="existingCondition6">Soil Quality Condition</Label>
-            <Textarea
-              id="existingCondition6"
-              placeholder="Enter summary"
-              value={formData.existingCondition6}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+            {/* Community Culture and Ethnicity */}
+            <div>
+              <Label htmlFor="existingCondition6">
+                Community Culture and Ethnicity
+              </Label>
+              <Textarea
+                id="existingCondition6"
+                placeholder="Enter summary"
+                value={formData.existingCondition6}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
 
-          {/*g Cultivation */}
-          <div>
-            <Label htmlFor="existingCondition7">Cultivation</Label>
-            <Textarea
-              id="existingCondition7"
-              placeholder="Enter summary"
-              value={formData.existingCondition7}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+            {/* Topography */}
+            <div>
+              <Label htmlFor="existingCondition7">Topography</Label>
+              <Textarea
+                id="existingCondition7"
+                placeholder="Enter summary"
+                value={formData.existingCondition7}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
 
-          {/* Best Practice Financial Condition */}
-          <div>
-            <Label htmlFor="existingCondition8">
-              Best Practice Financial Condition
-            </Label>
-            <Textarea
-              id="existingCondition8"
-              placeholder="Enter summary"
-              value={formData.existingCondition8}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+            {/* Climate */}
+            <div>
+              <Label htmlFor="existingCondition8">Climate</Label>
+              <Textarea
+                id="existingCondition8"
+                placeholder="Enter summary"
+                value={formData.existingCondition8}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
 
-          {/* Financial Analysis of Livestock Farming */}
-          <div>
-            <Label htmlFor="existingCondition9">
-              Financial Analysis of Livestock Farming
-            </Label>
-            <Textarea
-              id="existingCondition9"
-              placeholder="Enter summary"
-              value={formData.existingCondition9}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+            {/* Land Cover and Mangrove Density */}
+            <div>
+              <Label htmlFor="existingCondition9">
+                Land Cover and Mangrove Density
+              </Label>
+              <Textarea
+                id="existingCondition9"
+                placeholder="Enter summary"
+                value={formData.existingCondition9}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
 
-          {/* Financial Analysis of Vegetationg existinCondition7 */}
-          <div>
-            <Label htmlFor="existingCondition10">
-              Financial Analysis of Vegetation Cultivation
-            </Label>
-            <Textarea
-              id="existingCondition10"
-              placeholder="Enter summary"
-              value={formData.existingCondition10}
-              onChange={handleInputChange}
-              required
-            />
+            {/* Shoreline Changes */}
+            <div>
+              <Label htmlFor="existingCondition10">Shoreline Changes</Label>
+              <Textarea
+                id="existingCondition10"
+                placeholder="Enter summary"
+                value={formData.existingCondition10}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            {/* Species Composition */}
+            <div>
+              <Label htmlFor="existingCondition11">Species Composition</Label>
+              <Textarea
+                id="existingCondition11"
+                placeholder="Enter summary"
+                value={formData.existingCondition11}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            {/* Dominant Mangrove Species */}
+            <div>
+              <Label htmlFor="existingCondition12">
+                Dominant Mangrove Species
+              </Label>
+              <Textarea
+                id="existingCondition12"
+                placeholder="Enter summary"
+                value={formData.existingCondition12}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            {/* Biomass, Carbon Storage, and Carbon Dioxide Absorption */}
+            <div>
+              <Label htmlFor="existingCondition13">
+                Biomass, Carbon Storage, and Carbon Dioxide Absorption
+              </Label>
+              <Textarea
+                id="existingCondition13"
+                placeholder="Enter summary"
+                value={formData.existingCondition13}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            {/* Fauna Diversity */}
+            <div>
+              <Label htmlFor="existingCondition14">Fauna Diversity</Label>
+              <Textarea
+                id="existingCondition14"
+                placeholder="Enter summary"
+                value={formData.existingCondition14}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            {/* Pond Conditions */}
+            <div>
+              <Label htmlFor="existingCondition15">Pond Conditions</Label>
+              <Textarea
+                id="existingCondition15"
+                placeholder="Enter summary"
+                value={formData.existingCondition15}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            {/* Pond Design & Constructions */}
+            <div>
+              <Label htmlFor="existingCondition16">
+                Pond Design & Constructions
+              </Label>
+              <Textarea
+                id="existingCondition16"
+                placeholder="Enter summary"
+                value={formData.existingCondition16}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            {/* Layout and Irrigation System */}
+            <div>
+              <Label htmlFor="existingCondition17">
+                Layout and Irrigation System
+              </Label>
+              <Textarea
+                id="existingCondition17"
+                placeholder="Enter summary"
+                value={formData.existingCondition17}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            {/* Water Quality Condition */}
+            <div>
+              <Label htmlFor="existingCondition18">
+                Water Quality Condition
+              </Label>
+              <Textarea
+                id="existingCondition18"
+                placeholder="Enter summary"
+                value={formData.existingCondition18}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            {/* Soil Quality Condition */}
+            <div>
+              <Label htmlFor="existingCondition19">
+                Soil Quality Condition
+              </Label>
+              <Textarea
+                id="existingCondition19"
+                placeholder="Enter summary"
+                value={formData.existingCondition19}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            {/* Cultivation */}
+            <div>
+              <Label htmlFor="existingCondition20">Cultivation</Label>
+              <Textarea
+                id="existingCondition20"
+                placeholder="Enter summary"
+                value={formData.existingCondition20}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            {/* Best Practice Financial Condition */}
+            <div>
+              <Label htmlFor="existingCondition21">
+                Best Practice Financial Condition
+              </Label>
+              <Textarea
+                id="existingCondition21"
+                placeholder="Enter summary"
+                value={formData.existingCondition21}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            {/* Financial Analysis of Livestock Farming */}
+            <div>
+              <Label htmlFor="existingCondition22">
+                Financial Analysis of Livestock Farming
+              </Label>
+              <Textarea
+                id="existingCondition22"
+                placeholder="Enter summary"
+                value={formData.existingCondition22}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+
+            {/* Financial Analysis of Vegetation Cultivation */}
+            <div>
+              <Label htmlFor="existingCondition23">
+                Financial Analysis of Vegetation Cultivation
+              </Label>
+              <Textarea
+                id="existingCondition23"
+                placeholder="Enter summary"
+                value={formData.existingCondition23}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
           </div>
         </div>
 
@@ -426,49 +688,289 @@ export default function AddContentPage() {
           <h2 className="text-lg font-semibold mb-4">
             Analysis Sustainability
           </h2>
+
+          {/* Ecology Dimension */}
           <div>
-            <Label htmlFor="ecologyDim">Ecology Dimension</Label>
+            <Label className="text-lg font-semibold mb-4">
+              Ecology Dimension
+            </Label>
+            <h1>Index Score</h1>
             <Input
               id="ecologyDim"
-              placeholder="Enter ecology dimension"
+              type="number"
+              placeholder="Enter your score for ecology dimension"
               value={formData.ecologyDim}
               onChange={handleInputChange}
             />
+            <h1>Methods</h1>
+            <Input
+              id="ecologyMethod"
+              type="text"
+              placeholder="Describe your method to get the score"
+              value={formData.ecologyMethod}
+              onChange={handleInputChange}
+            />
+            <h1>Graphs</h1>
+            <FileUpload
+              label="Enter Image Result by The Methods"
+              accept="image/*,application/pdf"
+              onChange={(e) => handleFileChange(e, "ecologyGraph")}
+            />
+            <h1>Most Significant Aspects to The Score</h1>
+            <Input
+              id="ecologyMost1"
+              type="text"
+              placeholder="1. Most Significant Aspects"
+              value={formData.ecologyMost1}
+              onChange={handleInputChange}
+            />
+            <Input
+              id="ecologyMost2"
+              type="text"
+              placeholder="2. Most Significant Aspects"
+              value={formData.ecologyMost2}
+              onChange={handleInputChange}
+            />
+            <Input
+              id="ecologyMost3"
+              type="text"
+              placeholder="3. Most Significant Aspects"
+              value={formData.ecologyMost3}
+              onChange={handleInputChange}
+            />
+            <h1>Overall Aspects</h1>
+            <FileUpload
+              label="Enter Image Score from Every Aspects"
+              accept="image/*,application/pdf"
+              onChange={(e) => handleFileChange(e, "ecologyLeve")}
+            />
           </div>
+
+          {/* Social Dimension */}
           <div>
-            <Label htmlFor="socialDim">Social Dimension</Label>
+            <Label className="text-lg font-semibold mb-4">
+              Social Dimension
+            </Label>
+            <h1>Index Score</h1>
             <Input
               id="socialDim"
-              placeholder="Enter social dimension"
+              type="number"
+              placeholder="Enter your score for social dimension"
               value={formData.socialDim}
               onChange={handleInputChange}
             />
+            <h1>Methods</h1>
+            <Input
+              id="socialMethod"
+              type="text"
+              placeholder="Describe your method to get the score"
+              value={formData.socialMethod}
+              onChange={handleInputChange}
+            />
+            <h1>Graphs</h1>
+            <FileUpload
+              label="Enter Image Result by The Methods"
+              accept="image/*,application/pdf"
+              onChange={(e) => handleFileChange(e, "socialGraph")}
+            />
+            <h1>Most Significant Aspects to The Score</h1>
+            <Input
+              id="socialMost1"
+              type="text"
+              placeholder="1. Most Significant Aspects"
+              value={formData.socialMost1}
+              onChange={handleInputChange}
+            />
+            <Input
+              id="socialMost2"
+              type="text"
+              placeholder="2. Most Significant Aspects"
+              value={formData.socialMost2}
+              onChange={handleInputChange}
+            />
+            <Input
+              id="socialMost3"
+              type="text"
+              placeholder="3. Most Significant Aspects"
+              value={formData.socialMost3}
+              onChange={handleInputChange}
+            />
+            <h1>Overall Aspects</h1>
+            <FileUpload
+              label="Enter Image Score from Every Aspects"
+              accept="image/*,application/pdf"
+              onChange={(e) => handleFileChange(e, "socialLeve")}
+            />
           </div>
+
+          {/* Economy Dimension */}
           <div>
-            <Label htmlFor="economyDim">Economy Dimension</Label>
+            <Label className="text-lg font-semibold mb-4">
+              Economy Dimension
+            </Label>
+            <h1>Index Score</h1>
             <Input
               id="economyDim"
-              placeholder="Enter economy dimension"
+              type="number"
+              placeholder="Enter your score for economy dimension"
               value={formData.economyDim}
               onChange={handleInputChange}
             />
+            <h1>Methods</h1>
+            <Input
+              id="economyMethod"
+              type="text"
+              placeholder="Describe your method to get the score"
+              value={formData.economyMethod}
+              onChange={handleInputChange}
+            />
+            <h1>Graphs</h1>
+            <FileUpload
+              label="Enter Image Result by The Methods"
+              accept="image/*,application/pdf"
+              onChange={(e) => handleFileChange(e, "economyGraph")}
+            />
+            <h1>Most Significant Aspects to The Score</h1>
+            <Input
+              id="economyMost1"
+              type="text"
+              placeholder="1. Most Significant Aspects"
+              value={formData.economyMost1}
+              onChange={handleInputChange}
+            />
+            <Input
+              id="economyMost2"
+              type="text"
+              placeholder="2. Most Significant Aspects"
+              value={formData.economyMost2}
+              onChange={handleInputChange}
+            />
+            <Input
+              id="economyMost3"
+              type="text"
+              placeholder="3. Most Significant Aspects"
+              value={formData.economyMost3}
+              onChange={handleInputChange}
+            />
+            <h1>Overall Aspects</h1>
+            <FileUpload
+              label="Enter Image Score from Every Aspects"
+              accept="image/*,application/pdf"
+              onChange={(e) => handleFileChange(e, "economyLeve")}
+            />
           </div>
+
+          {/* Institutional Dimension */}
           <div>
-            <Label htmlFor="institutionalDim">Institutional Dimension</Label>
+            <Label className="text-lg font-semibold mb-4">
+              Institutional Dimension
+            </Label>
+            <h1>Index Score</h1>
             <Input
               id="institutionalDim"
-              placeholder="Enter institutional dimension"
+              type="number"
+              placeholder="Enter your score for institutional dimension"
               value={formData.institutionalDim}
               onChange={handleInputChange}
             />
+            <h1>Methods</h1>
+            <Input
+              id="institutionalMethod"
+              type="text"
+              placeholder="Describe your method to get the score"
+              value={formData.institutionalMethod}
+              onChange={handleInputChange}
+            />
+            <h1>Graphs</h1>
+            <FileUpload
+              label="Enter Image Result by The Methods"
+              accept="image/*,application/pdf"
+              onChange={(e) => handleFileChange(e, "institutionalGraph")}
+            />
+            <h1>Most Significant Aspects to The Score</h1>
+            <Input
+              id="institutionalMost1"
+              type="text"
+              placeholder="1. Most Significant Aspects"
+              value={formData.institutionalMost1}
+              onChange={handleInputChange}
+            />
+            <Input
+              id="institutionalMost2"
+              type="text"
+              placeholder="2. Most Significant Aspects"
+              value={formData.institutionalMost2}
+              onChange={handleInputChange}
+            />
+            <Input
+              id="institutionalMost3"
+              type="text"
+              placeholder="3. Most Significant Aspects"
+              value={formData.institutionalMost3}
+              onChange={handleInputChange}
+            />
+            <h1>Overall Aspects</h1>
+            <FileUpload
+              label="Enter Image Score from Every Aspects"
+              accept="image/*,application/pdf"
+              onChange={(e) => handleFileChange(e, "institutionalLeve")}
+            />
           </div>
+
+          {/* Technology Dimension */}
           <div>
-            <Label htmlFor="technologyDim">Technology Dimension</Label>
+            <Label className="text-lg font-semibold mb-4">
+              Technology Dimension
+            </Label>
+            <h1>Index Score</h1>
             <Input
               id="technologyDim"
-              placeholder="Enter technology dimension"
+              type="number"
+              placeholder="Enter your score for technology dimension"
               value={formData.technologyDim}
               onChange={handleInputChange}
+            />
+            <h1>Methods</h1>
+            <Input
+              id="technologyMethod"
+              type="text"
+              placeholder="Describe your method to get the score"
+              value={formData.technologyMethod}
+              onChange={handleInputChange}
+            />
+            <h1>Graphs</h1>
+            <FileUpload
+              label="Enter Image Result by The Methods"
+              accept="image/*,application/pdf"
+              onChange={(e) => handleFileChange(e, "technologyGraph")}
+            />
+            <h1>Most Significant Aspects to The Score</h1>
+            <Input
+              id="technologyMost1"
+              type="text"
+              placeholder="1. Most Significant Aspects"
+              value={formData.technologyMost1}
+              onChange={handleInputChange}
+            />
+            <Input
+              id="technologyMost2"
+              type="text"
+              placeholder="2. Most Significant Aspects"
+              value={formData.technologyMost2}
+              onChange={handleInputChange}
+            />
+            <Input
+              id="technologyMost3"
+              type="text"
+              placeholder="3. Most Significant Aspects"
+              value={formData.technologyMost3}
+              onChange={handleInputChange}
+            />
+            <h1>Overall Aspects</h1>
+            <FileUpload
+              label="Enter Image Score from Every Aspects"
+              accept="image/*,application/pdf"
+              onChange={(e) => handleFileChange(e, "technologyLeve")}
             />
           </div>
         </div>
