@@ -1,34 +1,46 @@
-// src/app/api/comments/route.ts
-
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    // Mengambil data dari request body
+    const { articleId, name, email, text } = await request.json();
 
-    // Validate the incoming data
-    if (!body.contentId || !body.userId || !body.text) {
+    // Validasi input
+    if (!articleId || !text || text.trim() === "") {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Article ID and comment text are required" },
         { status: 400 }
       );
     }
 
-    // Create a new comment
-    const comment = await prisma.comment.create({
+    const contentId = parseInt(articleId);
+    if (isNaN(contentId)) {
+      return NextResponse.json(
+        { error: "Invalid Article ID" },
+        { status: 400 }
+      );
+    }
+
+    // Membuat komentar baru
+    const newComment = await prisma.comment.create({
       data: {
-        contentId: body.contentId,
-        userId: body.userId,
-        text: body.text,
+        contentId: articleId,
+        name: name && name.trim() !== "" ? name.trim() : "Anonymous", // Atur default jika nama kosong
+        email: email && email.trim() !== "" ? email.trim() : null, // Null jika email kosong
+        text: text.trim(),
       },
     });
 
-    return NextResponse.json(comment, { status: 201 });
+    // Mengembalikan respons JSON dengan komentar yang baru dibuat
+    return NextResponse.json(newComment, { status: 201 });
   } catch (error) {
     console.error("Error creating comment:", error);
     return NextResponse.json(
-      { error: "Error creating comment" },
+      {
+        error: "Failed to create comment",
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     );
   }
@@ -37,39 +49,49 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const contentId = searchParams.get("contentId");
+    const articleId = searchParams.get("articleId");
 
-    if (!contentId) {
+    if (!articleId) {
       return NextResponse.json(
-        { error: "Content ID is required" },
+        { error: "Article ID is required" },
         { status: 400 }
       );
     }
 
-    // Fetch content with comments
-    const content = await prisma.content.findUnique({
+    const contentId = parseInt(articleId, 10);
+    if (isNaN(contentId)) {
+      return NextResponse.json(
+        { error: "Invalid Article ID" },
+        { status: 400 }
+      );
+    }
+
+    // Mendapatkan komentar terkait artikel berdasarkan ID
+    const comments = await prisma.comment.findMany({
       where: {
-        id: parseInt(contentId),
+        contentId: contentId,
       },
-      include: {
-        comments: true,
-        supportingDocs: true,
-        galleries: true,
-        videoLinks: true,
-        maps: true,
+      orderBy: {
+        createdAt: "desc",
       },
     });
 
-    if (!content) {
-      return NextResponse.json({ error: "Content not found" }, { status: 404 });
+    // Pastikan respons JSON valid
+    if (!comments || comments.length === 0) {
+      return NextResponse.json(
+        { message: "No comments found for this article" },
+        { status: 200 }
+      );
     }
 
-    // Return content with related comments and other relations
-    return NextResponse.json(content, { status: 200 });
+    return NextResponse.json(comments, { status: 200 });
   } catch (error) {
-    console.error("Error fetching content with comments:", error);
+    console.error("Error fetching comments:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      {
+        error: "Failed to fetch comments",
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     );
   }

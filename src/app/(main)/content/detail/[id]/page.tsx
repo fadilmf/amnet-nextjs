@@ -59,12 +59,24 @@ interface Content {
   existingCondition21: string | null;
   existingCondition22: string | null;
   existingCondition23: string | null;
+  comments: Comment[];
+}
+
+interface Comment {
+  id: number;
+  name: string | null;
+  email: string | null;
+  text: string;
+  createdAt: string;
 }
 
 export default function ArticleDetail() {
   const [content, setContent] = useState<Content | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [commentText, setCommentText] = useState("");
+  const [commentName, setCommentName] = useState("");
+  const [commentEmail, setCommentEmail] = useState("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentMapIndex, setCurrentMapIndex] = useState(0);
 
@@ -114,6 +126,33 @@ export default function ArticleDetail() {
 
   const handleNextMap = () => {
     setCurrentMapIndex((prev) => (prev === maps.length - 1 ? 0 : prev + 1));
+  };
+
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      // Mengirim request POST ke rute /api/comments dengan format yang diminta
+      await axios.post(`/api/comments`, {
+        articleId: parseInt(id),
+        name: commentName || "Anonymous",
+        email: commentEmail || null,
+        text: commentText,
+      });
+
+      // Reset input form setelah komentar berhasil dikirim
+      setCommentText("");
+      setCommentName("");
+      setCommentEmail("");
+
+      // Refresh komentar setelah pengiriman
+      // const updatedContent = await axios.get(`/api/content/${id}`);
+      const response = await axios.get(`/api/content/${id}`);
+      setContent(response.data);
+      // setContent(updatedContent.data);
+    } catch (error) {
+      console.error("Error submitting comment:", error);
+      setError(`Failed to submit comment: ${error}`);
+    }
   };
 
   if (loading) return <div>Loading...</div>;
@@ -445,12 +484,11 @@ export default function ArticleDetail() {
         </section>
       )}
 
-      <section className="mb-8 bg-white px-16">
+      {/* <section className="mb-8 bg-white px-16">
         <div className="flex flex-col items-center py-8">
           <h2 className="text-2xl font-semibold mb-4">Comments</h2>
           <div className="w-1/4 h-1 bg-gray-800 my-2"></div>
           <div className="space-y-4 w-full mt-8">
-            {/* Existing comments */}
             <div className="bg-muted p-4 rounded-lg">
               <div className="flex justify-between mb-2">
                 <span className="font-medium">John Doe</span>
@@ -458,13 +496,61 @@ export default function ArticleDetail() {
               </div>
               <p>This is a great initiative for mangrove conservation!</p>
             </div>
-            {/* Comment form */}
             <form className="space-y-4">
               <Textarea
                 placeholder="Add a comment..."
                 className="min-h-[100px]"
               />
               <Button className="bg-green-800 hover:bg-green-900">
+                Post Comment
+              </Button>
+            </form>
+          </div>
+        </div>
+      </section> */}
+
+      <section className="mb-8 bg-white px-16">
+        <div className="flex flex-col items-center py-8">
+          <h2 className="text-2xl font-semibold mb-4">Comments</h2>
+          <div className="w-1/4 h-1 bg-gray-800 my-2"></div>
+          <div className="space-y-4 w-full mt-8">
+            {/* Existing comments */}
+            {content.comments?.map((comment) => (
+              <div key={comment.id} className="bg-muted p-4 rounded-lg">
+                <div className="flex justify-between mb-2">
+                  <span className="font-medium">
+                    {comment.name || "Anonymous"}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {new Date(comment.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <p>{comment.text}</p>
+              </div>
+            ))}
+            {/* Comment form */}
+            <form className="space-y-4" onSubmit={handleCommentSubmit}>
+              <input
+                type="text"
+                placeholder="Your Name (optional)"
+                className="w-full p-2 border rounded"
+                value={commentName}
+                onChange={(e) => setCommentName(e.target.value)}
+              />
+              <input
+                type="email"
+                placeholder="Your Email (optional)"
+                className="w-full p-2 border rounded"
+                value={commentEmail}
+                onChange={(e) => setCommentEmail(e.target.value)}
+              />
+              <Textarea
+                placeholder="Add a comment..."
+                className="min-h-[100px]"
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+              />
+              <Button type="submit" className="bg-green-800 hover:bg-green-900">
                 Post Comment
               </Button>
             </form>

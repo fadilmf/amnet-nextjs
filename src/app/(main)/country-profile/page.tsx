@@ -12,7 +12,7 @@ const countries = [
   {
     name: "Malaysia",
     nickname: "The Harmony of Cultures",
-    flag: "/malaysia.png",
+    flag: "https://flagcdn.com/h60/my.png",
     color: "bg-yellow-400",
     content:
       "In Malaysia, the harmonious blend of Malay, Chinese, Indian, and indigenous cultures creates a symphony of colors and experiences. Its mangrove-rich coastlines not only protect the land but nourish the communities that call it home. The Petronas Towers soar into the sky, a modern beacon of Malaysia's vision, while ancient rainforests whisper stories of a timeless past.",

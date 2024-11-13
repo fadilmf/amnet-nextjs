@@ -72,7 +72,7 @@ export function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48">
               <DropdownMenuItem asChild>
-                <Link href="/" className="w-full">
+                <Link href="/country-profile" className="w-full">
                   Country Profile
                 </Link>
               </DropdownMenuItem>
