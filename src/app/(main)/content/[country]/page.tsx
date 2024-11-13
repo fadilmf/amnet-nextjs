@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import { AiFillFrown } from "react-icons/ai";
 import CountryArticlesList from "@/components/country-articles-list";
 
 type Country =
@@ -119,22 +120,24 @@ export default async function CountryContentPage({
         <Image
           src={countryDataMap[country].flagUrl}
           alt={`${countryDataMap[country].name} flag`}
-          width={24}
-          height={18}
+          width={50}
+          height={50}
           className="mr-2"
         />
         <h1 className="text-3xl font-bold">
-          Articles in {countryDataMap[country].name}
+          Articles from {countryDataMap[country].name}
         </h1>
       </div>
 
       {countryArticles.length > 0 ? (
         <CountryArticlesList articles={countryArticles} />
       ) : (
-        <div className="h-[800px] flex items-center justify-center">
+        <div className="h-[800px] flex flex-col items-center justify-center text-gray-500">
+          <AiFillFrown size={200} className="mb-4" />
+          <p className="text-5xl font-semibold mb-2">OOPS!</p>
           <p className="text-center text-lg">
-            OOPS! It looks like no articles have been uploaded from this country
-            yet. Contact your country admin or sign up to become one!
+            It looks like no articles have been uploaded from this country yet.
+            Contact your country admin or sign up to become one!
           </p>
         </div>
       )}
