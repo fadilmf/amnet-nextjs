@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import axios from "axios";
 import { useParams } from "next/navigation";
+import ExistingCondition from "@/components/ExistingCondition";
 
 interface Content {
   id: number;
@@ -192,7 +193,7 @@ export default function ArticleDetail() {
             Existing Condition
           </h2>
           <div className="w-1/4 h-1 bg-gray-800 my-2"></div>
-
+          <ExistingCondition />
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="condition1">
               <AccordionTrigger>Institutional Arrangement</AccordionTrigger>
