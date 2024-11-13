@@ -83,12 +83,12 @@ export function Header() {
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/" className="w-full">
-                  Forum
+                  FAQ
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/about-us" className="w-full">
-                  AMNET
+                  About Amnet
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
