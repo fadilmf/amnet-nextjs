@@ -46,6 +46,7 @@ model User {
   notifications Notification[] // One user can have multiple notifications
   contents      Content[] // One user can create multiple content items
   bookmarks     Bookmark[] // One user can bookmark multiple contents
+  comment       Comment[]
 }
 
 model VisitorHistory {
@@ -94,7 +95,7 @@ model Country {
 }
 
 model Content {
-  id                  Int       @id @default(autoincrement())
+  id                  Int     @id @default(autoincrement())
   userId              String?
   email               String?
   countryId           Int?
@@ -104,19 +105,50 @@ model Content {
   cover               Bytes?
   summary             String?
   keyword             String?
-  ecologyDim          String?
-  socialDim           String?
-  economyDim          String?
-  institutionalDim    String?
-  technologyDim       String?
+  ecologyDim          Float?
+  ecologyMethod       String?
+  ecologyMost1        String?
+  ecologyMost2        String?
+  ecologyMost3        String?
+  socialDim           Float?
+  socialMethod        String?
+  socialMost1         String?
+  socialMost2         String?
+  socialMost3         String?
+  economyDim          Float?
+  economyMethod       String?
+  economyMost1        String?
+  economyMost2        String?
+  economyMost3        String?
+  institutionalDim    Float?
+  institutionalMethod String?
+  institutionalMost1  String?
+  institutionalMost2  String?
+  institutionalMost3  String?
+  technologyDim       Float?
+  technologyMethod    String?
+  technologyMost1     String?
+  technologyMost2     String?
+  technologyMost3     String?
   sustainability      String?
-  videoLink           String?
-  attachmentDoc       Bytes?
-  supportingDoc       Bytes?
-  visitorRegistered   Int?
-  visitorPublic       Int?
-  createdAt           DateTime? @default(now())
-  updatedAt           DateTime? @updatedAt
+  sustainabilityIndex Float?
+
+  ecologyGraph       Bytes? // Kolom untuk menyimpan ecologyGraph
+  ecologyLevel       Bytes? // Kolom untuk menyimpan ecologyLeve
+  socialGraph        Bytes? // Kolom untuk menyimpan socialGraph
+  socialLevel        Bytes? // Kolom untuk menyimpan socialLeve
+  economyGraph       Bytes? // Kolom untuk menyimpan economyGraph
+  economyLevel       Bytes? // Kolom untuk menyimpan economyLeve
+  institutionalGraph Bytes? // Kolom untuk menyimpan institutionalGraph
+  institutionalLevel Bytes? // Kolom untuk menyimpan institutionalLeve
+  technologyGraph    Bytes? // Kolom untuk menyimpan technologyGraph
+  technologyLevel    Bytes? // Kolom untuk menyimpan technologyLeve
+
+  visitorRegistered Int?
+  visitorPublic     Int?
+  createdAt         DateTime? @default(now())
+  updatedAt         DateTime? @updatedAt
+
   existingCondition1  String?
   existingCondition2  String?
   existingCondition3  String?
@@ -127,11 +159,70 @@ model Content {
   existingCondition8  String?
   existingCondition9  String?
   existingCondition10 String?
+  existingCondition11 String?
+  existingCondition12 String?
+  existingCondition13 String?
+  existingCondition14 String?
+  existingCondition15 String?
+  existingCondition16 String?
+  existingCondition17 String?
+  existingCondition18 String?
+  existingCondition19 String?
+  existingCondition20 String?
+  existingCondition21 String?
+  existingCondition22 String?
+  existingCondition23 String?
 
   // Relations
-  user      User?      @relation(fields: [userId], references: [id], onDelete: Cascade) // Many-to-one relation with User
-  country   Country?   @relation(fields: [countryId], references: [id], onDelete: SetNull) // Many-to-one relation with Country
-  bookmarks Bookmark[] // One content item can have multiple bookmarks
+  user           User?           @relation(fields: [userId], references: [id], onDelete: Cascade) // Many-to-one relation with User
+  country        Country?        @relation(fields: [countryId], references: [id], onDelete: SetNull) // Many-to-one relation with Country
+  bookmarks      Bookmark[] // One content item can have multiple bookmarks
+  supportingDocs SupportingDoc[] // One-to-many relation with SupportingDoc
+  galleries      Gallery[] // One-to-many relation with Gallery
+  videoLinks     VideoLink[] // One-to-many relation with VideoLink
+  maps           Map[] // One-to-many relation with Map
+  comments       Comment[] // One-to-many relation with Comment
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  contentId Int
+  userId    String
+  text      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SupportingDoc {
+  id        Int     @id @default(autoincrement())
+  contentId Int
+  file      Bytes // The actual file content
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+}
+
+model Gallery {
+  id        Int     @id @default(autoincrement())
+  contentId Int
+  image     Bytes // The actual image content
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+}
+
+model VideoLink {
+  id        Int     @id @default(autoincrement())
+  contentId Int
+  url       String // URL of the video
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+}
+
+model Map {
+  id        Int     @id @default(autoincrement())
+  contentId Int
+  mapFile   Bytes // The actual map content
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 }
 
 model Bookmark {

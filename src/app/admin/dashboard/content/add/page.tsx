@@ -24,130 +24,231 @@ type FormData = {
   email: string;
   summary: string;
   keyword: string;
-  existingConditions: { [key: string]: string };
+  existingCondition1: string;
+  existingCondition2: string;
+  existingCondition3: string;
+  existingCondition4: string;
+  existingCondition5: string;
+  existingCondition6: string;
+  existingCondition7: string;
+  existingCondition8: string;
+  existingCondition9: string;
+  existingCondition10: string;
+  existingCondition11: string;
+  existingCondition12: string;
+  existingCondition13: string;
+  existingCondition14: string;
+  existingCondition15: string;
+  existingCondition16: string;
+  existingCondition17: string;
+  existingCondition18: string;
+  existingCondition19: string;
+  existingCondition20: string;
+  existingCondition21: string;
+  existingCondition22: string;
+  existingCondition23: string;
   ecologyDim: number;
-  ecologyMethod: string | null;
-  ecologyMost1: string | null;
-  ecologyMost2: string | null;
-  ecologyMost3: string | null;
+  ecologyMethod: string;
+  ecologyMost1: string;
+  ecologyMost2: string;
+  ecologyMost3: string;
   socialDim: number;
-  socialMethod: string | null;
-  socialMost1: string | null;
-  socialMost2: string | null;
-  socialMost3: string | null;
+  socialMethod: string;
+  socialMost1: string;
+  socialMost2: string;
+  socialMost3: string;
   economyDim: number;
-  economyMethod: string | null;
-  economyMost1: string | null;
-  economyMost2: string | null;
-  economyMost3: string | null;
+  economyMethod: string;
+  economyMost1: string;
+  economyMost2: string;
+  economyMost3: string;
   institutionalDim: number;
-  institutionalMethod: string | null;
-  institutionalMost1: string | null;
-  institutionalMost2: string | null;
-  institutionalMost3: string | null;
+  institutionalMethod: string;
+  institutionalMost1: string;
+  institutionalMost2: string;
+  institutionalMost3: string;
   technologyDim: number;
-  technologyMethod: string | null;
-  technologyMost1: string | null;
-  technologyMost2: string | null;
-  technologyMost3: string | null;
+  technologyMethod: string;
+  technologyMost1: string;
+  technologyMost2: string;
+  technologyMost3: string;
   sustainabilityindex: number;
-  video: string;
+  videoLinks: string[];
 };
 
 type FileData = {
-  galeri: string | null;
-  map: string | null;
-  supportingDocument: string | null;
+  cover: string | null;
+  galleries: string[]; // Array to handle multiple galleries
+  maps: string[]; // Array to handle multiple maps
+  supportingDocs: string[]; // Array for supporting documents
+  // galeri: string | null;
+  // map: string | null;
+  // supportingDocument: string | null;
   ecologyGraph: string | null;
-  ecologyLeve: string | null;
+  ecologyLevel: string | null;
   socialGraph: string | null;
-  socialLeve: string | null;
+  socialLevel: string | null;
   economyGraph: string | null;
-  economyLeve: string | null;
+  economyLevel: string | null;
   institutionalGraph: string | null;
-  institutionalLeve: string | null;
+  institutionalLevel: string | null;
   technologyGraph: string | null;
-  technologyLeve: string | null;
+  technologyLevel: string | null;
 };
 
 export default function AddContentPage() {
   const router = useRouter();
+  // const [formData, setFormData] = useState<FormData>({
+  //   title: "",
+  //   author: "",
+  //   date: "",
+  //   institution: "",
+  //   email: "",
+  //   summary: "",
+  //   keyword: "",
+  //   existingCondition1: "",
+  //   existingCondition2: "",
+  //   existingCondition3: "",
+  //   existingCondition4: "",
+  //   existingCondition5: "",
+  //   existingCondition6: "",
+  //   existingCondition7: "",
+  //   existingCondition8: "",
+  //   existingCondition9: "",
+  //   existingCondition10: "",
+  //   existingCondition11: "",
+  //   existingCondition12: "",
+  //   existingCondition13: "",
+  //   existingCondition14: "",
+  //   existingCondition15: "",
+  //   existingCondition16: "",
+  //   existingCondition17: "",
+  //   existingCondition18: "",
+  //   existingCondition19: "",
+  //   existingCondition20: "",
+  //   existingCondition21: "",
+  //   existingCondition22: "",
+  //   existingCondition23: "",
+  //   ecologyDim: 0.0,
+  //   ecologyMethod: "",
+  //   ecologyMost1: "",
+  //   ecologyMost2: "",
+  //   ecologyMost3: "",
+  //   socialDim: 0.0,
+  //   socialMethod: "",
+  //   socialMost1: "",
+  //   socialMost2: "",
+  //   socialMost3: "",
+  //   economyDim: 0.0,
+  //   economyMethod: "",
+  //   economyMost1: "",
+  //   economyMost2: "",
+  //   economyMost3: "",
+  //   institutionalDim: 0.0,
+  //   institutionalMethod: "",
+  //   institutionalMost1: "",
+  //   institutionalMost2: "",
+  //   institutionalMost3: "",
+  //   technologyDim: 0.0,
+  //   technologyMethod: "",
+  //   technologyMost1: "",
+  //   technologyMost2: "",
+  //   technologyMost3: "",
+  //   sustainabilityindex: 0.0,
+  //   videoLinks: [],
+  // });
+
   const [formData, setFormData] = useState<FormData>({
-    title: "",
-    author: "",
-    date: "",
-    institution: "",
-    email: "",
-    summary: "",
-    keyword: "",
-    existingConditions: {
-      existingCondition1: "",
-      existingCondition2: "",
-      existingCondition3: "",
-      existingCondition4: "",
-      existingCondition5: "",
-      existingCondition6: "",
-      existingCondition7: "",
-      existingCondition8: "",
-      existingCondition9: "",
-      existingCondition10: "",
-      existingCondition11: "",
-      existingCondition12: "",
-      existingCondition13: "",
-      existingCondition14: "",
-      existingCondition15: "",
-      existingCondition16: "",
-      existingCondition17: "",
-      existingCondition18: "",
-      existingCondition19: "",
-      existingCondition20: "",
-      existingCondition21: "",
-      existingCondition22: "",
-      existingCondition23: "",
-    },
-    ecologyDim: 0.0,
-    ecologyMethod: "",
-    ecologyMost1: "",
-    ecologyMost2: "",
-    ecologyMost3: "",
-    socialDim: 0.0,
-    socialMethod: "",
-    socialMost1: "",
-    socialMost2: "",
-    socialMost3: "",
-    economyDim: 0.0,
-    economyMethod: "",
-    economyMost1: "",
-    economyMost2: "",
-    economyMost3: "",
-    institutionalDim: 0.0,
-    institutionalMethod: "",
-    institutionalMost1: "",
-    institutionalMost2: "",
-    institutionalMost3: "",
-    technologyDim: 0.0,
-    technologyMethod: "",
-    technologyMost1: "",
-    technologyMost2: "",
-    technologyMost3: "",
-    sustainabilityindex: 0.0,
-    video: "",
+    title: "Default Title",
+    author: "John Doe",
+    date: "2024-01-01",
+    institution: "Default Institution",
+    email: "default@example.com",
+    summary: "This is a default summary for testing.",
+    keyword: "test, example, default",
+    existingCondition1: "Condition 1 example",
+    existingCondition2: "Condition 2 example",
+    existingCondition3: "Condition 3 example",
+    existingCondition4: "Condition 4 example",
+    existingCondition5: "Condition 5 example",
+    existingCondition6: "Condition 6 example",
+    existingCondition7: "Condition 7 example",
+    existingCondition8: "Condition 8 example",
+    existingCondition9: "Condition 9 example",
+    existingCondition10: "Condition 10 example",
+    existingCondition11: "Condition 11 example",
+    existingCondition12: "Condition 12 example",
+    existingCondition13: "Condition 13 example",
+    existingCondition14: "Condition 14 example",
+    existingCondition15: "Condition 15 example",
+    existingCondition16: "Condition 16 example",
+    existingCondition17: "Condition 17 example",
+    existingCondition18: "Condition 18 example",
+    existingCondition19: "Condition 19 example",
+    existingCondition20: "Condition 20 example",
+    existingCondition21: "Condition 21 example",
+    existingCondition22: "Condition 22 example",
+    existingCondition23: "Condition 23 example",
+    ecologyDim: 10,
+    ecologyMethod: "Default ecology method",
+    ecologyMost1: "Most significant aspect 1",
+    ecologyMost2: "Most significant aspect 2",
+    ecologyMost3: "Most significant aspect 3",
+    socialDim: 20,
+    socialMethod: "Default social method",
+    socialMost1: "Most significant aspect 1",
+    socialMost2: "Most significant aspect 2",
+    socialMost3: "Most significant aspect 3",
+    economyDim: 30,
+    economyMethod: "Default economy method",
+    economyMost1: "Most significant aspect 1",
+    economyMost2: "Most significant aspect 2",
+    economyMost3: "Most significant aspect 3",
+    institutionalDim: 40,
+    institutionalMethod: "Default institutional method",
+    institutionalMost1: "Most significant aspect 1",
+    institutionalMost2: "Most significant aspect 2",
+    institutionalMost3: "Most significant aspect 3",
+    technologyDim: 50,
+    technologyMethod: "Default technology method",
+    technologyMost1: "Most significant aspect 1",
+    technologyMost2: "Most significant aspect 2",
+    technologyMost3: "Most significant aspect 3",
+    sustainabilityindex: 99.9,
+    videoLinks: ["https://example.com/video1", "https://example.com/video2"],
   });
+  // const [fileData, setFileData] = useState<FileData>({
+  //   cover: null,
+  //   galleries: [],
+  //   maps: [],
+  //   supportingDocs: [],
+  //   ecologyGraph: null,
+  //   ecologyLeve: null,
+  //   socialGraph: null,
+  //   socialLeve: null,
+  //   economyGraph: null,
+  //   economyLeve: null,
+  //   institutionalGraph: null,
+  //   institutionalLeve: null,
+  //   technologyGraph: null,
+  //   technologyLeve: null,
+  // });
 
   const [fileData, setFileData] = useState<FileData>({
-    galeri: null,
-    map: null,
-    supportingDocument: null,
-    ecologyGraph: null,
-    ecologyLeve: null,
-    socialGraph: null,
-    socialLeve: null,
-    economyGraph: null,
-    economyLeve: null,
-    institutionalGraph: null,
-    institutionalLeve: null,
-    technologyGraph: null,
-    technologyLeve: null,
+    cover: null,
+    galleries: ["data:image/jpeg;base64,defaultBase64String"],
+    maps: ["data:image/jpeg;base64,defaultBase64String"],
+    supportingDocs: ["data:application/pdf;base64,defaultBase64String"],
+    ecologyGraph: "data:image/jpeg;base64,defaultBase64String",
+    ecologyLevel: "data:image/jpeg;base64,defaultBase64String",
+    socialGraph: "data:image/jpeg;base64,defaultBase64String",
+    socialLevel: "data:image/jpeg;base64,defaultBase64String",
+    economyGraph: "data:image/jpeg;base64,defaultBase64String",
+    economyLevel: "data:image/jpeg;base64,defaultBase64String",
+    institutionalGraph: "data:image/jpeg;base64,defaultBase64String",
+    institutionalLevel: "data:image/jpeg;base64,defaultBase64String",
+    technologyGraph: "data:image/jpeg;base64,defaultBase64String",
+    technologyLevel: "data:image/jpeg;base64,defaultBase64String",
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -163,27 +264,27 @@ export default function AddContentPage() {
     });
   };
 
-  const handleFieldTitleChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    field: string
-  ) => {
-    setFormData({
-      ...formData,
-      existingConditions: {
-        ...formData.existingConditions,
-        [field]: e.target.value,
-      },
-    });
-  };
+  // const handleFieldTitleChange = (
+  //   e: React.ChangeEvent<HTMLInputElement>,
+  //   field: string
+  // ) => {
+  //   setFormData({
+  //     ...formData,
+  //     existingConditions: {
+  //       ...formData.existingConditions,
+  //       [field]: e.target.value,
+  //     },
+  //   });
+  // };
 
-  const handleRemoveField = (field: string) => {
-    const updatedConditions = { ...formData.existingConditions };
-    delete updatedConditions[field]; // Remove the field from state
-    setFormData({
-      ...formData,
-      existingConditions: updatedConditions,
-    });
-  };
+  // const handleRemoveField = (field: string) => {
+  //   const updatedConditions = { ...formData.existingConditions };
+  //   delete updatedConditions[field]; // Remove the field from state
+  //   setFormData({
+  //     ...formData,
+  //     existingConditions: updatedConditions,
+  //   });
+  // };
 
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -193,13 +294,32 @@ export default function AddContentPage() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
+        const resultString = reader.result as string;
         setFileData((prevFileData) => ({
           ...prevFileData,
-          [label]: reader.result ? reader.result.split(",")[1] : null,
+          [label]: [
+            ...(prevFileData[label] || []),
+            resultString ? resultString.split(",")[1] : null,
+          ],
         }));
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleVideoLinkChange = (index: number, value: string) => {
+    const updatedVideoLinks = [...formData.videoLinks];
+    updatedVideoLinks[index] = value;
+    setFormData({ ...formData, videoLinks: updatedVideoLinks });
+  };
+
+  const addVideoLink = () => {
+    setFormData({ ...formData, videoLinks: [...formData.videoLinks, ""] });
+  };
+
+  const removeVideoLink = (index: number) => {
+    const updatedVideoLinks = formData.videoLinks.filter((_, i) => i !== index);
+    setFormData({ ...formData, videoLinks: updatedVideoLinks });
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -209,9 +329,20 @@ export default function AddContentPage() {
 
     const contentData = {
       ...formData,
-      cover: fileData.galeri,
-      attachmentDoc: fileData.map,
-      supportingDoc: fileData.supportingDocument,
+      cover: fileData.cover,
+      galleries: fileData.galleries,
+      maps: fileData.maps,
+      supportingDocs: fileData.supportingDocs,
+      ecologyGraph: fileData.ecologyGraph,
+      ecologyLevel: fileData.ecologyLevel,
+      socialGraph: fileData.socialGraph,
+      socialLevel: fileData.socialLevel,
+      economyGraph: fileData.economyGraph,
+      economyLevel: fileData.economyLevel,
+      institutionalGraph: fileData.institutionalGraph,
+      institutionalLevel: fileData.institutionalLevel,
+      technologyGraph: fileData.technologyGraph,
+      technologyLevel: fileData.technologyLevel,
     };
 
     try {
@@ -236,7 +367,29 @@ export default function AddContentPage() {
         email: "",
         summary: "",
         keyword: "",
-        existingConditions: {},
+        existingCondition1: "",
+        existingCondition2: "",
+        existingCondition3: "",
+        existingCondition4: "",
+        existingCondition5: "",
+        existingCondition6: "",
+        existingCondition7: "",
+        existingCondition8: "",
+        existingCondition9: "",
+        existingCondition10: "",
+        existingCondition11: "",
+        existingCondition12: "",
+        existingCondition13: "",
+        existingCondition14: "",
+        existingCondition15: "",
+        existingCondition16: "",
+        existingCondition17: "",
+        existingCondition18: "",
+        existingCondition19: "",
+        existingCondition20: "",
+        existingCondition21: "",
+        existingCondition22: "",
+        existingCondition23: "",
         ecologyDim: 0.0,
         ecologyMethod: "",
         ecologyMost1: "",
@@ -263,23 +416,24 @@ export default function AddContentPage() {
         technologyMost2: "",
         technologyMost3: "",
         sustainabilityindex: 0.0,
-        video: "",
+        videoLinks: [],
       });
 
       setFileData({
-        galeri: null,
-        map: null,
-        supportingDocument: null,
+        cover: null,
+        galleries: [],
+        maps: [],
+        supportingDocs: [],
         ecologyGraph: null,
-        ecologyLeve: null,
+        ecologyLevel: null,
         socialGraph: null,
-        socialLeve: null,
+        socialLevel: null,
         economyGraph: null,
-        economyLeve: null,
+        economyLevel: null,
         institutionalGraph: null,
-        institutionalLeve: null,
+        institutionalLevel: null,
         technologyGraph: null,
-        technologyLeve: null,
+        technologyLevel: null,
       });
 
       router.push("/admin/dashboard/content");
@@ -313,6 +467,14 @@ export default function AddContentPage() {
             value={formData.title}
             onChange={handleInputChange}
             required
+          />
+        </div>
+        <div>
+          <Label htmlFor="cover">Upload Cover Image</Label>
+          <FileUpload
+            label="Choose a cover image"
+            accept="image/*"
+            onChange={(e) => handleFileChange(e, "cover")}
           />
         </div>
         <div>
@@ -749,7 +911,7 @@ export default function AddContentPage() {
             <FileUpload
               label="Enter Image Score from Every Aspects"
               accept="image/*,application/pdf"
-              onChange={(e) => handleFileChange(e, "ecologyLeve")}
+              onChange={(e) => handleFileChange(e, "ecologyLevel")}
             />
           </div>
 
@@ -806,7 +968,7 @@ export default function AddContentPage() {
             <FileUpload
               label="Enter Image Score from Every Aspects"
               accept="image/*,application/pdf"
-              onChange={(e) => handleFileChange(e, "socialLeve")}
+              onChange={(e) => handleFileChange(e, "socialLevel")}
             />
           </div>
 
@@ -863,7 +1025,7 @@ export default function AddContentPage() {
             <FileUpload
               label="Enter Image Score from Every Aspects"
               accept="image/*,application/pdf"
-              onChange={(e) => handleFileChange(e, "economyLeve")}
+              onChange={(e) => handleFileChange(e, "economyLevel")}
             />
           </div>
 
@@ -920,7 +1082,7 @@ export default function AddContentPage() {
             <FileUpload
               label="Enter Image Score from Every Aspects"
               accept="image/*,application/pdf"
-              onChange={(e) => handleFileChange(e, "institutionalLeve")}
+              onChange={(e) => handleFileChange(e, "institutionalLevel")}
             />
           </div>
 
@@ -977,7 +1139,7 @@ export default function AddContentPage() {
             <FileUpload
               label="Enter Image Score from Every Aspects"
               accept="image/*,application/pdf"
-              onChange={(e) => handleFileChange(e, "technologyLeve")}
+              onChange={(e) => handleFileChange(e, "technologyLevel")}
             />
           </div>
         </div>
@@ -985,12 +1147,64 @@ export default function AddContentPage() {
         {/* File Uploads */}
         <div className="mt-8">
           <h2 className="text-lg font-semibold mb-4">File Uploads</h2>
-          <FileUpload
-            label="Galeri"
-            accept="image/*,application/pdf"
-            onChange={(e) => handleFileChange(e, "galeri")}
-          />
-          <FileUpload
+          <div>
+            <Label htmlFor="galleries">Galleries</Label>
+            <FileUpload
+              label="Add a gallery image"
+              accept="image/*"
+              onChange={(e) => handleFileChange(e, "galleries")}
+            />
+            {fileData.galleries.map((gallery, index) => (
+              <p key={index}>Gallery image {index + 1} uploaded</p>
+            ))}
+          </div>
+          <div>
+            <Label htmlFor="maps">Add Map Images</Label>
+            <FileUpload
+              label="Add a map image"
+              accept="image/*"
+              onChange={(e) => handleFileChange(e, "maps")}
+            />
+            {fileData.maps.map((map, index) => (
+              <p key={index}>Maps image {index + 1} uploaded</p>
+            ))}
+          </div>
+          <div>
+            <Label htmlFor="supportingDocs">Add Supporting Documents</Label>
+            <FileUpload
+              label="Add a gallery image"
+              accept="pdf"
+              onChange={(e) => handleFileChange(e, "supportingDocs")}
+            />
+            {fileData.supportingDocs.map((supportingDoc, index) => (
+              <p key={index}>Gallery image {index + 1} uploaded</p>
+            ))}
+          </div>
+          <div>
+            <Label htmlFor="videoLinks">Video Links</Label>
+            {formData.videoLinks.map((link, index) => (
+              <div key={index} className="flex items-center mb-2">
+                <Input
+                  type="text"
+                  value={link}
+                  placeholder={`Video Link ${index + 1}`}
+                  onChange={(e) => handleVideoLinkChange(index, e.target.value)}
+                />
+                <Button
+                  variant="secondary"
+                  type="button"
+                  onClick={() => removeVideoLink(index)}
+                >
+                  Remove
+                </Button>
+              </div>
+            ))}
+            <Button variant="default" type="button" onClick={addVideoLink}>
+              Add Video Link
+            </Button>
+          </div>
+
+          {/* <FileUpload
             label="Map"
             accept="image/*,application/pdf"
             onChange={(e) => handleFileChange(e, "map")}
@@ -999,7 +1213,7 @@ export default function AddContentPage() {
             label="Supporting Document"
             accept="image/*,application/pdf"
             onChange={(e) => handleFileChange(e, "supportingDocument")}
-          />
+          /> */}
         </div>
 
         {/* Action Buttons */}

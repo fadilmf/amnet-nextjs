@@ -132,9 +132,9 @@ export default function AdminContentPage() {
           <p className="text-gray-500">Belum ada data</p>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {yourContent.map((article) => (
+            {yourContent.map((article, index) => (
               <ArticleCard
-                key={article.id}
+                key={`${article.id}-${index}`}
                 id={article.id}
                 title={article.title}
                 summary={article.summary}
@@ -142,7 +142,6 @@ export default function AdminContentPage() {
                 date={article.date}
                 keywords={article.keyword.split(",")}
                 imageUrl={article.cover}
-                // imageUrl={""}
               />
             ))}
           </div>
