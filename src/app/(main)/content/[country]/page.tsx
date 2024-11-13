@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import { AiFillFrown } from "react-icons/ai";
+import { Frown } from "lucide-react";
 import CountryArticlesList from "@/components/country-articles-list";
 
 type Country =
@@ -133,7 +133,7 @@ export default async function CountryContentPage({
         <CountryArticlesList articles={countryArticles} />
       ) : (
         <div className="h-[800px] flex flex-col items-center justify-center text-gray-500">
-          <AiFillFrown size={200} className="mb-4" />
+          <Frown size={200} className="mb-4" />
           <p className="text-5xl font-semibold mb-2">OOPS!</p>
           <p className="text-center text-lg">
             It looks like no articles have been uploaded from this country yet.
