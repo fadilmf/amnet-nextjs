@@ -2,12 +2,19 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  Leaf,
+  Users,
+  DollarSign,
+  Building2,
+  Cpu,
+  X,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
 import axios from "axios";
 import { useParams } from "next/navigation";
 
@@ -120,7 +127,6 @@ const ExistingConditionCarousel = ({ content }: { content: Content }) => {
             {content[`existingCondition${activeIndex + 1}` as keyof Content] ||
               "No data available"}
           </p>
-          {/* Counter */}
           <div className="text-center mt-4">
             <span className="text-green-800 text-xl">{activeIndex + 1}/23</span>
           </div>
@@ -160,6 +166,141 @@ const ExistingConditionCarousel = ({ content }: { content: Content }) => {
   );
 };
 
+const dimensions = [
+  { name: "Ecology", icon: Leaf, color: "#2E7D32", score: 75 }, // Hijau
+  { name: "Social", icon: Users, color: "#1565C0", score: 68 }, // Biru
+  { name: "Economy", icon: DollarSign, color: "#EF6C00", score: 82 }, // Oranye
+  { name: "Institutional", icon: Building2, color: "#5E35B1", score: 70 }, // Ungu
+  { name: "Technology", icon: Cpu, color: "#D32F2F", score: 88 }, // Merah
+];
+
+const CircularScore = ({ score, color }) => (
+  <motion.div
+    className="relative w-40 h-40"
+    initial={{ scale: 0, opacity: 0 }}
+    animate={{ scale: 1, opacity: 1 }}
+    transition={{ duration: 0.5, type: "spring", stiffness: 260, damping: 20 }}
+  >
+    <svg className="w-full h-full" viewBox="0 0 100 100">
+      <motion.circle
+        className="text-gray-200 stroke-current"
+        strokeWidth="10"
+        cx="50"
+        cy="50"
+        r="40"
+        fill="transparent"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 1 }}
+      />
+      <motion.circle
+        className={`text-${color}-500 progress-ring__circle stroke-current`}
+        strokeWidth="10"
+        strokeLinecap="round"
+        cx="50"
+        cy="50"
+        r="40"
+        fill="transparent"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: score / 100 }}
+        transition={{ duration: 1, delay: 0.5 }}
+      />
+    </svg>
+    <motion.div
+      className="absolute inset-0 flex flex-col items-center justify-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 1 }}
+    >
+      <span className="text-4xl font-bold">{score}%</span>
+      <span className="text-sm font-medium">Sustainability Score</span>
+    </motion.div>
+  </motion.div>
+);
+
+const DimensionCard = ({ dimension, content, isActive, onClick, onClose }) => {
+  const data = {
+    method:
+      content[`${dimension.name.toLowerCase()}Dim`] || "Method not available",
+    aspects: ["Aspect 1", "Aspect 2", "Aspect 3"], // Replace with actual aspects if available
+    methodGraph: "/placeholder.svg?height=200&width=300",
+    aspectsGraph: "/placeholder.svg?height=200&width=300",
+  };
+
+  return (
+    <motion.div
+      layout
+      className={`bg-white rounded-lg shadow-lg overflow-hidden ${
+        isActive ? "fixed inset-4 z-50 max-w-4xl mx-auto" : "cursor-pointer"
+      }`}
+      onClick={!isActive ? onClick : undefined}
+    >
+      <div
+        className={`p-4 ${isActive ? "pb-2" : ""}`}
+        style={{ backgroundColor: "white" }}
+      >
+        <div className="flex justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <dimension.icon
+              style={{ color: dimension.color }}
+              className="w-8 h-8"
+            />
+            <h2
+              style={{ color: dimension.color }}
+              className="text-2xl font-bold"
+            >
+              {dimension.name} Dimension
+            </h2>
+          </div>
+          {isActive && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="p-2 rounded-full bg-white shadow-md hover:bg-gray-100 transition-colors"
+              aria-label="Close"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          )}
+        </div>
+      </div>
+      {isActive && (
+        <div className="p-4 space-y-6 overflow-y-auto max-h-[calc(100vh-200px)]">
+          <div className="flex justify-center">
+            <CircularScore score={dimension.score} color={dimension.color} />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Method</h3>
+            <p className="text-gray-600 mb-4">{data.method}</p>
+            <img
+              src={data.methodGraph}
+              alt={`${dimension.name} method graph`}
+              className="w-full h-auto rounded-lg"
+            />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold mb-2">
+              Most Significant Aspects
+            </h3>
+            <ul className="list-disc list-inside text-gray-600 mb-4">
+              {data.aspects.map((aspect, index) => (
+                <li key={index}>{aspect}</li>
+              ))}
+            </ul>
+            <img
+              src={data.aspectsGraph}
+              alt={`${dimension.name} aspects graph`}
+              className="w-full h-auto rounded-lg"
+            />
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
 export default function ArticleDetail() {
   const [content, setContent] = useState<Content | null>(null);
   const [loading, setLoading] = useState(true);
@@ -167,8 +308,7 @@ export default function ArticleDetail() {
   const [commentText, setCommentText] = useState("");
   const [commentName, setCommentName] = useState("");
   const [commentEmail, setCommentEmail] = useState("");
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [currentMapIndex, setCurrentMapIndex] = useState(0);
+  const [activeDimension, setActiveDimension] = useState(null);
 
   const params = useParams();
   const id = params.id as string;
@@ -253,52 +393,23 @@ export default function ArticleDetail() {
 
       <section className="mb-8 px-16">
         <div className="flex flex-col items-center py-8">
-          <h2 className="text-2xl font-semibold mb-4">
-            Analysis Sustainability
+          <h2 className="text-4xl font-bold text-center text-gray-800 mb-12">
+            Sustainability Analysis Results
           </h2>
-          <div className="w-1/4 h-1 bg-gray-800 my-2"></div>
-
-          <Tabs defaultValue="ecology" className="w-full mt-8">
-            <TabsList className="w-full justify-start border-b mb-6">
-              <TabsTrigger value="ecology">Ecology</TabsTrigger>
-              <TabsTrigger value="social">Social</TabsTrigger>
-              <TabsTrigger value="economy">Economy</TabsTrigger>
-              <TabsTrigger value="institutional">Institutional</TabsTrigger>
-              <TabsTrigger value="technology">Technology</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="ecology">
-              <Card className="p-6 bg-gray-50">
-                <div className="prose max-w-none">
-                  <p>{content.ecologyDim}</p>
-                </div>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="social">
-              <Card className="p-6 bg-gray-50">
-                <p>{content.socialDim}</p>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="economy">
-              <Card className="p-6 bg-gray-50">
-                <p>{content.economyDim}</p>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="institutional">
-              <Card className="p-6 bg-gray-50">
-                <p>{content.institutionalDim}</p>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="technology">
-              <Card className="p-6 bg-gray-50">
-                <p>{content.technologyDim}</p>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            <AnimatePresence>
+              {dimensions.map((dimension) => (
+                <DimensionCard
+                  key={dimension.name}
+                  dimension={dimension}
+                  content={content}
+                  isActive={activeDimension === dimension.name}
+                  onClick={() => setActiveDimension(dimension.name)}
+                  onClose={() => setActiveDimension(null)}
+                />
+              ))}
+            </AnimatePresence>
+          </div>
         </div>
       </section>
 
@@ -433,6 +544,16 @@ export default function ArticleDetail() {
           </div>
         </div>
       </section>
+
+      {activeDimension && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={() => setActiveDimension(null)}
+        />
+      )}
     </div>
   );
 }
