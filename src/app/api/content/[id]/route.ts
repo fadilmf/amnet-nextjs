@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 // GET Handler
 export async function GET(request: Request, { params }: any) {
   try {
-    const id = parseInt(params.id, 10);
+    const id = parseInt(await params.id, 10);
 
     if (isNaN(id)) {
       return NextResponse.json(

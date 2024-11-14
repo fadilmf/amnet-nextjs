@@ -98,7 +98,9 @@ const existingConditionTitles = [
   "Financial Analysis of Vegetation Cultivation",
 ];
 
-const ExistingConditionCarousel = ({ content }: { content: Content }) => {
+const ExistingConditionCarousel: React.FC<{ content: Content }> = ({
+  content,
+}) => {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handlePrevious = () => {
@@ -177,7 +179,10 @@ const dimensions = [
   { name: "Technology", icon: Cpu, color: "#D32F2F", score: 88 }, // Merah
 ];
 
-const CircularScore = ({ score, color }) => (
+const CircularScore: React.FC<{ score: number; color: string }> = ({
+  score,
+  color,
+}) => (
   <motion.div
     className="relative w-40 h-40"
     initial={{ scale: 0, opacity: 0 }}
@@ -197,7 +202,7 @@ const CircularScore = ({ score, color }) => (
         transition={{ duration: 1 }}
       />
       <motion.circle
-        className={`text-${color}-500 progress-ring__circle stroke-current`}
+        stroke={color}
         strokeWidth="10"
         strokeLinecap="round"
         cx="50"
@@ -221,10 +226,22 @@ const CircularScore = ({ score, color }) => (
   </motion.div>
 );
 
-const DimensionCard = ({ dimension, content, isActive, onClick, onClose }) => {
+const DimensionCard: React.FC<{
+  dimension: {
+    name: string;
+    icon: React.ElementType;
+    color: string;
+    score: number;
+  };
+  content: Content;
+  isActive: boolean;
+  onClick: () => void;
+  onClose: () => void;
+}> = ({ dimension, content, isActive, onClick, onClose }) => {
   const data = {
     method:
-      content[`${dimension.name.toLowerCase()}Dim`] || "Method not available",
+      content[`${dimension.name.toLowerCase()}Dim` as keyof Content] ||
+      "Method not available",
     aspects: ["Aspect 1", "Aspect 2", "Aspect 3"], // Replace with actual aspects if available
     methodGraph: "/placeholder.svg?height=200&width=300",
     aspectsGraph: "/placeholder.svg?height=200&width=300",
@@ -276,7 +293,13 @@ const DimensionCard = ({ dimension, content, isActive, onClick, onClose }) => {
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-2">Method</h3>
-            <p className="text-gray-600 mb-4">{data.method}</p>
+            <p className="text-gray-600 mb-4">
+              {typeof data.method === "string" ||
+              typeof data.method === "number"
+                ? data.method
+                : "Invalid data"}
+            </p>
+
             <img
               src={data.methodGraph}
               alt={`${dimension.name} method graph`}
@@ -311,8 +334,7 @@ export default function ArticleDetail() {
   const [commentText, setCommentText] = useState("");
   const [commentName, setCommentName] = useState("");
   const [commentEmail, setCommentEmail] = useState("");
-  // const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  // const [currentMapIndex, setCurrentMapIndex] = useState(0);
+  const [activeDimension, setActiveDimension] = useState<string | null>(null);
 
   const params = useParams();
   const id = params.id as string;
@@ -321,8 +343,6 @@ export default function ArticleDetail() {
     const fetchContent = async () => {
       try {
         const response = await axios.get(`/api/content/${id}`);
-        console.log("Content detail response:", response.data.supportingDoc);
-        console.log("ini respon ya: ", response);
         setContent(response.data);
       } catch (err) {
         setError("Failed to fetch content");
