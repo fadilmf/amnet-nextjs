@@ -117,9 +117,11 @@ const ExistingConditionCarousel = ({ content }: { content: Content }) => {
             {existingConditionTitles[activeIndex]}
           </h3>
           <p className="text-gray-600 text-2xl text-justify">
-            {content[`existingCondition${activeIndex + 1}` as keyof Content] ||
-              "No data available"}
+            {(content[
+              `existingCondition${activeIndex + 1}` as keyof Content
+            ] as string) || "No data available"}
           </p>
+
           {/* Counter */}
           <div className="text-center mt-4">
             <span className="text-green-800 text-xl">{activeIndex + 1}/23</span>
