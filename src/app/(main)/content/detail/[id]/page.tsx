@@ -88,6 +88,7 @@ export default function ArticleDetail() {
       try {
         const response = await axios.get(`/api/content/${id}`);
         console.log("Content detail response:", response.data.supportingDoc);
+        console.log("ini respon ya: ", response);
         setContent(response.data);
       } catch (err) {
         setError("Failed to fetch content");

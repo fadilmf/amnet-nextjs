@@ -14,6 +14,9 @@ export async function GET(
     // Find the content by ID
     const content = await prisma.content.findUnique({
       where: { id: parseInt(params.id) },
+      include: {
+        comments: true,
+      },
     });
 
     // If no content is found, return 404
