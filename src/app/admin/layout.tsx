@@ -4,7 +4,7 @@ import "../globals.css";
 import { Header } from "@/components/header";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
 
-const inter = Inter({ subsets: ["latin"] });
+// const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "AMNET",

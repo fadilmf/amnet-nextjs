@@ -1,4 +1,6 @@
-import { notFound } from "next/navigation";
+"use client";
+
+import { notFound, useParams } from "next/navigation";
 import Image from "next/image";
 import { Frown } from "lucide-react";
 import CountryArticlesList from "@/components/country-articles-list";
@@ -90,22 +92,12 @@ const articles = [
   // Add more mock articles as needed
 ];
 
-// `generateStaticParams` to define static paths for the allowed countries
-export async function generateStaticParams() {
-  return Object.keys(countryDataMap).map((country) => ({
-    country,
-  }));
-}
-
-export default async function CountryContentPage({
-  params,
-}: {
-  params: { country: Country };
-}) {
-  const { country } = await params;
+export default function CountryContentPage() {
+  const params = useParams();
+  const country = params?.country as Country;
 
   // Check if the country is valid
-  if (!countryDataMap[country]) {
+  if (!country || !countryDataMap[country]) {
     notFound();
   }
 

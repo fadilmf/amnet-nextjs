@@ -4,10 +4,7 @@ import prisma from "@/lib/prisma";
 import { UserRole, Status } from "@prisma/client";
 
 // GET /users/:id - Get user details
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(req: Request, { params }: any) {
   try {
     // const user = await authorizeUser(Role.ADMIN, Role.SUPER_ADMIN);
 
@@ -19,15 +16,12 @@ export async function GET(
 
     return NextResponse.json(foundUser);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error }, { status: 500 });
   }
 }
 
 // PUT /users/:id - Update user information
-export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(req: Request, { params }: any) {
   try {
     // const user = await authorizeUser(Role.ADMIN, Role.SUPER_ADMIN);
 
@@ -39,15 +33,12 @@ export async function PUT(
     });
     return NextResponse.json(updatedUser);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error }, { status: 500 });
   }
 }
 
 // DELETE /users/:id - Soft delete a user
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: Request, { params }: any) {
   try {
     // const user = await authorizeUser(Role.SUPER_ADMIN);
 
@@ -57,6 +48,6 @@ export async function DELETE(
     });
     return NextResponse.json(deletedUser);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error }, { status: 500 });
   }
 }

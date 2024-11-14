@@ -115,8 +115,9 @@ export default function FAQPage() {
             Frequently Asked Questions
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Find answers to common questions about using our platform. Can't
-            find what you're looking for? Contact our support team.
+            Find answers to common questions about using our platform.
+            Can`&apos;`t find what you`&apos;`re looking for? Contact our
+            support team.
           </p>
         </div>
       </div>

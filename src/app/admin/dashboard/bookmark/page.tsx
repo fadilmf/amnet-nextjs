@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArticleCard } from "@/components/article-card";
+// import { ArticleCard } from "@/components/article-card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -76,10 +76,10 @@ export default function AdminBookmarkPage() {
         {/* Check if there are any filtered articles */}
         {filteredArticles.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredArticles.map((article) => (
+            {/* {filteredArticles.map((article) => (
               // <ArticleCard key={article.id} {...article} />
               <div>tes</div>
-            ))}
+            ))} */}
           </div>
         ) : (
           <p className="text-gray-500 text-center">

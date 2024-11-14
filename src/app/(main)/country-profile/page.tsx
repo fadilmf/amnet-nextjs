@@ -115,7 +115,7 @@ export default function AseanCountries() {
           tradition, and natural beauty intertwines seamlessly, is home to the
           nations that form the ASEAN community. Each country, unique in its
           essence, contributes to a tapestry rich with history, resilience, and
-          dreams. Let's embark on a journey through this extraordinary
+          dreams. Let`&apos;`s embark on a journey through this extraordinary
           collection of lands and people, embracing their stories, strengths,
           and the profound bonds that tie them together.
         </p>

@@ -32,11 +32,11 @@ const countryPostData = [
 
 // Mock data for the popular content table
 const popularContentData = [
-  { id: 1, title: "Mangrove Conservation Techniques", views: 1500, likes: 230 },
-  { id: 2, title: "Sustainable Fishing Practices", views: 1200, likes: 180 },
-  { id: 3, title: "Coral Reef Restoration", views: 1000, likes: 150 },
-  { id: 4, title: "Coastal Ecosystem Management", views: 950, likes: 140 },
-  { id: 5, title: "Marine Biodiversity Protection", views: 900, likes: 130 },
+  { id: 1, title: "Mangrove Conservation Techniques", views: 1500 },
+  { id: 2, title: "Sustainable Fishing Practices", views: 1200 },
+  { id: 3, title: "Coral Reef Restoration", views: 1000 },
+  { id: 4, title: "Coastal Ecosystem Management", views: 950 },
+  { id: 5, title: "Marine Biodiversity Protection", views: 900 },
 ];
 
 export default function AdminDashboard() {
@@ -122,7 +122,7 @@ export default function AdminDashboard() {
                 <TableRow>
                   <TableHead>Title</TableHead>
                   <TableHead>Views</TableHead>
-                  <TableHead>Likes</TableHead>
+                  {/* <TableHead>Likes</TableHead> */}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -130,7 +130,7 @@ export default function AdminDashboard() {
                   <TableRow key={content.id}>
                     <TableCell>{content.title}</TableCell>
                     <TableCell>{content.views}</TableCell>
-                    <TableCell>{content.likes}</TableCell>
+                    {/* <TableCell>{content.likes}</TableCell> */}
                   </TableRow>
                 ))}
               </TableBody>

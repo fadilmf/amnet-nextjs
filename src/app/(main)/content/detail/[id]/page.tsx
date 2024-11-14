@@ -124,9 +124,12 @@ const ExistingConditionCarousel = ({ content }: { content: Content }) => {
             {existingConditionTitles[activeIndex]}
           </h3>
           <p className="text-gray-600 text-2xl text-justify">
-            {content[`existingCondition${activeIndex + 1}` as keyof Content] ||
-              "No data available"}
+            {(content[
+              `existingCondition${activeIndex + 1}` as keyof Content
+            ] as string) || "No data available"}
           </p>
+
+          {/* Counter */}
           <div className="text-center mt-4">
             <span className="text-green-800 text-xl">{activeIndex + 1}/23</span>
           </div>
@@ -308,7 +311,8 @@ export default function ArticleDetail() {
   const [commentText, setCommentText] = useState("");
   const [commentName, setCommentName] = useState("");
   const [commentEmail, setCommentEmail] = useState("");
-  const [activeDimension, setActiveDimension] = useState(null);
+  // const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  // const [currentMapIndex, setCurrentMapIndex] = useState(0);
 
   const params = useParams();
   const id = params.id as string;
@@ -317,6 +321,8 @@ export default function ArticleDetail() {
     const fetchContent = async () => {
       try {
         const response = await axios.get(`/api/content/${id}`);
+        console.log("Content detail response:", response.data.supportingDoc);
+        console.log("ini respon ya: ", response);
         setContent(response.data);
       } catch (err) {
         setError("Failed to fetch content");
