@@ -169,8 +169,8 @@ export default function ArticleDetail() {
   const [commentText, setCommentText] = useState("");
   const [commentName, setCommentName] = useState("");
   const [commentEmail, setCommentEmail] = useState("");
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [currentMapIndex, setCurrentMapIndex] = useState(0);
+  // const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  // const [currentMapIndex, setCurrentMapIndex] = useState(0);
 
   const params = useParams();
   const id = params.id as string;

@@ -26,11 +26,11 @@ interface Article {
 }
 
 // Sample article data
-const articles = [];
+const articles: Article[] = []; // Explicitly type as an array of Article
 
 export default function AdminDraftPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("lastUpdated");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [sortBy, setSortBy] = useState<string>("lastUpdated");
 
   // Filter articles based on search term
   const filteredArticles = articles.filter(
@@ -74,7 +74,7 @@ export default function AdminDraftPage() {
         <h2 className="text-2xl font-semibold mb-4">Drafts</h2>
 
         {/* Check if there are any filtered articles */}
-        {filteredArticles.length > 0 ? (
+        {/* {filteredArticles.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredArticles.map((article) => (
               <ArticleCard key={article.id} {...article} />
@@ -85,7 +85,7 @@ export default function AdminDraftPage() {
             No drafts found. Please add new content or adjust your search
             criteria.
           </p>
-        )}
+        )} */}
 
         <div className="mt-4 text-right">
           <Link href="/content" className="text-green-600">

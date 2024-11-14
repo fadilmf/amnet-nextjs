@@ -6,11 +6,11 @@ import { Badge } from "@/components/ui/badge";
 interface ArticleCardProps {
   id: string;
   title: string;
-  summary: string;
-  author: string;
-  date: string;
-  keywords: string[];
-  imageUrl: string;
+  summary?: string;
+  author?: string;
+  date?: string;
+  keywords?: string[];
+  imageUrl?: string;
 }
 
 export function ArticleCard({
@@ -26,7 +26,7 @@ export function ArticleCard({
     <Card className="flex flex-col h-full overflow-hidden">
       <div className="relative w-full h-48">
         <Image
-          src={imageUrl}
+          src={imageUrl || ""}
           // src={""}
           alt={title}
           fill
@@ -42,7 +42,7 @@ export function ArticleCard({
           <span>{date}</span>
         </div>
         <div className="flex flex-wrap gap-2">
-          {keywords.map((keyword) => (
+          {keywords?.map((keyword) => (
             <Badge key={keyword} variant="secondary">
               {keyword}
             </Badge>

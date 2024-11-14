@@ -79,10 +79,7 @@ export async function POST(request: Request) {
 }
 
 // PUT /api/users/[id] - Update a user
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: Request, { params }: any) {
   try {
     const body = await request.json();
     const updatedUser = await prisma.user.update({
@@ -110,10 +107,7 @@ export async function PUT(
 }
 
 // DELETE /api/users/[id] - Delete a user
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: Request, { params }: any) {
   try {
     await prisma.user.delete({
       where: { id: params.id },
