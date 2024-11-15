@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import axios from "axios";
 import {
   BarChart,
   Bar,
@@ -21,25 +23,60 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-// Mock data for the bar chart
-const countryPostData = [
-  { country: "Indonesia", posts: 120 },
-  { country: "Malaysia", posts: 80 },
-  { country: "Philippines", posts: 100 },
-  { country: "Thailand", posts: 90 },
-  { country: "Vietnam", posts: 70 },
-];
+interface StatisticData {
+  totalContent: number;
+  totalVisitors: number;
+  newUsers: number;
+  registeredUsers: number;
+}
 
-// Mock data for the popular content table
-const popularContentData = [
-  { id: 1, title: "Mangrove Conservation Techniques", views: 1500, likes: 230 },
-  { id: 2, title: "Sustainable Fishing Practices", views: 1200, likes: 180 },
-  { id: 3, title: "Coral Reef Restoration", views: 1000, likes: 150 },
-  { id: 4, title: "Coastal Ecosystem Management", views: 950, likes: 140 },
-  { id: 5, title: "Marine Biodiversity Protection", views: 900, likes: 130 },
-];
+interface PostByCountryData {
+  country: string;
+  posts: number;
+}
+
+interface PopularContentData {
+  id: number;
+  title: string;
+  views: number;
+  likes: number;
+}
 
 export default function StatisticsPage() {
+  const [statistics, setStatistics] = useState<StatisticData | null>(null);
+  const [postsByCountry, setPostsByCountry] = useState<PostByCountryData[]>([]);
+  const [popularContent, setPopularContent] = useState<PopularContentData[]>(
+    []
+  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchStatistics = async () => {
+      try {
+        const response = await axios.get("/api/dashboard");
+        setStatistics(response.data.summary);
+        setPostsByCountry(response.data.postsByCountry);
+        setPopularContent(response.data.mostPopularContent);
+      } catch (err) {
+        setError("Failed to load statistics");
+        console.error("Error fetching statistics:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStatistics();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
+  }
+
   return (
     <div className="flex h-full bg-gray-100 p-4 px-16">
       {/* Main Content */}
@@ -50,7 +87,9 @@ export default function StatisticsPage() {
           <Card className="rounded-lg bg-red-100 text-center p-4">
             <CardContent className="flex flex-col items-center">
               <FileText className="h-10 w-10 text-red-500 mb-2" />
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">
+                {statistics?.totalContent || 0}
+              </div>
               <div className="text-sm text-gray-700">Content</div>
             </CardContent>
           </Card>
@@ -59,7 +98,9 @@ export default function StatisticsPage() {
           <Card className="rounded-lg bg-yellow-100 text-center p-4">
             <CardContent className="flex flex-col items-center">
               <Eye className="h-10 w-10 text-yellow-500 mb-2" />
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">
+                {statistics?.totalVisitors || 0}
+              </div>
               <div className="text-sm text-gray-700">Visitor</div>
             </CardContent>
           </Card>
@@ -68,7 +109,9 @@ export default function StatisticsPage() {
           <Card className="rounded-lg bg-green-100 text-center p-4">
             <CardContent className="flex flex-col items-center">
               <UserPlus className="h-10 w-10 text-green-500 mb-2" />
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">
+                {statistics?.newUsers || 0}
+              </div>
               <div className="text-sm text-gray-700">New User</div>
             </CardContent>
           </Card>
@@ -77,7 +120,9 @@ export default function StatisticsPage() {
           <Card className="rounded-lg bg-purple-100 text-center p-4">
             <CardContent className="flex flex-col items-center">
               <Users className="h-10 w-10 text-purple-500 mb-2" />
-              <div className="text-2xl font-bold">3</div>
+              <div className="text-2xl font-bold">
+                {statistics?.registeredUsers || 0}
+              </div>
               <div className="text-sm text-gray-700">Registered User</div>
             </CardContent>
           </Card>
@@ -92,7 +137,7 @@ export default function StatisticsPage() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={countryPostData}>
+                <BarChart data={postsByCountry}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="country" />
                   <YAxis />
@@ -116,15 +161,13 @@ export default function StatisticsPage() {
                     <TableRow>
                       <TableHead>Title</TableHead>
                       <TableHead>Views</TableHead>
-                      <TableHead>Likes</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {popularContentData.map((content) => (
+                    {popularContent.map((content) => (
                       <TableRow key={content.id}>
                         <TableCell>{content.title}</TableCell>
                         <TableCell>{content.views}</TableCell>
-                        <TableCell>{content.likes}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

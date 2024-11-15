@@ -4,13 +4,13 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 interface ArticleCardProps {
-  id: string;
+  id?: string;
   title: string;
   summary?: string;
   author?: string;
   date?: string;
   keywords?: string[];
-  imageUrl?: string;
+  imageUrl: string | null | undefined;
 }
 
 export function ArticleCard({

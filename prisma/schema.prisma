@@ -29,7 +29,7 @@ model User {
   firstName   String?
   lastName    String?
   email       String?
-  handphone   Int?
+  handphone   String?
   institution String?
   position    String?
   image       Bytes?

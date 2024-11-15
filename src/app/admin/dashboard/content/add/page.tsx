@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { FileUpload } from "@/components/admin/file-upload"; // Custom component for file upload
 import { Download } from "lucide-react";
 import { useRouter } from "next/navigation";
+import imageCompression from "browser-image-compression";
 
 type FormData = {
   title: string;
@@ -273,46 +274,38 @@ export default function AddContentPage() {
     });
   };
 
-  // const handleFieldTitleChange = (
-  //   e: React.ChangeEvent<HTMLInputElement>,
-  //   field: string
-  // ) => {
-  //   setFormData({
-  //     ...formData,
-  //     existingConditions: {
-  //       ...formData.existingConditions,
-  //       [field]: e.target.value,
-  //     },
-  //   });
-  // };
-
-  // const handleRemoveField = (field: string) => {
-  //   const updatedConditions = { ...formData.existingConditions };
-  //   delete updatedConditions[field]; // Remove the field from state
-  //   setFormData({
-  //     ...formData,
-  //     existingConditions: updatedConditions,
-  //   });
-  // };
-
-  const handleFileChange = (
+  const handleFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
     label: keyof FileData
   ) => {
     const file = e.target.files ? e.target.files[0] : null;
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const resultString = reader.result as string;
-        setFileData((prevFileData) => ({
-          ...prevFileData,
-          [label]: [
-            ...(prevFileData[label] || []),
-            resultString ? resultString.split(",")[1] : null,
-          ],
-        }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        // Kompresi gambar sebelum diunggah
+        const options = {
+          maxSizeMB: 1, // Ukuran maksimal dalam MB
+          maxWidthOrHeight: 800, // Resolusi maksimum
+          useWebWorker: true, // Gunakan Web Worker untuk performa
+        };
+
+        const compressedFile = await imageCompression(file, options);
+        const reader = new FileReader();
+
+        reader.onloadend = () => {
+          const resultString = reader.result as string;
+          setFileData((prevFileData) => ({
+            ...prevFileData,
+            [label]: [
+              ...(prevFileData[label] || []),
+              resultString ? resultString.split(",")[1] : null,
+            ],
+          }));
+        };
+
+        reader.readAsDataURL(compressedFile);
+      } catch (error) {
+        console.error("Error during file compression:", error);
+      }
     }
   };
 

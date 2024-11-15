@@ -32,6 +32,7 @@ import {
 interface User {
   id: string;
   username: string;
+  password: string;
   firstName: string | null;
   lastName: string | null;
   email: string | null;
@@ -39,7 +40,7 @@ interface User {
   institution: string | null;
   position: string | null;
   status: "ACTIVE" | "INACTIVE";
-  role: "ADMIN" | "SUPER_ADMIN" | "USER";
+  role: "ADMIN" | "SUPER_ADMIN";
 }
 
 export default function UserManagement() {
@@ -260,7 +261,8 @@ function UserForm({ onSubmit, initialData }: UserFormProps) {
       institution: "",
       position: "",
       status: "ACTIVE",
-      role: "USER",
+      role: "ADMIN",
+      password: "", // Tambahkan default state untuk password
     }
   );
 
@@ -332,6 +334,22 @@ function UserForm({ onSubmit, initialData }: UserFormProps) {
           type="email"
           value={formData.email || ""}
           onChange={handleChange}
+        />
+      </div>
+      <div>
+        <label
+          htmlFor="password"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Password
+        </label>
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          value={formData.password || ""}
+          onChange={handleChange}
+          required={initialData ? false : true} // Password required only for adding new users
         />
       </div>
       <div>
@@ -413,7 +431,7 @@ function UserForm({ onSubmit, initialData }: UserFormProps) {
           onValueChange={(value) =>
             setFormData({
               ...formData,
-              role: value as "ADMIN" | "SUPER_ADMIN" | "USER",
+              role: value as "ADMIN" | "SUPER_ADMIN",
             })
           }
         >
@@ -421,7 +439,6 @@ function UserForm({ onSubmit, initialData }: UserFormProps) {
             <SelectValue placeholder="Select role" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="USER">User</SelectItem>
             <SelectItem value="ADMIN">Admin</SelectItem>
             <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
           </SelectContent>

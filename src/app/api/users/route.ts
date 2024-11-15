@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
+const bcrypt = require("bcrypt");
 // import { PrismaClient } from "@prisma/client";
 
 // const prisma = new PrismaClient();
@@ -47,19 +48,25 @@ export async function POST(request: Request) {
       );
     }
 
+    // Hash the password if it is provided
+    let hashedPassword = null;
+    if (body.password) {
+      const saltRounds = 10;
+      hashedPassword = await bcrypt.hash(body.password, saltRounds);
+    }
+
     const user = await prisma.user.create({
       data: {
         username: body.username,
         email: body.email,
         firstName: body.firstName,
         lastName: body.lastName,
-        handphone: body.handphone ? parseInt(body.handphone) : null,
+        handphone: body.handphone,
         institution: body.institution,
         position: body.position,
         status: body.status,
         role: body.role,
-        // Note: password should be hashed before storing
-        password: body.password,
+        password: hashedPassword, // Store the hashed password
       },
     });
 
@@ -67,10 +74,6 @@ export async function POST(request: Request) {
     return NextResponse.json(user, { status: 201 });
   } catch (error) {
     console.error("Error creating user:", error);
-    // Check for specific Prisma errors
-    // if (error.code === 'P2002') {
-    //   return NextResponse.json({ error: 'A user with this username or email already exists' }, { status: 400 });
-    // }
     return NextResponse.json(
       { error: "Internal Server Error", details: error },
       { status: 500 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import axios from "axios";
 import {
   BarChart,
   Bar,
@@ -21,25 +23,60 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-// Mock data for the bar chart
-const countryPostData = [
-  { country: "Indonesia", posts: 120 },
-  { country: "Malaysia", posts: 80 },
-  { country: "Philippines", posts: 100 },
-  { country: "Thailand", posts: 90 },
-  { country: "Vietnam", posts: 70 },
-];
+interface Summary {
+  totalContent: number;
+  totalVisitors: number;
+  newUsers: number;
+  registeredUsers: number;
+}
 
-// Mock data for the popular content table
-const popularContentData = [
-  { id: 1, title: "Mangrove Conservation Techniques", views: 1500 },
-  { id: 2, title: "Sustainable Fishing Practices", views: 1200 },
-  { id: 3, title: "Coral Reef Restoration", views: 1000 },
-  { id: 4, title: "Coastal Ecosystem Management", views: 950 },
-  { id: 5, title: "Marine Biodiversity Protection", views: 900 },
-];
+interface PostByCountry {
+  country: string;
+  posts: number;
+}
+
+interface PopularContent {
+  title: string;
+  views: number;
+}
+
+interface DashboardData {
+  summary: Summary;
+  postsByCountry: PostByCountry[];
+  mostPopularContent: PopularContent[];
+}
 
 export default function AdminDashboard() {
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+    null
+  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>("");
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await axios.get("/api/dashboard");
+        setDashboardData(response.data);
+        setLoading(false);
+      } catch (err) {
+        setError("Failed to load dashboard data");
+        console.error("Error fetching dashboard data:", err);
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500">{error}</div>;
+  }
+
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Main Content */}
@@ -56,7 +93,9 @@ export default function AdminDashboard() {
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">1,234</div>
+              <div className="text-2xl font-bold">
+                {dashboardData?.summary.totalContent || 0}
+              </div>
             </CardContent>
           </Card>
           <Card>
@@ -67,7 +106,9 @@ export default function AdminDashboard() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">45,678</div>
+              <div className="text-2xl font-bold">
+                {dashboardData?.summary.totalVisitors || 0}
+              </div>
             </CardContent>
           </Card>
           <Card>
@@ -76,7 +117,9 @@ export default function AdminDashboard() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">123</div>
+              <div className="text-2xl font-bold">
+                {dashboardData?.summary.newUsers || 0}
+              </div>
             </CardContent>
           </Card>
           <Card>
@@ -87,7 +130,9 @@ export default function AdminDashboard() {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">5,678</div>
+              <div className="text-2xl font-bold">
+                {dashboardData?.summary.registeredUsers || 0}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -99,7 +144,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={countryPostData}>
+              <BarChart data={dashboardData?.postsByCountry || []}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="country" />
                 <YAxis />
@@ -122,15 +167,13 @@ export default function AdminDashboard() {
                 <TableRow>
                   <TableHead>Title</TableHead>
                   <TableHead>Views</TableHead>
-                  {/* <TableHead>Likes</TableHead> */}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {popularContentData.map((content) => (
-                  <TableRow key={content.id}>
+                {dashboardData?.mostPopularContent.map((content) => (
+                  <TableRow key={content.title}>
                     <TableCell>{content.title}</TableCell>
                     <TableCell>{content.views}</TableCell>
-                    {/* <TableCell>{content.likes}</TableCell> */}
                   </TableRow>
                 ))}
               </TableBody>

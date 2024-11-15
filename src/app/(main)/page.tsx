@@ -1,10 +1,41 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import CarouselHome from "@/components/carousel-home";
 import BestPracticesDimensions from "@/components/best-practice-dimension";
 import { NewsCard } from "@/components/news/news-card";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { ArticleCard } from "@/components/article-card";
+
+interface Article {
+  id: number;
+  title: string;
+  summary: string;
+  cover: string | null; // Base64 string for cover image or null
+}
 
 export default function Home() {
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        const response = await axios.get("/api/content/latest");
+        setArticles(response.data);
+      } catch (err) {
+        setError("Failed to load articles");
+        console.error("Error fetching articles:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArticles();
+  }, []);
   const countries = [
     {
       name: "Brunei Darussalam",
@@ -107,51 +138,27 @@ export default function Home() {
           </div>
         </div>
       </section>
-      {/* News Section */}
+
       <section className="bg-gray-50 flex flex-col w-full px-4 py-16">
         <div className="flex flex-col items-center p-4">
-          <h2 className="text-2xl font-semibold text-center mb-8">NEWS</h2>
+          <h2 className="text-2xl font-semibold text-center mb-8">ARTICLES</h2>
           <div className="w-1/4 h-1 bg-gray-800 my-2"></div>
-          <div className="grid md:grid-cols-3 gap-6 mt-8">
-            {/* Add news cards here */}
-            <NewsCard
-              title="Build prototypes with thousands of components."
-              description="berita tes"
-            />
-
-            <NewsCard
-              title="Lorem ipsum"
-              description="Lorem ipsum, dolor sit amet consectetur adipisicing elit. Sint neque aliquam Lorem ipsum Lorem ipsum Lorem ipsum"
-            />
-            <NewsCard
-              title="tes"
-              description="Lorem ipsum, dolor sit amet consectetur adipisicing elit. Sint neque aliquam"
-            />
-          </div>
-        </div>
-      </section>
-      {/* Statistics Section */}
-      <section className="bg-white py-16">
-        <div className="flex flex-col items-center">
-          <h2 className="text-2xl font-semibold text-center mb-8">
-            STATISTICS
-          </h2>
-          <div className="w-1/4 h-1 bg-gray-800 my-2"></div>
-
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-44 ">
-            <div className="flex flex-col items-center">
-              <h1 className="text-7xl font-bold">9</h1>
-              <h1 className="mt-4 text-xl">Countries</h1>
+          {loading ? (
+            <p>Loading articles...</p>
+          ) : error ? (
+            <p className="text-red-500">{error}</p>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-6 mt-8">
+              {articles.map((article) => (
+                <ArticleCard
+                  key={article.id}
+                  title={article.title}
+                  summary={article.summary}
+                  imageUrl={article.cover}
+                />
+              ))}
             </div>
-            <div className="flex flex-col items-center">
-              <h1 className="text-7xl font-bold">2</h1>
-              <h1 className="mt-4 text-xl">Total Best Practices</h1>
-            </div>
-            <div className="flex flex-col items-center">
-              <h1 className="text-7xl font-bold">1</h1>
-              <h1 className="mt-4 text-xl">Your Best Practices</h1>
-            </div>
-          </div>
+          )}
         </div>
       </section>
     </div>
