@@ -8,7 +8,7 @@ import {
   Users,
   DollarSign,
   Building2,
-  Cpu,
+  Monitor,
   X,
   ChevronLeft,
   ChevronRight,
@@ -275,7 +275,7 @@ const dimensions: {
   },
   {
     name: "Technology",
-    icon: Cpu,
+    icon: Monitor,
     color: "#D32F2F",
     scoreKey: "technologyDim",
     methodKey: "technologyMethod",
