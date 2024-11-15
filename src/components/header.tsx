@@ -16,7 +16,7 @@ import Cookie from "js-cookie"; // Import js-cookie untuk mengakses cookies
 
 export function Header() {
   const [user, setUser] = useState<any>(null); // State untuk menyimpan data user
-  const [unreadNotifications, setUnreadNotifications] = useState(3); // Notifications mock-up
+  const [unreadNotifications, setUnreadNotifications] = useState(0); // Notifications mock-up
 
   // Mengambil data pengguna dari API /api/auth/me jika token ada
   useEffect(() => {
@@ -82,7 +82,7 @@ export function Header() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/" className="w-full">
+                <Link href="/faq" className="w-full">
                   FAQ
                 </Link>
               </DropdownMenuItem>

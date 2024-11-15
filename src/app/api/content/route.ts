@@ -80,6 +80,14 @@ export async function POST(request: Request) {
         technologyMost3: body.technologyMost3,
         sustainability: body.sustainability,
         sustainabilityIndex: body.sustainabilityIndex,
+        // sustainabilityImage: bufferOrNull(body.sustainabilityImage),
+        sustainabilityImage:
+          body.sustainabilityImage &&
+          Array.isArray(body.sustainabilityImage) &&
+          body.sustainabilityImage.length > 0
+            ? Buffer.from(body.sustainabilityImage[0], "base64")
+            : null,
+
         visitorRegistered: 0,
         visitorPublic: 0,
         existingCondition1: body.existingCondition1,
@@ -107,16 +115,66 @@ export async function POST(request: Request) {
         existingCondition23: body.existingCondition23,
 
         // Additional Graphs and Levels as Buffer
-        ecologyGraph: bufferOrNull(body.ecologyGraph),
-        ecologyLevel: bufferOrNull(body.ecologyLevel),
-        socialGraph: bufferOrNull(body.socialGraph),
-        socialLevel: bufferOrNull(body.socialLevel),
-        economyGraph: bufferOrNull(body.economyGraph),
-        economyLevel: bufferOrNull(body.economyLevel),
-        institutionalGraph: bufferOrNull(body.institutionalGraph),
-        institutionalLevel: bufferOrNull(body.institutionalLevel),
-        technologyGraph: bufferOrNull(body.technologyGraph),
-        technologyLevel: bufferOrNull(body.technologyLevel),
+        ecologyGraph:
+          body.ecologyGraph &&
+          Array.isArray(body.ecologyGraph) &&
+          body.ecologyGraph.length > 0
+            ? Buffer.from(body.ecologyGraph[0], "base64")
+            : null,
+        ecologyLevel:
+          body.ecologyLevel &&
+          Array.isArray(body.ecologyLevel) &&
+          body.ecologyLevel.length > 0
+            ? Buffer.from(body.ecologyLevel[0], "base64")
+            : null,
+        socialGraph:
+          body.socialGraph &&
+          Array.isArray(body.socialGraph) &&
+          body.socialGraph.length > 0
+            ? Buffer.from(body.socialGraph[0], "base64")
+            : null,
+        socialLevel:
+          body.socialLevel &&
+          Array.isArray(body.socialLevel) &&
+          body.socialLevel.length > 0
+            ? Buffer.from(body.socialLevel[0], "base64")
+            : null,
+        economyGraph:
+          body.economyGraph &&
+          Array.isArray(body.economyGraph) &&
+          body.economyGraph.length > 0
+            ? Buffer.from(body.economyGraph[0], "base64")
+            : null,
+        economyLevel:
+          body.economyLevel &&
+          Array.isArray(body.economyLevel) &&
+          body.economyLevel.length > 0
+            ? Buffer.from(body.economyLevel[0], "base64")
+            : null,
+        institutionalGraph:
+          body.institutionalGraph &&
+          Array.isArray(body.institutionalGraph) &&
+          body.institutionalGraph.length > 0
+            ? Buffer.from(body.institutionalGraph[0], "base64")
+            : null,
+        institutionalLevel:
+          body.institutionalLevel &&
+          Array.isArray(body.institutionalLevel) &&
+          body.institutionalLevel.length > 0
+            ? Buffer.from(body.institutionalLevel[0], "base64")
+            : null,
+        technologyGraph:
+          body.technologyGraph &&
+          Array.isArray(body.technologyGraph) &&
+          body.technologyGraph.length > 0
+            ? Buffer.from(body.technologyGraph[0], "base64")
+            : null,
+        technologyLevel:
+          body.technologyLevel &&
+          Array.isArray(body.technologyLevel) &&
+          body.technologyLevel.length > 0
+            ? Buffer.from(body.technologyLevel[0], "base64")
+            : null,
 
         // Create related entries only if the data is not empty
         ...(supportingDocsData.length > 0 && {

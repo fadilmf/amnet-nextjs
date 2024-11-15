@@ -130,8 +130,10 @@ model Content {
   technologyMost1     String?
   technologyMost2     String?
   technologyMost3     String?
+
   sustainability      String?
   sustainabilityIndex Float?
+  sustainabilityImage Bytes?
 
   ecologyGraph       Bytes? // Kolom untuk menyimpan ecologyGraph
   ecologyLevel       Bytes? // Kolom untuk menyimpan ecologyLeve

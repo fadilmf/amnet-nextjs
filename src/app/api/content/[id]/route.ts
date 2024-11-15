@@ -15,7 +15,13 @@ export async function GET(request: Request, { params }: any) {
 
     const content = await prisma.content.findUnique({
       where: { id },
-      include: { comments: true },
+      include: {
+        comments: true,
+        galleries: true,
+        supportingDocs: true,
+        maps: true,
+        videoLinks: true,
+      },
     });
 
     if (!content) {

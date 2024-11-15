@@ -17,27 +17,71 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import axios from "axios";
 import { useParams } from "next/navigation";
+import {
+  Comment,
+  Gallery,
+  Map,
+  SupportingDoc,
+  VideoLink,
+} from "@prisma/client";
 
 interface Content {
   id: number;
+  userId: string | null;
+  email: string | null;
+  countryId: number | null;
   title: string | null;
   author: string | null;
+  institution: string | null;
+  cover: string | null; // Base64-encoded string if converting from Bytes
   summary: string | null;
   keyword: string | null;
-  ecologyDim: string | null;
-  socialDim: string | null;
-  economyDim: string | null;
-  institutionalDim: string | null;
-  technologyDim: string | null;
+  ecologyDim: number | null;
+  ecologyMethod: string | null;
+  ecologyMost1: string | null;
+  ecologyMost2: string | null;
+  ecologyMost3: string | null;
+  socialDim: number | null;
+  socialMethod: string | null;
+  socialMost1: string | null;
+  socialMost2: string | null;
+  socialMost3: string | null;
+  economyDim: number | null;
+  economyMethod: string | null;
+  economyMost1: string | null;
+  economyMost2: string | null;
+  economyMost3: string | null;
+  institutionalDim: number | null;
+  institutionalMethod: string | null;
+  institutionalMost1: string | null;
+  institutionalMost2: string | null;
+  institutionalMost3: string | null;
+  technologyDim: number | null;
+  technologyMethod: string | null;
+  technologyMost1: string | null;
+  technologyMost2: string | null;
+  technologyMost3: string | null;
+
   sustainability: string | null;
-  cover: string | null;
-  videoLink: string | null;
-  attachmentDoc: string | null;
-  supportingDoc: string | null;
+  sustainabilityIndex: number | null;
+  sustainabilityImage: string | null; // Base64-encoded string if converting from Bytes
+
+  ecologyGraph: string | null; // Base64-encoded string if converting from Bytes
+  ecologyLevel: string | null; // Base64-encoded string if converting from Bytes
+  socialGraph: string | null; // Base64-encoded string if converting from Bytes
+  socialLevel: string | null; // Base64-encoded string if converting from Bytes
+  economyGraph: string | null; // Base64-encoded string if converting from Bytes
+  economyLevel: string | null; // Base64-encoded string if converting from Bytes
+  institutionalGraph: string | null; // Base64-encoded string if converting from Bytes
+  institutionalLevel: string | null; // Base64-encoded string if converting from Bytes
+  technologyGraph: string | null; // Base64-encoded string if converting from Bytes
+  technologyLevel: string | null; // Base64-encoded string if converting from Bytes
+
   visitorRegistered: number | null;
   visitorPublic: number | null;
   createdAt: string | null;
   updatedAt: string | null;
+
   existingCondition1: string | null;
   existingCondition2: string | null;
   existingCondition3: string | null;
@@ -61,16 +105,21 @@ interface Content {
   existingCondition21: string | null;
   existingCondition22: string | null;
   existingCondition23: string | null;
+
   comments: Comment[];
+  supportingDocs: SupportingDoc[];
+  videoLinks: VideoLink[];
+  galleries: Gallery[];
+  maps: Map[];
 }
 
-interface Comment {
-  id: number;
-  name: string | null;
-  email: string | null;
-  text: string;
-  createdAt: string;
-}
+// interface Comment {
+//   id: number;
+//   name: string | null;
+//   email: string | null;
+//   text: string;
+//   createdAt: string;
+// }
 
 const existingConditionTitles = [
   "Institutional Arrangement",
@@ -171,12 +220,68 @@ const ExistingConditionCarousel: React.FC<{ content: Content }> = ({
   );
 };
 
-const dimensions = [
-  { name: "Ecology", icon: Leaf, color: "#2E7D32", score: 75 }, // Hijau
-  { name: "Social", icon: Users, color: "#1565C0", score: 68 }, // Biru
-  { name: "Economy", icon: DollarSign, color: "#EF6C00", score: 82 }, // Oranye
-  { name: "Institutional", icon: Building2, color: "#5E35B1", score: 70 }, // Ungu
-  { name: "Technology", icon: Cpu, color: "#D32F2F", score: 88 }, // Merah
+// const dimensions = [
+//   { name: "Ecology", icon: Leaf, color: "#2E7D32", score: 75 }, // Hijau
+//   { name: "Social", icon: Users, color: "#1565C0", score: 68 }, // Biru
+//   { name: "Economy", icon: DollarSign, color: "#EF6C00", score: 82 }, // Oranye
+//   { name: "Institutional", icon: Building2, color: "#5E35B1", score: 70 }, // Ungu
+//   { name: "Technology", icon: Cpu, color: "#D32F2F", score: 88 }, // Merah
+// ];
+
+const dimensions: {
+  name: string;
+  icon: React.ElementType;
+  color: string;
+  scoreKey: keyof Content;
+  methodKey: keyof Content;
+  graphKey: keyof Content;
+  aspects: (keyof Content)[];
+}[] = [
+  {
+    name: "Ecology",
+    icon: Leaf,
+    color: "#2E7D32",
+    scoreKey: "ecologyDim",
+    methodKey: "ecologyMethod",
+    graphKey: "ecologyGraph",
+    aspects: ["ecologyMost1", "ecologyMost2", "ecologyMost3"],
+  },
+  {
+    name: "Social",
+    icon: Users,
+    color: "#1565C0",
+    scoreKey: "socialDim",
+    methodKey: "socialMethod",
+    graphKey: "socialGraph",
+    aspects: ["socialMost1", "socialMost2", "socialMost3"],
+  },
+  {
+    name: "Economy",
+    icon: DollarSign,
+    color: "#EF6C00",
+    scoreKey: "economyDim",
+    methodKey: "economyMethod",
+    graphKey: "economyGraph",
+    aspects: ["economyMost1", "economyMost2", "economyMost3"],
+  },
+  {
+    name: "Institutional",
+    icon: Building2,
+    color: "#5E35B1",
+    scoreKey: "institutionalDim",
+    methodKey: "institutionalMethod",
+    graphKey: "institutionalGraph",
+    aspects: ["institutionalMost1", "institutionalMost2", "institutionalMost3"],
+  },
+  {
+    name: "Technology",
+    icon: Cpu,
+    color: "#D32F2F",
+    scoreKey: "technologyDim",
+    methodKey: "technologyMethod",
+    graphKey: "technologyGraph",
+    aspects: ["technologyMost1", "technologyMost2", "technologyMost3"],
+  },
 ];
 
 const CircularScore: React.FC<{ score: number; color: string }> = ({
@@ -231,21 +336,25 @@ const DimensionCard: React.FC<{
     name: string;
     icon: React.ElementType;
     color: string;
-    score: number;
+    scoreKey: keyof Content;
+    methodKey: keyof Content;
+    graphKey: keyof Content;
+    aspects: (keyof Content)[];
   };
   content: Content;
   isActive: boolean;
   onClick: () => void;
   onClose: () => void;
 }> = ({ dimension, content, isActive, onClick, onClose }) => {
-  const data = {
-    method:
-      content[`${dimension.name.toLowerCase()}Dim` as keyof Content] ||
-      "Method not available",
-    aspects: ["Aspect 1", "Aspect 2", "Aspect 3"], // Replace with actual aspects if available
-    methodGraph: "/placeholder.svg?height=200&width=300",
-    aspectsGraph: "/placeholder.svg?height=200&width=300",
-  };
+  const score = content[dimension.scoreKey] as number | null;
+  const method = content[dimension.methodKey] as string | null;
+  const aspects = dimension.aspects.map(
+    (aspectKey) => content[aspectKey] as string | null
+  );
+  const graphData = content[dimension.graphKey] as Buffer | null;
+  const graphDataBase64 = graphData
+    ? Buffer.from(graphData).toString("base64")
+    : null;
 
   return (
     <motion.div
@@ -289,37 +398,35 @@ const DimensionCard: React.FC<{
       {isActive && (
         <div className="p-4 space-y-6 overflow-y-auto max-h-[calc(100vh-200px)]">
           <div className="flex justify-center">
-            <CircularScore score={dimension.score} color={dimension.color} />
+            {score !== null ? (
+              <CircularScore score={score} color={dimension.color} />
+            ) : (
+              <p className="text-gray-500">Score not available</p>
+            )}
           </div>
+          {graphDataBase64 && (
+            <img
+              src={`data:image/png;base64,${graphDataBase64}`}
+              alt={`${dimension.name} Graph`}
+              className="w-full h-auto rounded-lg"
+            />
+          )}
+          {/* <p>{dimension.name + ": " + graphData}</p> */}
           <div>
             <h3 className="text-lg font-semibold mb-2">Method</h3>
             <p className="text-gray-600 mb-4">
-              {typeof data.method === "string" ||
-              typeof data.method === "number"
-                ? data.method
-                : "Invalid data"}
+              {method || "Method not available"}
             </p>
-
-            <img
-              src={data.methodGraph}
-              alt={`${dimension.name} method graph`}
-              className="w-full h-auto rounded-lg"
-            />
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-2">
               Most Significant Aspects
             </h3>
             <ul className="list-disc list-inside text-gray-600 mb-4">
-              {data.aspects.map((aspect, index) => (
-                <li key={index}>{aspect}</li>
-              ))}
+              {aspects.map((aspect, index) =>
+                aspect ? <li key={index}>{aspect}</li> : null
+              )}
             </ul>
-            <img
-              src={data.aspectsGraph}
-              alt={`${dimension.name} aspects graph`}
-              className="w-full h-auto rounded-lg"
-            />
           </div>
         </div>
       )}
@@ -343,6 +450,7 @@ export default function ArticleDetail() {
     const fetchContent = async () => {
       try {
         const response = await axios.get(`/api/content/${id}`);
+        console.log("ini detail artikel: ", response.data);
         setContent(response.data);
       } catch (err) {
         setError("Failed to fetch content");
@@ -385,6 +493,22 @@ export default function ArticleDetail() {
     <div className="py-8">
       <section className="flex flex-col items-center mb-8">
         <h1 className="text-3xl font-bold mb-8">{content.title}</h1>
+        <div className="w-full flex justify-evenly items-center text-gray-600 mb-8 px-16">
+          {content.author && (
+            <p className="text-lg">Author: {content.author}</p>
+          )}
+          {content.institution && (
+            <p className="text-lg">Institution: {content.institution}</p>
+          )}
+          {content.createdAt && (
+            <p className="text-lg">
+              Published on: {new Date(content.createdAt).toLocaleDateString()}
+            </p>
+          )}
+          {content.email && (
+            <p className="text-sm text-gray-500">Contact: {content.email}</p>
+          )}
+        </div>
         <div className="w-full mb-8 flex items-center justify-center">
           {content.cover && (
             <Image
@@ -449,76 +573,121 @@ export default function ArticleDetail() {
 
       <section className="mb-8 bg-white px-16">
         <div className="flex flex-col items-center py-8">
-          <h2 className="text-2xl font-semibold mb-4">Supporting Document</h2>
+          <h2 className="text-2xl font-semibold mb-4">Supporting Documents</h2>
           <div className="w-1/4 h-1 bg-gray-800 my-2"></div>
 
-          {content.supportingDoc && (
-            <div className="mb-4 w-full">
-              <embed
-                src={content.supportingDoc}
-                type="application/pdf"
-                width="100%"
-                height="600px"
-              />
-            </div>
-          )}
-
-          {content.supportingDoc && (
-            <a href={content.supportingDoc} download>
-              <Button className="bg-green-800 hover:bg-green-900">
-                Download Supporting PDF
-              </Button>
-            </a>
+          {content.supportingDocs.length > 0 ? (
+            content.supportingDocs.map((doc, index) => (
+              <div key={doc.id} className="mb-8 w-full">
+                {/* <embed
+                  src={`data:application/pdf;base64,${doc.file.toString(
+                    "base64"
+                  )}`}
+                  type="application/pdf"
+                  width="100%"
+                  height="600px"
+                  className="rounded-lg"
+                /> */}
+                <div className="mt-4 flex justify-center">
+                  <a
+                    href={`data:application/pdf;base64,${doc.file.toString(
+                      "base64"
+                    )}`}
+                    download={`supporting-document-${index + 1}.pdf`}
+                  >
+                    <Button className="bg-green-800 hover:bg-green-900">
+                      Download PDF {index + 1}
+                    </Button>
+                  </a>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500">No supporting documents available</p>
           )}
         </div>
       </section>
 
-      {content.attachmentDoc && (
-        <section className="mb-8 bg-green-800 px-16 text-white">
-          <div className="flex flex-col items-center py-8">
-            <h2 className="text-2xl font-semibold mb-4">Gallery</h2>
-            <div className="w-1/4 h-1 bg-white my-2"></div>
-            <div className="relative w-full h-[400px] mt-8">
-              <Image
-                src={content.attachmentDoc}
-                alt="Gallery image"
-                fill
-                className="object-cover rounded-lg"
-              />
-            </div>
-          </div>
-        </section>
-      )}
-
-      {content.videoLink && (
+      {content.maps && content.maps.length > 0 && (
         <section className="mb-8 bg-white px-16">
           <div className="flex flex-col items-center py-8">
-            <h2 className="text-2xl font-semibold mb-4">Video</h2>
+            <h2 className="text-2xl font-semibold mb-4">Maps</h2>
             <div className="w-1/4 h-1 bg-gray-800 my-2"></div>
-            <div className="relative aspect-video mt-8 w-full">
-              <iframe
-                src={content.videoLink}
-                title={content.title || "Video"}
-                className="absolute inset-0 w-full h-full rounded-lg"
-                allowFullScreen
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8 w-full">
+              {content.maps.map((map, index) => {
+                // Convert byte array to Base64 string
+                const base64String = `data:image/jpeg;base64,${Buffer.from(
+                  map.mapFile
+                ).toString("base64")}`;
+                return (
+                  <div key={index} className="relative w-full h-64">
+                    <img
+                      src={base64String}
+                      alt={`Map Image - ${index + 1}`}
+                      className="object-cover rounded-lg w-full h-full"
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>
       )}
 
-      {content.supportingDoc && (
-        <section className="mb-8 bg-green-800 px-16 text-white">
+      {content.galleries && content.galleries.length > 0 && (
+        <section className="mb-8 bg-white px-16">
           <div className="flex flex-col items-center py-8">
-            <h2 className="text-2xl font-semibold mb-4">Map</h2>
-            <div className="w-1/4 h-1 bg-white my-2"></div>
-            <div className="relative w-full h-[400px] mt-8">
-              <Image
-                src={content.supportingDoc}
-                alt="Map"
-                fill
-                className="object-cover rounded-lg"
-              />
+            <h2 className="text-2xl font-semibold mb-4">Galleries</h2>
+            <div className="w-1/4 h-1 bg-gray-800 my-2"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8 w-full">
+              {content.galleries.map((gallery, index) => {
+                // Convert byte array to Base64 string
+                const base64String = `data:image/jpeg;base64,${Buffer.from(
+                  gallery.image
+                ).toString("base64")}`;
+                return (
+                  <div key={index} className="relative w-full h-64">
+                    <img
+                      src={base64String}
+                      alt={`Gallery Image - ${index + 1}`}
+                      className="object-cover rounded-lg w-full h-full"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {content.videoLinks && content.videoLinks.length > 0 && (
+        <section className="mb-8 bg-white px-16">
+          <div className="flex flex-col items-center py-8">
+            <h2 className="text-2xl font-semibold mb-4">Videos</h2>
+            <div className="w-1/4 h-1 bg-gray-800 my-2"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8 w-full">
+              {content.videoLinks.map((video, index) => {
+                // Transform YouTube URL into embed-friendly format
+                let videoId;
+                if (video.url.includes("youtube.com")) {
+                  const urlParams = new URL(video.url).searchParams;
+                  videoId = urlParams.get("v"); // Get the video ID from "v" parameter
+                } else if (video.url.includes("youtu.be")) {
+                  videoId = video.url.split("/").pop(); // Get the video ID from the URL path
+                }
+                const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+
+                return (
+                  <div key={index} className="relative aspect-video w-full">
+                    <iframe
+                      src={embedUrl}
+                      title={`${content.title || "Video"} - ${index + 1}`}
+                      className="absolute inset-0 w-full h-full rounded-lg"
+                      allowFullScreen
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>

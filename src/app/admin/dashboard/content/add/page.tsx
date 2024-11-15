@@ -72,7 +72,10 @@ type FormData = {
   technologyMost1: string;
   technologyMost2: string;
   technologyMost3: string;
+
+  sustainability: string;
   sustainabilityindex: number;
+
   videoLinks: string[];
 };
 
@@ -94,6 +97,8 @@ type FileData = {
   institutionalLevel: string | null;
   technologyGraph: string | null;
   technologyLevel: string | null;
+
+  sustainabilityImage: string | null;
 };
 
 export default function AddContentPage() {
@@ -214,7 +219,10 @@ export default function AddContentPage() {
     technologyMost1: "Most significant aspect 1",
     technologyMost2: "Most significant aspect 2",
     technologyMost3: "Most significant aspect 3",
+
+    sustainability: "ini summary sustainability",
     sustainabilityindex: 99.9,
+
     videoLinks: ["https://example.com/video1", "https://example.com/video2"],
   });
   // const [fileData, setFileData] = useState<FileData>({
@@ -236,19 +244,20 @@ export default function AddContentPage() {
 
   const [fileData, setFileData] = useState<FileData>({
     cover: null,
-    galleries: ["data:image/jpeg;base64,defaultBase64String"],
-    maps: ["data:image/jpeg;base64,defaultBase64String"],
-    supportingDocs: ["data:application/pdf;base64,defaultBase64String"],
-    ecologyGraph: "data:image/jpeg;base64,defaultBase64String",
-    ecologyLevel: "data:image/jpeg;base64,defaultBase64String",
-    socialGraph: "data:image/jpeg;base64,defaultBase64String",
-    socialLevel: "data:image/jpeg;base64,defaultBase64String",
-    economyGraph: "data:image/jpeg;base64,defaultBase64String",
-    economyLevel: "data:image/jpeg;base64,defaultBase64String",
-    institutionalGraph: "data:image/jpeg;base64,defaultBase64String",
-    institutionalLevel: "data:image/jpeg;base64,defaultBase64String",
-    technologyGraph: "data:image/jpeg;base64,defaultBase64String",
-    technologyLevel: "data:image/jpeg;base64,defaultBase64String",
+    galleries: [],
+    maps: [],
+    supportingDocs: [],
+    ecologyGraph: null,
+    ecologyLevel: null,
+    socialGraph: null,
+    socialLevel: null,
+    economyGraph: null,
+    economyLevel: null,
+    institutionalGraph: null,
+    institutionalLevel: null,
+    technologyGraph: null,
+    technologyLevel: null,
+    sustainabilityImage: null,
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -415,6 +424,8 @@ export default function AddContentPage() {
         technologyMost1: "",
         technologyMost2: "",
         technologyMost3: "",
+
+        sustainability: "",
         sustainabilityindex: 0.0,
         videoLinks: [],
       });
@@ -434,6 +445,7 @@ export default function AddContentPage() {
         institutionalLevel: null,
         technologyGraph: null,
         technologyLevel: null,
+        sustainabilityImage: null,
       });
 
       router.push("/admin/dashboard/content");
@@ -1142,6 +1154,40 @@ export default function AddContentPage() {
               onChange={(e) => handleFileChange(e, "technologyLevel")}
             />
           </div>
+        </div>
+
+        <div>
+          <Label htmlFor="sustainabilitySummary">Sustainability Summary</Label>
+          <Textarea
+            id="sustainabilitySummary"
+            placeholder="Enter sustainability summary"
+            value={formData.sustainability}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="sustainabilitySummaryScore">
+            Sustainability Summary Score
+          </Label>
+          <Input
+            id="sustainabilitySummaryScore"
+            type="number"
+            placeholder="Enter sustainability summary score"
+            value={formData.sustainabilityindex}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="sustainabilitySummaryImage">
+            Sustainability Summary Image
+          </Label>
+          <FileUpload
+            label="Upload sustainability summary image"
+            accept="image/*,application/pdf"
+            onChange={(e) => handleFileChange(e, "sustainabilityImage")}
+          />
         </div>
 
         {/* File Uploads */}
