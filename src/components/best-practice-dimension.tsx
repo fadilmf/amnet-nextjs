@@ -321,10 +321,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import {
-  Globe,
+  Leaf,
   Users,
   DollarSign,
-  Landmark,
+  Building2,
   Monitor,
   XCircle,
 } from "lucide-react"; // Import icon Lucide
@@ -341,7 +341,7 @@ interface Dimension {
 const dimensions: Dimension[] = [
   {
     title: "Ecology",
-    icon: <Globe size={40} />,
+    icon: <Leaf size={40} />,
     items: [
       "a. Mangrove ecosystem rehabilitation",
       "b. Mangrove vegetation density Width of mangroves in the greenbelt/coastal buffer zone",
@@ -392,7 +392,7 @@ const dimensions: Dimension[] = [
   },
   {
     title: "Institutional",
-    icon: <Landmark size={40} />,
+    icon: <Building2 size={40} />,
     items: [
       "a. Availability of policies and plans for mangrove forest management",
       "b. Availability of NGOs/supporting institutions",
