@@ -192,7 +192,7 @@ async function main() {
       firstName: "Super",
       lastName: "Admin",
       email: "superadmin@example.com",
-      handphone: 1234567890,
+      handphone: "1234567890",
       institution: "Admin Institution",
       position: "Super Admin",
       //   image: "", // Anda bisa menambahkan URL gambar profil jika diperlukan
