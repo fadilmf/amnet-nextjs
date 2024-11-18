@@ -428,6 +428,13 @@ const DimensionCard: React.FC<{
               )}
             </ul>
           </div>
+          {graphDataBase64 && (
+            <img
+              src={`/social1.png`}
+              alt={`${dimension.name} Graph`}
+              className="w-full h-auto rounded-lg"
+            />
+          )}
         </div>
       )}
     </motion.div>
