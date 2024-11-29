@@ -107,34 +107,67 @@ export default function Home() {
           <div className="w-1/4 h-1 bg-gray-800 my-2"></div>
 
           {/* Grid for Flags */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-24 mt-8">
-            {countries.map((country, index) => (
-              <Link
-                href={`/content/${country.link}`}
-                key={index}
-                className="flex flex-col items-center"
-              >
-                {/* Card Wrapper */}
-                <div className="bg-white shadow-lg rounded-lg p-4 flex flex-col items-center">
-                  {/* Card for Flag */}
-                  <div className="bg-gray-100 rounded-md shadow-md p-2">
-                    <Image
-                      src={country.image}
-                      alt={country.name}
-                      width={200}
-                      height={120}
-                      className="object-cover rounded-md"
-                    />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-24 mt-8 max-w-5xl w-full mx-auto">
+            <div className="contents lg:col-span-4">
+              {countries.slice(0, 8).map((country, index) => (
+                <Link
+                  href={`/content/${country.link}`}
+                  key={index}
+                  className="flex flex-col items-center"
+                >
+                  {/* Card Wrapper */}
+                  <div className="bg-white shadow-lg rounded-lg p-4 flex flex-col items-center">
+                    {/* Card for Flag */}
+                    <div className="bg-gray-100 rounded-md shadow-md p-2 w-40 h-24">
+                      <Image
+                        src={country.image}
+                        alt={country.name}
+                        width={160}
+                        height={120}
+                        className="object-cover rounded-md w-full h-full"
+                      />
+                    </div>
+                    {/* Card for Country Name */}
+                    <div className="mt-2 w-full bg-gray-50 rounded-md shadow-sm p-2 flex items-center justify-center min-h-[50px]">
+                      <p className="text-center text-sm font-medium">
+                        {country.name.toUpperCase()}
+                      </p>
+                    </div>
                   </div>
-                  {/* Card for Country Name */}
-                  <div className="mt-2 w-full bg-gray-50 rounded-md shadow-sm p-2 flex items-center justify-center min-h-[50px]">
-                    <p className="text-center text-sm font-medium">
-                      {country.name.toUpperCase()}
-                    </p>
+                </Link>
+              ))}
+            </div>
+
+            {/* For remaining countries in the last row */}
+            <div className="contents gap-6 lg:col-span-4 lg:flex lg:justify-center">
+              {countries.slice(8).map((country, index) => (
+                <Link
+                  href={`/content/${country.link}`}
+                  key={index + 8}
+                  className="flex flex-col items-center lg:w-1/3"
+                >
+                  {/* Card Wrapper */}
+                  <div className="bg-white shadow-lg rounded-lg p-4 flex flex-col items-center">
+                    {/* Card for Flag */}
+                    <div className="bg-gray-100 rounded-md shadow-md p-2 w-40 h-24">
+                      <Image
+                        src={country.image}
+                        alt={country.name}
+                        width={160}
+                        height={120}
+                        className="object-cover rounded-md w-full h-full"
+                      />
+                    </div>
+                    {/* Card for Country Name */}
+                    <div className="mt-2 w-full bg-gray-50 rounded-md shadow-sm p-2 flex items-center justify-center min-h-[50px]">
+                      <p className="text-center text-sm font-medium">
+                        {country.name.toUpperCase()}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </section>

@@ -44,7 +44,7 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="font-semibold mb-4">Best Practices</h3>
+            {/* <h3 className="font-semibold mb-4">Best Practices</h3>
             <ul className="space-y-2">
               <li>
                 <Link href="/content" className="hover:underline">
@@ -61,10 +61,10 @@ export function Footer() {
                   Document
                 </Link>
               </li>
-            </ul>
+            </ul> */}
           </div>
           <div>
-            <h3 className="font-semibold mb-4">Connect</h3>
+            {/* <h3 className="font-semibold mb-4">Connect</h3>
             <div className="flex gap-2 items-center">
               <a
                 href="https://facebook.com"
@@ -90,7 +90,7 @@ export function Footer() {
               >
                 <Instagram />
               </a>
-            </div>
+            </div> */}
           </div>
         </div>
         <div className="mt-8 pt-8 border-t border-green-700 text-center text-sm">

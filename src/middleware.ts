@@ -9,6 +9,9 @@ export function middleware(req: NextRequest) {
   const isAdminPage = currentPath.startsWith("/admin");
 
   // Jika token ada dan pengguna berada di halaman login, redirect ke beranda
+
+  console.log("ini middleware");
+
   if (token && isLoginPage) {
     return NextResponse.redirect(new URL("/", req.url));
   }
