@@ -274,6 +274,28 @@ const ShareButtons = () => {
         Share
       </Button>
       <Button
+        className="bg-[#1DA1F2] hover:bg-[#1A91DA] text-white"
+        onClick={() =>
+          window.open(
+            "https://twitter.com/intent/tweet?url=" +
+              encodeURIComponent(window.location.href),
+            "_blank"
+          )
+        }
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          fill="currentColor"
+          viewBox="0 0 16 16"
+          className="mr-2"
+        >
+          <path d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z" />
+        </svg>
+        Share
+      </Button>
+      <Button
         className="bg-[#0088cc] hover:bg-[#0077b5] text-white"
         onClick={() =>
           window.open(
@@ -696,11 +718,11 @@ export default function ArticleDetail() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="flex flex-wrap justify-center items-center text-gray-600 mb-8 gap-6"
             >
-              <p className="text-lg">By Surya Fatihah</p>
-              <p className="text-lg">From IPB University</p>
-              <p className="text-lg">Published on May 15, 2024</p>
-              <p className="text-sm text-gray-500">
-                Contact: john.doe@example.com
+              <p className="text-lg">Author : Mas Fadil</p>
+              <p className="text-lg">From : IPB University</p>
+              <p className="text-lg">Published on : May 15, 2024</p>
+              <p className="text-lg text-gray-500">
+                Contact: masfadil@mnet.com
               </p>
             </motion.div>
             <motion.div
@@ -1052,7 +1074,7 @@ export default function ArticleDetail() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="fixed inset-0 z-40"
           onClick={() => setActiveDimension(null)}
         />
       )}
