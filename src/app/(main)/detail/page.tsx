@@ -15,6 +15,7 @@ import {
   Building2,
   Monitor,
   ChevronDown,
+  X,
   Facebook,
   Instagram,
   Send,
@@ -555,31 +556,16 @@ const DimensionCard = ({
             </h2>
           </div>
           {isActive && (
-            <Button
-              variant="ghost"
-              size="icon"
+            <button
               onClick={(e) => {
                 e.stopPropagation();
                 onClose();
               }}
-              className="rounded-full hover:bg-gray-100 transition-colors"
+              className="cursor-pointer p-3 rounded-full bg-white shadow-md hover:bg-red-400 transition-colors z-50"
               aria-label="Close"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                className="w-6 h-6"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </Button>
+              <X className="w-6 h-6" />
+            </button>
           )}
         </div>
       </div>
@@ -755,7 +741,7 @@ export default function ArticleDetail() {
               Summary
             </h2>
             <div className="w-24 h-1 bg-white mx-auto mb-8"></div>
-            <p className="text-lg leading-relaxed mb-8">
+            <p className="text-lg leading-relaxed mb-8 text-justify">
               This study explores the sustainable management of mangrove
               ecosystems, focusing on their ecological, social, and economic
               impacts. Our findings highlight the importance of community

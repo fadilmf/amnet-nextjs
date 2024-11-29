@@ -152,7 +152,9 @@ export default function Component() {
                     <span className="mr-3">{dimension.icon}</span>
                     <h2 className="text-xl font-semibold">{dimension.title}</h2>
                   </div>
-                  <p className="text-sm">{dimension.description}</p>
+                  <p className="text-justify text-sm">
+                    {dimension.description}
+                  </p>
                 </div>
               ))}
             </div>
@@ -167,7 +169,9 @@ export default function Component() {
                     <span className="mr-3">{dimension.icon}</span>
                     <h2 className="text-xl font-semibold">{dimension.title}</h2>
                   </div>
-                  <p className="text-sm">{dimension.description}</p>
+                  <p className="text-sm text-justify">
+                    {dimension.description}
+                  </p>
                 </div>
               ))}
             </div>
@@ -186,7 +190,7 @@ export default function Component() {
               </div>
               <button
                 onClick={closeDetail}
-                className="text-3xl focus:outline-none"
+                className="text-3xl focus:outline-none hover:text-red-500"
                 aria-label="Close details"
               >
                 <XCircle />

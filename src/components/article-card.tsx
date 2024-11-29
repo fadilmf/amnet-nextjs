@@ -36,7 +36,7 @@ export function ArticleCard({
       </div>
       <CardContent className="flex-grow p-6">
         <h3 className="text-xl font-semibold mb-2">{title}</h3>
-        <p className="text-muted-foreground mb-4">{summary}</p>
+        <p className="text-muted-foreground mb-4 text-justify">{summary}</p>
         <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
           <span>{author}</span>
           <span>{date}</span>
@@ -52,7 +52,7 @@ export function ArticleCard({
       <CardFooter className="p-6 pt-0">
         <Link
           href={`/content/detail/${id}`}
-          className="text-primary hover:underline"
+          className="bg-green-700 text-white hover:bg-green-800 hover:scale-105 rounded px-4 py-2 text-primary hover:underline"
         >
           Read More
         </Link>

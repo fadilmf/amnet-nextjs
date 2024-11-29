@@ -387,7 +387,7 @@ const DimensionCard: React.FC<{
                 e.stopPropagation();
                 onClose();
               }}
-              className="p-2 rounded-full bg-white shadow-md hover:bg-gray-100 transition-colors"
+              className="cursor-pointer p-2 rounded-full bg-white shadow-md hover:bg-gray-100 transition-colors"
               aria-label="Close"
             >
               <X className="w-6 h-6" />
