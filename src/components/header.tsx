@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { Lock } from "lucide-react";
 import { ChevronDown, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,10 +56,10 @@ export function Header() {
           <Link href="/" className="flex items-center gap-2">
             <Image src="/logo_amnet.png" alt="Logo" width={40} height={40} />
           </Link>
-          <Link href="/" className="hover:text-primary">
+          <Link href="/" className="hover:text-primary hover:underline">
             Home
           </Link>
-          <Link href="/content" className="hover:text-primary">
+          <Link href="/content" className="hover:text-primary hover:underline">
             Best Practices
           </Link>
           {/* <Link href="/news" className="hover:text-primary">
@@ -163,12 +164,15 @@ export function Header() {
             </DropdownMenu>
           </div>
         ) : (
-          <Link
-            href="/sign-in"
-            className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90"
-          >
-            Sign In
-          </Link>
+          <div className="flex items-center gap-2">
+            <Lock className="h-5 w-5 text-white" />
+            <Link
+              href="/sign-in"
+              className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 hover:scale-105"
+            >
+              Admin Log-In
+            </Link>
+          </div>
         )}
       </nav>
     </header>

@@ -107,8 +107,8 @@ export default function Home() {
           <div className="w-1/4 h-1 bg-gray-800 my-2"></div>
 
           {/* Grid for Flags */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-24 mt-8 max-w-5xl w-full mx-auto">
-            <div className="contents lg:col-span-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-24  mt-8 max-w-5xl w-full mx-auto">
+            <div className="contents lg:col-span-4 ">
               {countries.slice(0, 8).map((country, index) => (
                 <Link
                   href={`/content/${country.link}`}
@@ -116,7 +116,7 @@ export default function Home() {
                   className="flex flex-col items-center"
                 >
                   {/* Card Wrapper */}
-                  <div className="bg-white shadow-lg rounded-lg p-4 flex flex-col items-center">
+                  <div className="bg-white hover:scale-110 shadow-lg rounded-lg p-4 flex flex-col items-center">
                     {/* Card for Flag */}
                     <div className="bg-gray-100 rounded-md shadow-md p-2 w-40 h-24">
                       <Image
@@ -147,7 +147,7 @@ export default function Home() {
                   className="flex flex-col items-center lg:w-1/3"
                 >
                   {/* Card Wrapper */}
-                  <div className="bg-white shadow-lg rounded-lg p-4 flex flex-col items-center">
+                  <div className="bg-white shadow-lg rounded-lg p-4 hover:scale-110 flex flex-col items-center">
                     {/* Card for Flag */}
                     <div className="bg-gray-100 rounded-md shadow-md p-2 w-40 h-24">
                       <Image
