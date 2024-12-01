@@ -44,36 +44,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    // Check token from cookies on initial load
-    const storedToken = Cookies.get("token");
-    if (storedToken) {
-      setToken(storedToken);
-      fetchUserData(storedToken);
-    }
-  }, []);
-
-  const fetchUserData = async (authToken: string) => {
-    try {
-      const response = await fetch("/api/auth/me", {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        logout();
-        return;
-      }
-
-      const data = await response.json();
-      setUser(data.user);
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-      logout();
-    }
-  };
-
   const login = (newToken: string, userData: User) => {
     // Set token in cookies with expiry (e.g., 7 days)
     Cookies.set("token", newToken, { expires: 7 });
@@ -87,6 +57,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     router.push("/sign-in");
   };
+
+  useEffect(() => {
+    // Move fetchUserData inside useEffect
+    const fetchUserData = async (authToken: string) => {
+      try {
+        const response = await fetch("/api/auth/me", {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
+        if (!response.ok) {
+          logout();
+          return;
+        }
+
+        const data = await response.json();
+        setUser(data.user);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        logout();
+      }
+    };
+
+    // Check token from cookies on initial load
+    const storedToken = Cookies.get("token");
+    if (storedToken) {
+      setToken(storedToken);
+      fetchUserData(storedToken);
+    }
+  }, [logout]); // Only include logout in dependencies
 
   return (
     <AuthContext.Provider value={{ user, token, login, logout }}>

@@ -1,18 +1,14 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true, // Menonaktifkan error ESLint saat build
-  },
-  typescript: {
-    ignoreBuildErrors: true, // Menonaktifkan error TypeScript saat build
-  },
-};
-
-module.exports = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   images: {
     domains: ["flagcdn.com"],
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

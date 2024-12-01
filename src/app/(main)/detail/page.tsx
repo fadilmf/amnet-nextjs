@@ -821,8 +821,8 @@ export default function ArticleDetail() {
             <p className="text-lg leading-relaxed">
               Our analysis reveals that the mangrove ecosystem in the study area
               demonstrates a moderate level of sustainability. While there are
-              strong ecological preservation efforts in place, there's room for
-              improvement in economic utilization and social engagement.
+              strong ecological preservation efforts in place, there&apos;s room
+              for improvement in economic utilization and social engagement.
               Implementing integrated coastal management strategies and
               promoting eco-tourism could significantly enhance the overall
               sustainability of this vital ecosystem.
@@ -994,7 +994,7 @@ export default function ArticleDetail() {
                 </div>
                 <p className="text-gray-700">
                   This research provides valuable insights into mangrove
-                  ecosystem management. I'm particularly interested in the
+                  ecosystem management. I&apos;m particularly interested in the
                   economic dimension and how we can balance conservation with
                   sustainable resource utilization.
                 </p>
@@ -1012,7 +1012,7 @@ export default function ArticleDetail() {
                 <p className="text-gray-700">
                   Great work on highlighting the social aspects of mangrove
                   conservation. Community involvement is indeed crucial for
-                  long-term sustainability. I'd love to see more details on
+                  long-term sustainability. I&apos;d love to see more details on
                   successful community engagement strategies in future studies.
                 </p>
               </motion.div>
