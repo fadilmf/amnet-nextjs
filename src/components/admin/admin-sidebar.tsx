@@ -18,6 +18,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SidebarLinkProps {
   href: string;
@@ -74,6 +75,9 @@ const masterLinks = [
 
 export function AdminSidebar() {
   const [isMasterOpen, setIsMasterOpen] = useState(false);
+  const { user } = useAuth();
+
+  const isSuperAdmin = user?.role === "SUPER_ADMIN";
 
   return (
     <aside className="w-64 bg-gray-200 rounded-lg shadow-md m-4 p-4">
@@ -83,31 +87,33 @@ export function AdminSidebar() {
             {link.label}
           </SidebarLink>
         ))}
-        <Collapsible open={isMasterOpen} onOpenChange={setIsMasterOpen}>
-          <CollapsibleTrigger asChild>
-            <Button
-              variant="ghost"
-              className="w-full justify-between p-2 hover:bg-gray-300"
-            >
-              <span className="flex items-center">
-                <Settings size={20} />
-                <span className="ml-2">Master</span>
-              </span>
-              {isMasterOpen ? (
-                <ChevronDown size={20} />
-              ) : (
-                <ChevronRight size={20} />
-              )}
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="pl-6 space-y-2">
-            {masterLinks.map((link) => (
-              <SidebarLink key={link.href} href={link.href} icon={link.icon}>
-                {link.label}
-              </SidebarLink>
-            ))}
-          </CollapsibleContent>
-        </Collapsible>
+        {isSuperAdmin && (
+          <Collapsible open={isMasterOpen} onOpenChange={setIsMasterOpen}>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full justify-between p-2 hover:bg-gray-300"
+              >
+                <span className="flex items-center">
+                  <Settings size={20} />
+                  <span className="ml-2">Master</span>
+                </span>
+                {isMasterOpen ? (
+                  <ChevronDown size={20} />
+                ) : (
+                  <ChevronRight size={20} />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pl-6 space-y-2">
+              {masterLinks.map((link) => (
+                <SidebarLink key={link.href} href={link.href} icon={link.icon}>
+                  {link.label}
+                </SidebarLink>
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
+        )}
       </nav>
     </aside>
   );

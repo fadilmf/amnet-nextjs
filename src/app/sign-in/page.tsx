@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation"; // Import useRouter
 import Cookies from "js-cookie"; // Import js-cookie
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -16,6 +17,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState(""); // State untuk error
   const router = useRouter(); // Inisialisasi router untuk redirect
+
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -36,6 +39,10 @@ export default function LoginPage() {
 
       // Simpan token di cookies
       Cookies.set("token", token, { expires: 1 }); // Token disimpan selama 1 hari
+
+      if (response.status === 200) {
+        login(token, response.data.user);
+      }
 
       // Redirect ke halaman utama setelah login berhasil
       router.push("/");

@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     // Membuat komentar baru
     const newComment = await prisma.comment.create({
       data: {
-        contentId: articleId,
+        contentId: contentId,
         name: name && name.trim() !== "" ? name.trim() : "Anonymous", // Atur default jika nama kosong
         email: email && email.trim() !== "" ? email.trim() : null, // Null jika email kosong
         text: text.trim(),

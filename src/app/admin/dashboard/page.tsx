@@ -57,6 +57,8 @@ export default function AdminDashboard() {
     const fetchDashboardData = async () => {
       try {
         const response = await axios.get("/api/dashboard");
+        console.log("ini response: ", response);
+        console.log("ini response: ", response.data);
         setDashboardData(response.data);
         setLoading(false);
       } catch (err) {
@@ -170,7 +172,7 @@ export default function AdminDashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {dashboardData?.mostPopularContent.map((content) => (
+                {dashboardData?.mostPopularContent?.map((content) => (
                   <TableRow key={content.title}>
                     <TableCell>{content.title}</TableCell>
                     <TableCell>{content.views}</TableCell>

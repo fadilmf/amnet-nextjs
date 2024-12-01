@@ -1,210 +1,365 @@
-// src/app/api/content/route.ts
-
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { writeFile, mkdir } from "fs/promises";
+import path from "path";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const formData = await request.formData();
 
-    const bufferOrNull = (data: string | null | undefined) =>
-      data ? Buffer.from(data, "base64") : null;
+    // Convert FormData to object for logging
+    const formDataObj = Object.fromEntries(formData.entries());
+    console.log("Received FormData as object:", formDataObj);
 
-    const supportingDocsData =
-      body.supportingDocs && body.supportingDocs.length > 0
-        ? body.supportingDocs.map((doc: string) => ({
-            file: Buffer.from(doc, "base64"),
-          }))
-        : [];
+    // Validasi data yang diperlukan
+    const title = formData.get("title") as string;
+    const userId = formData.get("userId") as string;
+    const countryId = parseInt(formData.get("countryId") as string, 10);
+    const summary = formData.get("summary") as string;
+    const author = formData.get("author") as string;
+    const date = formData.get("date");
+    const status = formData.get("status") as string;
 
-    const galleriesData =
-      body.galleries && body.galleries.length > 0
-        ? body.galleries.map((img: string) => ({
-            image: Buffer.from(img, "base64"),
-          }))
-        : [];
+    if (!title || !summary || !author || !date || !status) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Missing required fields",
+          details: "Title, summary, author, date and status are required",
+        },
+        { status: 400 }
+      );
+    }
 
-    const videoLinksData =
-      body.videoLinks && body.videoLinks.length > 0
-        ? body.videoLinks.map((url: string) => ({
-            url: url,
-          }))
-        : [];
+    // Create uploads directory if it doesn't exist
+    const uploadDir = path.join(process.cwd(), "public/uploads");
+    await mkdir(uploadDir, { recursive: true });
 
-    const mapsData =
-      body.maps && body.maps.length > 0
-        ? body.maps.map((map: string) => ({
-            mapFile: Buffer.from(map, "base64"),
-          }))
-        : [];
+    // Handle cover image
+    const cover = formData.get("cover") as File;
+    console.log("ini cover: ", cover);
+    let coverPath = "";
+    if (cover && cover instanceof File) {
+      const coverBuffer = Buffer.from(await cover.arrayBuffer());
+      const coverFilename = `${Date.now()}-${cover.name}`;
+      await writeFile(path.join(uploadDir, coverFilename), coverBuffer);
+      coverPath = `/uploads/${coverFilename}`;
+    }
 
-    // Create new content with relationships to other tables
+    const existingConditions = [];
+    for (let i = 0; true; i++) {
+      const title = formData.get(`existingConditions[${i}][title]`);
+      const description = formData.get(`existingConditions[${i}][description]`);
+
+      if (!title && !description) break;
+
+      const images = [];
+      // Handle images for each condition
+      for (let j = 0; true; j++) {
+        const image = formData.get(
+          `existingConditions[${i}][images][${j}]`
+        ) as File;
+        const alt = formData.get(`existingConditions[${i}][imagesAlt][${j}]`);
+
+        if (!image) break;
+
+        // Save image file
+        const imageBuffer = Buffer.from(await image.arrayBuffer());
+        const filename = `${Date.now()}-${image.name}`;
+        await writeFile(path.join(uploadDir, filename), imageBuffer);
+
+        images.push({
+          filePath: `/uploads/${filename}`,
+          alt: alt as string,
+        });
+      }
+
+      existingConditions.push({
+        title,
+        description,
+        images,
+      });
+    }
+
+    // Parse dimension data
+    const dimensions = [
+      "ecology",
+      "social",
+      "economy",
+      "institutional",
+      "technology",
+    ] as const;
+
+    // Initialize contentData object
+    const contentData: Record<string, any> = {};
+
+    // Process each dimension
+    for (const dim of dimensions) {
+      const dimensionKey = `${dim}Dimension`;
+      let dimensionData = {};
+
+      try {
+        dimensionData = JSON.parse(formData.get(dimensionKey) as string) || {};
+      } catch {
+        console.error(`Invalid JSON for ${dimensionKey}`);
+      }
+
+      // Handle graph images for this dimension
+      const graphImages = [];
+      for (let i = 0; i < 2; i++) {
+        const graphImage = formData.get(
+          `${dimensionKey}GraphImages[${i}]`
+        ) as File;
+        const graphAlt = formData.get(
+          `${dimensionKey}GraphImagesAlt[${i}]`
+        ) as string;
+
+        if (graphImage && graphImage instanceof File) {
+          const buffer = Buffer.from(await graphImage.arrayBuffer());
+          const filename = `${Date.now()}-${graphImage.name}`;
+          await writeFile(path.join(uploadDir, filename), buffer);
+
+          graphImages.push({
+            filePath: `/uploads/${filename}`,
+            alt: graphAlt || "",
+          });
+        }
+      }
+
+      // Add the dimension data to the content creation object
+      contentData[dimensionKey] = {
+        create: {
+          title: dimensionData.title || "",
+          inputMethod: dimensionData.inputMethod || "",
+          significantAspects: dimensionData.significantAspects || [],
+          sustainabilityScore: dimensionData.sustainabilityScore || 0,
+          graphImages: {
+            create: graphImages,
+          },
+        },
+      };
+    }
+
+    // Handle supporting documents
+    const supportingDocPaths = [];
+    const supportingDocs = [];
+    const supportingDocsNames = [];
+
+    for (const [key, value] of formData.entries()) {
+      if (
+        key.startsWith("supportingDocs") &&
+        !key.startsWith("supportingDocsNames")
+      ) {
+        if (value instanceof File) {
+          supportingDocs.push(value);
+        }
+      }
+      if (key.startsWith("supportingDocsNames")) {
+        if (typeof value === "string") {
+          supportingDocsNames.push(value);
+        }
+      }
+    }
+
+    // Process supporting documents
+    for (let i = 0; i < supportingDocs.length; i++) {
+      const doc = supportingDocs[i];
+      const name = supportingDocsNames[i] || "";
+
+      const buffer = Buffer.from(await doc.arrayBuffer());
+      const filename = `${Date.now()}-${doc.name}`;
+      await writeFile(path.join(uploadDir, filename), buffer);
+
+      supportingDocPaths.push({
+        filePath: `/uploads/${filename}`,
+        name: name,
+      });
+    }
+
+    // Handle galleries
+    const galleryPaths = [];
+    const galleries = [];
+    const galleriesAlt = [];
+
+    for (const [key, value] of formData.entries()) {
+      if (key.startsWith("galleries") && !key.startsWith("galleriesAlt")) {
+        if (value instanceof File) {
+          galleries.push(value);
+        }
+      }
+      if (key.startsWith("galleriesAlt")) {
+        if (typeof value === "string") {
+          galleriesAlt.push(value);
+        }
+      }
+    }
+
+    // Process galleries
+    for (let i = 0; i < galleries.length; i++) {
+      const gallery = galleries[i];
+      const alt = galleriesAlt[i] || "";
+
+      const buffer = Buffer.from(await gallery.arrayBuffer());
+      const filename = `${Date.now()}-${gallery.name}`;
+      await writeFile(path.join(uploadDir, filename), buffer);
+
+      galleryPaths.push({
+        imagePath: `/uploads/${filename}`,
+        alt: alt,
+      });
+    }
+
+    // Loop untuk memeriksa dan menangani maps dan mapsAlt satu per satu
+    const mapPaths = [];
+    const maps = [];
+    const mapsAlt = [];
+
+    for (const [key, value] of formData.entries()) {
+      if (key.startsWith("maps")) {
+        if (value instanceof File) {
+          // Memasukkan map ke dalam array maps
+          maps.push(value);
+        }
+      }
+      if (key.startsWith("mapsAlt")) {
+        // Memasukkan alt untuk maps ke dalam array mapsAlt
+        if (typeof value === "string") {
+          mapsAlt.push(value);
+        }
+      }
+    }
+
+    console.log("Maps: ", maps);
+    console.log("MapsAlt: ", mapsAlt);
+
+    // Loop untuk mengolah maps dan mapsAlt
+    for (let i = 0; i < maps.length; i++) {
+      const map = maps[i];
+      const alt = mapsAlt[i] || ""; // Mendapatkan alt jika ada
+
+      const buffer = Buffer.from(await map.arrayBuffer());
+      const filename = `${Date.now()}-${map.name}`;
+      await writeFile(path.join(uploadDir, filename), buffer);
+
+      // Menambahkan path dan alt ke mapPaths
+      mapPaths.push({
+        filePath: `/uploads/${filename}`,
+        alt: alt, // Jika alt kosong, set dengan string kosong
+      });
+    }
+
+    console.log("Map paths: ", mapPaths);
+
+    // Parse video links dan keywords dengan validasi
+    const videoLinks = JSON.parse(
+      (formData.get("videoLinks") as string) || "[]"
+    );
+    const keywords = JSON.parse((formData.get("keywords") as string) || "[]");
+
+    console.log("ini obj yang mau dibikin: ", {
+      title,
+      cover: coverPath,
+      summary,
+      author,
+      date: new Date(date as string),
+      keywords,
+      status,
+      existingConditions,
+      ecologyDimension: contentData.ecologyDimension,
+      socialDimension: contentData.socialDimension,
+      economyDimension: contentData.economyDimension,
+      institutionalDimension: contentData.institutionalDimension,
+      technologyDimension: contentData.technologyDimension,
+      supportingDocs: supportingDocPaths,
+      maps: mapPaths,
+      galleries: galleryPaths,
+      videoLinks: videoLinks.map((link: { url: string; title: string }) => ({
+        url: link.url,
+        title: link.title,
+      })),
+    });
+
+    // Create content in database with file paths
     const content = await prisma.content.create({
       data: {
-        userId: body.userId,
-        email: body.email,
-        countryId: body.countryId,
-        title: body.title,
-        author: body.author,
-        institution: body.institution,
-        cover:
-          body.cover && Array.isArray(body.cover) && body.cover.length > 0
-            ? Buffer.from(body.cover[0], "base64")
-            : null,
-        summary: body.summary,
-        keyword: body.keyword,
-        ecologyDim: body.ecologyDim,
-        ecologyMethod: body.ecologyMethod,
-        ecologyMost1: body.ecologyMost1,
-        ecologyMost2: body.ecologyMost2,
-        ecologyMost3: body.ecologyMost3,
-        socialDim: body.socialDim,
-        socialMethod: body.socialMethod,
-        socialMost1: body.socialMost1,
-        socialMost2: body.socialMost2,
-        socialMost3: body.socialMost3,
-        economyDim: body.economyDim,
-        economyMethod: body.economyMethod,
-        economyMost1: body.economyMost1,
-        economyMost2: body.economyMost2,
-        economyMost3: body.economyMost3,
-        institutionalDim: body.institutionalDim,
-        institutionalMethod: body.institutionalMethod,
-        institutionalMost1: body.institutionalMost1,
-        institutionalMost2: body.institutionalMost2,
-        institutionalMost3: body.institutionalMost3,
-        technologyDim: body.technologyDim,
-        technologyMethod: body.technologyMethod,
-        technologyMost1: body.technologyMost1,
-        technologyMost2: body.technologyMost2,
-        technologyMost3: body.technologyMost3,
-        sustainability: body.sustainability,
-        sustainabilityIndex: body.sustainabilityIndex,
-        // sustainabilityImage: bufferOrNull(body.sustainabilityImage),
-        sustainabilityImage:
-          body.sustainabilityImage &&
-          Array.isArray(body.sustainabilityImage) &&
-          body.sustainabilityImage.length > 0
-            ? Buffer.from(body.sustainabilityImage[0], "base64")
-            : null,
-
-        visitorRegistered: 0,
-        visitorPublic: 0,
-        existingCondition1: body.existingCondition1,
-        existingCondition2: body.existingCondition2,
-        existingCondition3: body.existingCondition3,
-        existingCondition4: body.existingCondition4,
-        existingCondition5: body.existingCondition5,
-        existingCondition6: body.existingCondition6,
-        existingCondition7: body.existingCondition7,
-        existingCondition8: body.existingCondition8,
-        existingCondition9: body.existingCondition9,
-        existingCondition10: body.existingCondition10,
-        existingCondition11: body.existingCondition11,
-        existingCondition12: body.existingCondition12,
-        existingCondition13: body.existingCondition13,
-        existingCondition14: body.existingCondition14,
-        existingCondition15: body.existingCondition15,
-        existingCondition16: body.existingCondition16,
-        existingCondition17: body.existingCondition17,
-        existingCondition18: body.existingCondition18,
-        existingCondition19: body.existingCondition19,
-        existingCondition20: body.existingCondition20,
-        existingCondition21: body.existingCondition21,
-        existingCondition22: body.existingCondition22,
-        existingCondition23: body.existingCondition23,
-
-        // Additional Graphs and Levels as Buffer
-        ecologyGraph:
-          body.ecologyGraph &&
-          Array.isArray(body.ecologyGraph) &&
-          body.ecologyGraph.length > 0
-            ? Buffer.from(body.ecologyGraph[0], "base64")
-            : null,
-        ecologyLevel:
-          body.ecologyLevel &&
-          Array.isArray(body.ecologyLevel) &&
-          body.ecologyLevel.length > 0
-            ? Buffer.from(body.ecologyLevel[0], "base64")
-            : null,
-        socialGraph:
-          body.socialGraph &&
-          Array.isArray(body.socialGraph) &&
-          body.socialGraph.length > 0
-            ? Buffer.from(body.socialGraph[0], "base64")
-            : null,
-        socialLevel:
-          body.socialLevel &&
-          Array.isArray(body.socialLevel) &&
-          body.socialLevel.length > 0
-            ? Buffer.from(body.socialLevel[0], "base64")
-            : null,
-        economyGraph:
-          body.economyGraph &&
-          Array.isArray(body.economyGraph) &&
-          body.economyGraph.length > 0
-            ? Buffer.from(body.economyGraph[0], "base64")
-            : null,
-        economyLevel:
-          body.economyLevel &&
-          Array.isArray(body.economyLevel) &&
-          body.economyLevel.length > 0
-            ? Buffer.from(body.economyLevel[0], "base64")
-            : null,
-        institutionalGraph:
-          body.institutionalGraph &&
-          Array.isArray(body.institutionalGraph) &&
-          body.institutionalGraph.length > 0
-            ? Buffer.from(body.institutionalGraph[0], "base64")
-            : null,
-        institutionalLevel:
-          body.institutionalLevel &&
-          Array.isArray(body.institutionalLevel) &&
-          body.institutionalLevel.length > 0
-            ? Buffer.from(body.institutionalLevel[0], "base64")
-            : null,
-        technologyGraph:
-          body.technologyGraph &&
-          Array.isArray(body.technologyGraph) &&
-          body.technologyGraph.length > 0
-            ? Buffer.from(body.technologyGraph[0], "base64")
-            : null,
-        technologyLevel:
-          body.technologyLevel &&
-          Array.isArray(body.technologyLevel) &&
-          body.technologyLevel.length > 0
-            ? Buffer.from(body.technologyLevel[0], "base64")
-            : null,
-
-        // Create related entries only if the data is not empty
-        ...(supportingDocsData.length > 0 && {
-          supportingDocs: {
-            create: supportingDocsData,
-          },
-        }),
-        ...(galleriesData.length > 0 && {
-          galleries: {
-            create: galleriesData,
-          },
-        }),
-        ...(videoLinksData.length > 0 && {
-          videoLinks: {
-            create: videoLinksData,
-          },
-        }),
-        ...(mapsData.length > 0 && {
-          maps: {
-            create: mapsData,
-          },
-        }),
+        title,
+        userId,
+        countryId,
+        cover: coverPath,
+        summary,
+        author,
+        date: new Date(date as string),
+        keywords,
+        status,
+        existingConditions: {
+          create: existingConditions.map((condition: any) => ({
+            title: condition.title as string,
+            description: condition.description as string,
+            images: {
+              create: condition.images?.map((image: any) => ({
+                filePath: image.filePath,
+                alt: image.alt,
+              })),
+            },
+          })),
+        },
+        ecologyDimension: contentData.ecologyDimension,
+        socialDimension: contentData.socialDimension,
+        economyDimension: contentData.economyDimension,
+        institutionalDimension: contentData.institutionalDimension,
+        technologyDimension: contentData.technologyDimension,
+        supportingDocs: {
+          create: supportingDocPaths.map((doc: any) => ({
+            name: doc.name,
+            filePath: doc.filePath,
+          })),
+        },
+        maps: {
+          create: mapPaths.map((map: any) => ({
+            filePath: map.filePath,
+            alt: map.alt,
+          })),
+        },
+        galleries: {
+          create: galleryPaths.map((gallery: any) => ({
+            imagePath: gallery.imagePath,
+            alt: gallery.alt,
+          })),
+        },
+        videoLinks: {
+          create: videoLinks.map((link: any) => ({
+            url: link.url,
+          })),
+        },
       },
     });
 
-    return NextResponse.json(content, { status: 201 });
+    console.log("tes");
+    return NextResponse.json({ success: true, data: content });
+    // return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error creating content:", error);
+    console.error("Error processing request:", error);
+
+    // Handle JSON parse errors
+    if (error instanceof SyntaxError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid JSON data",
+          details: error.message,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Handle other errors
     return NextResponse.json(
-      { error: "Error creating content" },
+      {
+        success: false,
+        error: "Failed to process request",
+        details:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      },
       { status: 500 }
     );
   }
@@ -212,53 +367,14 @@ export async function POST(request: Request) {
 
 export async function GET() {
   try {
-    // Fetch content data along with related data
     const contents = await prisma.content.findMany({
-      include: {
-        supportingDocs: true,
-        galleries: true,
-        videoLinks: true,
-        maps: true,
+      where: {
+        status: "PUBLISHED",
       },
     });
-
-    // Convert Buffer data to Base64 for frontend display
-    const contentsWithBase64Files = contents.map((content) => {
-      const base64Cover = content.cover
-        ? `data:image/jpeg;base64,${content.cover.toString("base64")}`
-        : null;
-
-      // Convert supportingDocs array to Base64
-      const base64SupportingDocs = content.supportingDocs.map((doc) => ({
-        ...doc,
-        file: `data:application/pdf;base64,${doc.file.toString("base64")}`,
-      }));
-
-      // Convert galleries array to Base64
-      const base64Galleries = content.galleries.map((gallery) => ({
-        ...gallery,
-        image: `data:image/jpeg;base64,${gallery.image.toString("base64")}`,
-      }));
-
-      // Convert maps array to Base64
-      const base64Maps = content.maps.map((map) => ({
-        ...map,
-        mapFile: `data:image/jpeg;base64,${map.mapFile.toString("base64")}`,
-      }));
-
-      // Return content with converted data
-      return {
-        ...content,
-        cover: base64Cover,
-        supportingDocs: base64SupportingDocs,
-        galleries: base64Galleries,
-        maps: base64Maps,
-      };
-    });
-
-    return NextResponse.json(contentsWithBase64Files, { status: 200 });
+    console.log("ini contents: ", contents);
+    return NextResponse.json(contents);
   } catch (error) {
-    console.error("Error fetching contents:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

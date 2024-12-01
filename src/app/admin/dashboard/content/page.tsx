@@ -14,14 +14,18 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 
+// Updated interface to match new schema
 interface Article {
-  id: string;
-  title: string;
-  summary: string;
-  author: string;
-  date: string;
-  keyword: string;
+  id: number;
+  title: string | null;
+  summary: string | null;
+  author: string | null;
+  date: string | null;
+  keywords: string[];
   cover: string;
+  status: "DRAFT" | "PUBLISHED";
+  createdAt: string;
+  updatedAt: string;
 }
 
 export default function AdminContentPage() {
@@ -34,13 +38,27 @@ export default function AdminContentPage() {
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const response = await fetch("/api/content");
+        const response = await fetch("/api/admin/content");
         if (!response.ok) {
           throw new Error("Failed to fetch articles");
         }
         const data = await response.json();
-        setArticles(data);
-        console.log("ini artikel data: ", data);
+
+        // Transform the data to match our Article interface
+        const transformedArticles: Article[] = data.map((item: any) => ({
+          id: item.id,
+          title: item.title || "",
+          summary: item.summary || "",
+          author: item.author || "",
+          date: item.date ? new Date(item.date).toISOString() : null,
+          keywords: item.keywords || [],
+          cover: item.cover || "", // base64 string from API
+          status: item.status,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+        }));
+
+        setArticles(transformedArticles);
       } catch (err) {
         setError("Error fetching articles. Please try again later.");
         console.error("Error fetching articles:", err);
@@ -52,22 +70,28 @@ export default function AdminContentPage() {
     fetchArticles();
   }, []);
 
-  const filteredArticles = articles.filter(
-    (article) =>
-      article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      article.keyword.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredArticles = articles.filter((article) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      article.title?.toLowerCase().includes(searchLower) ||
+      article.keywords.some((keyword) =>
+        keyword.toLowerCase().includes(searchLower)
+      )
+    );
+  });
 
   const sortedArticles = [...filteredArticles].sort((a, b) => {
     if (sortBy === "lastUpdated") {
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
     } else if (sortBy === "alphabetical") {
-      return a.title.localeCompare(b.title);
+      return (a.title || "").localeCompare(b.title || "");
     }
     return 0;
   });
 
-  const yourContent = sortedArticles.slice(0, 3); // Assuming the first 3 are "Your Content"
+  // Filter your content (articles created by the logged-in user)
+  // Note: You'll need to add userId comparison once authentication is implemented
+  const yourContent = sortedArticles.slice(0, 3);
   const allContent = sortedArticles;
 
   if (loading) {
@@ -132,15 +156,15 @@ export default function AdminContentPage() {
           <p className="text-gray-500">Belum ada data</p>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {yourContent.map((article, index) => (
+            {yourContent.map((article) => (
               <ArticleCard
-                key={`${article.id}-${index}`}
-                id={article.id}
-                title={article.title}
-                summary={article.summary}
-                author={article.author}
-                date={article.date}
-                keywords={article.keyword.split(",")}
+                key={article.id}
+                id={article.id.toString()}
+                title={article.title || "Untitled"}
+                summary={article.summary || "No summary available"}
+                author={article.author || "Unknown"}
+                date={article.date || article.createdAt}
+                keywords={article.keywords}
                 imageUrl={article.cover}
               />
             ))}
@@ -155,13 +179,13 @@ export default function AdminContentPage() {
           {allContent.map((article) => (
             <ArticleCard
               key={article.id}
-              id={article.id}
-              title={article.title}
-              summary={article.summary}
-              author={article.author}
-              date={article.date}
-              keywords={article.keyword.split(",")}
-              imageUrl={article.cover}
+              id={article.id.toString()}
+              title={article.title || "Untitled"}
+              summary={article.summary || "No summary available"}
+              author={article.author || "Unknown"}
+              date={article.date || article.createdAt}
+              keywords={article.keywords}
+              imageUrl={`data:image/jpeg;base64,${article.cover}`}
             />
           ))}
         </div>

@@ -197,7 +197,7 @@ async function main() {
       position: "Super Admin",
       //   image: "", // Anda bisa menambahkan URL gambar profil jika diperlukan
       password: hashedPassword, // Menyimpan password yang sudah di-hash
-      role: "ADMIN", // Menentukan role sebagai ADMIN
+      role: "SUPER_ADMIN", // Menentukan role sebagai ADMIN
       countryId: indonesia?.id, // Mengaitkan super admin dengan negara Indonesia
     },
   });

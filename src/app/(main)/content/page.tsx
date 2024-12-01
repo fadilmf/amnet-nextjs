@@ -53,12 +53,14 @@ export default function ArticlesPage() {
   // Filter and sort articles
   const filteredAndSortedArticles = articles
     .filter((article) => {
-      const keywordArray = article.keywords
-        ? article.keywords.split(",").map((k: any) => k.trim().toLowerCase())
-        : []; // Use empty array if keywords is undefined
+      const keywordArray = Array.isArray(article.keywords)
+        ? article.keywords.map((k: string) => k.toLowerCase())
+        : []; // Use empty array if keywords is undefined or not an array
+
       return (
         article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        keywordArray.some((keyword: any) =>
+        article.author?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        keywordArray.some((keyword) =>
           keyword.includes(searchTerm.toLowerCase())
         )
       );
@@ -109,11 +111,7 @@ export default function ArticlesPage() {
               {...article}
               imageUrl={article.cover}
               summary={article.snippet}
-              keywords={
-                article.keywords
-                  ? article.keywords.split(",").map((k: any) => k.trim())
-                  : []
-              } // Split keywords here, fallback to empty array if undefined
+              keywords={Array.isArray(article.keywords) ? article.keywords : []}
             />
           ))}
         </div>

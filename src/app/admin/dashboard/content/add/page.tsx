@@ -1,1267 +1,1139 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-// import {
-//   Select,
-//   SelectTrigger,
-//   SelectContent,
-//   SelectItem,
-//   SelectValue,
-// } from "@/components/ui/select";
-import { FileUpload } from "@/components/admin/file-upload"; // Custom component for file upload
-import { Download } from "lucide-react";
-import { useRouter } from "next/navigation";
-import imageCompression from "browser-image-compression";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  PlusCircle,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  Loader2,
+} from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
-type FormData = {
+interface ExistingCondition {
   title: string;
+  description: string;
+  images: { file: File | null; alt: string }[];
+}
+
+interface SustainabilityDimension {
+  dimensionType:
+    | "ECOLOGY"
+    | "SOCIAL"
+    | "ECONOMY"
+    | "INSTITUTIONAL"
+    | "TECHNOLOGY";
+  title: string;
+  inputMethod: string;
+  significantAspects: string[];
+  sustainabilityScore: number;
+  images: { file: File | null; alt: string }[];
+  graphImages: { file: File | null; alt: string }[];
+}
+
+interface Content {
+  title: string;
+  snippet: string;
   author: string;
   date: string;
-  institution: string;
-  email: string;
-  summary: string;
-  keyword: string;
-  existingCondition1: string;
-  existingCondition2: string;
-  existingCondition3: string;
-  existingCondition4: string;
-  existingCondition5: string;
-  existingCondition6: string;
-  existingCondition7: string;
-  existingCondition8: string;
-  existingCondition9: string;
-  existingCondition10: string;
-  existingCondition11: string;
-  existingCondition12: string;
-  existingCondition13: string;
-  existingCondition14: string;
-  existingCondition15: string;
-  existingCondition16: string;
-  existingCondition17: string;
-  existingCondition18: string;
-  existingCondition19: string;
-  existingCondition20: string;
-  existingCondition21: string;
-  existingCondition22: string;
-  existingCondition23: string;
-  ecologyDim: number;
-  ecologyMethod: string;
-  ecologyMost1: string;
-  ecologyMost2: string;
-  ecologyMost3: string;
-  socialDim: number;
-  socialMethod: string;
-  socialMost1: string;
-  socialMost2: string;
-  socialMost3: string;
-  economyDim: number;
-  economyMethod: string;
-  economyMost1: string;
-  economyMost2: string;
-  economyMost3: string;
-  institutionalDim: number;
-  institutionalMethod: string;
-  institutionalMost1: string;
-  institutionalMost2: string;
-  institutionalMost3: string;
-  technologyDim: number;
-  technologyMethod: string;
-  technologyMost1: string;
-  technologyMost2: string;
-  technologyMost3: string;
+  cover: File | null;
+  keywords: string[];
+  existingConditions: ExistingCondition[];
+  ecologyDimension: SustainabilityDimension;
+  socialDimension: SustainabilityDimension;
+  economyDimension: SustainabilityDimension;
+  institutionalDimension: SustainabilityDimension;
+  technologyDimension: SustainabilityDimension;
+  supportingDocuments: { name: string; file: File | null }[];
+  maps: { file: File | null; alt: string }[];
+  gallery: { file: File | null; alt: string }[];
+  videos: { url: string; title: string }[];
+  status: "DRAFT" | "PUBLISHED";
+}
 
-  sustainability: string;
-  sustainabilityindex: number;
-
-  videoLinks: string[];
-};
-
-type FileData = {
-  cover: string | null;
-  galleries: string[]; // Array to handle multiple galleries
-  maps: string[]; // Array to handle multiple maps
-  supportingDocs: string[]; // Array for supporting documents
-  // galeri: string | null;
-  // map: string | null;
-  // supportingDocument: string | null;
-  ecologyGraph: string | null;
-  ecologyLevel: string | null;
-  socialGraph: string | null;
-  socialLevel: string | null;
-  economyGraph: string | null;
-  economyLevel: string | null;
-  institutionalGraph: string | null;
-  institutionalLevel: string | null;
-  technologyGraph: string | null;
-  technologyLevel: string | null;
-
-  sustainabilityImage: string | null;
-};
+type DimensionKey =
+  | "ecologyDimension"
+  | "socialDimension"
+  | "economyDimension"
+  | "institutionalDimension"
+  | "technologyDimension";
+type DimensionBase =
+  | "ecology"
+  | "social"
+  | "economy"
+  | "institutional"
+  | "technology";
 
 export default function AddContentPage() {
   const router = useRouter();
-  // const [formData, setFormData] = useState<FormData>({
-  //   title: "",
-  //   author: "",
-  //   date: "",
-  //   institution: "",
-  //   email: "",
-  //   summary: "",
-  //   keyword: "",
-  //   existingCondition1: "",
-  //   existingCondition2: "",
-  //   existingCondition3: "",
-  //   existingCondition4: "",
-  //   existingCondition5: "",
-  //   existingCondition6: "",
-  //   existingCondition7: "",
-  //   existingCondition8: "",
-  //   existingCondition9: "",
-  //   existingCondition10: "",
-  //   existingCondition11: "",
-  //   existingCondition12: "",
-  //   existingCondition13: "",
-  //   existingCondition14: "",
-  //   existingCondition15: "",
-  //   existingCondition16: "",
-  //   existingCondition17: "",
-  //   existingCondition18: "",
-  //   existingCondition19: "",
-  //   existingCondition20: "",
-  //   existingCondition21: "",
-  //   existingCondition22: "",
-  //   existingCondition23: "",
-  //   ecologyDim: 0.0,
-  //   ecologyMethod: "",
-  //   ecologyMost1: "",
-  //   ecologyMost2: "",
-  //   ecologyMost3: "",
-  //   socialDim: 0.0,
-  //   socialMethod: "",
-  //   socialMost1: "",
-  //   socialMost2: "",
-  //   socialMost3: "",
-  //   economyDim: 0.0,
-  //   economyMethod: "",
-  //   economyMost1: "",
-  //   economyMost2: "",
-  //   economyMost3: "",
-  //   institutionalDim: 0.0,
-  //   institutionalMethod: "",
-  //   institutionalMost1: "",
-  //   institutionalMost2: "",
-  //   institutionalMost3: "",
-  //   technologyDim: 0.0,
-  //   technologyMethod: "",
-  //   technologyMost1: "",
-  //   technologyMost2: "",
-  //   technologyMost3: "",
-  //   sustainabilityindex: 0.0,
-  //   videoLinks: [],
-  // });
-
-  const [formData, setFormData] = useState<FormData>({
-    title: "Default Title",
-    author: "John Doe",
-    date: "2024-01-01",
-    institution: "Default Institution",
-    email: "default@example.com",
-    summary: "This is a default summary for testing.",
-    keyword: "test, example, default",
-    existingCondition1: "Condition 1 example",
-    existingCondition2: "Condition 2 example",
-    existingCondition3: "Condition 3 example",
-    existingCondition4: "Condition 4 example",
-    existingCondition5: "Condition 5 example",
-    existingCondition6: "Condition 6 example",
-    existingCondition7: "Condition 7 example",
-    existingCondition8: "Condition 8 example",
-    existingCondition9: "Condition 9 example",
-    existingCondition10: "Condition 10 example",
-    existingCondition11: "Condition 11 example",
-    existingCondition12: "Condition 12 example",
-    existingCondition13: "Condition 13 example",
-    existingCondition14: "Condition 14 example",
-    existingCondition15: "Condition 15 example",
-    existingCondition16: "Condition 16 example",
-    existingCondition17: "Condition 17 example",
-    existingCondition18: "Condition 18 example",
-    existingCondition19: "Condition 19 example",
-    existingCondition20: "Condition 20 example",
-    existingCondition21: "Condition 21 example",
-    existingCondition22: "Condition 22 example",
-    existingCondition23: "Condition 23 example",
-    ecologyDim: 10,
-    ecologyMethod: "Default ecology method",
-    ecologyMost1: "Most significant aspect 1",
-    ecologyMost2: "Most significant aspect 2",
-    ecologyMost3: "Most significant aspect 3",
-    socialDim: 20,
-    socialMethod: "Default social method",
-    socialMost1: "Most significant aspect 1",
-    socialMost2: "Most significant aspect 2",
-    socialMost3: "Most significant aspect 3",
-    economyDim: 30,
-    economyMethod: "Default economy method",
-    economyMost1: "Most significant aspect 1",
-    economyMost2: "Most significant aspect 2",
-    economyMost3: "Most significant aspect 3",
-    institutionalDim: 40,
-    institutionalMethod: "Default institutional method",
-    institutionalMost1: "Most significant aspect 1",
-    institutionalMost2: "Most significant aspect 2",
-    institutionalMost3: "Most significant aspect 3",
-    technologyDim: 50,
-    technologyMethod: "Default technology method",
-    technologyMost1: "Most significant aspect 1",
-    technologyMost2: "Most significant aspect 2",
-    technologyMost3: "Most significant aspect 3",
-
-    sustainability: "ini summary sustainability",
-    sustainabilityindex: 99.9,
-
-    videoLinks: ["https://example.com/video1", "https://example.com/video2"],
-  });
-  // const [fileData, setFileData] = useState<FileData>({
-  //   cover: null,
-  //   galleries: [],
-  //   maps: [],
-  //   supportingDocs: [],
-  //   ecologyGraph: null,
-  //   ecologyLeve: null,
-  //   socialGraph: null,
-  //   socialLeve: null,
-  //   economyGraph: null,
-  //   economyLeve: null,
-  //   institutionalGraph: null,
-  //   institutionalLeve: null,
-  //   technologyGraph: null,
-  //   technologyLeve: null,
-  // });
-
-  const [fileData, setFileData] = useState<FileData>({
+  const { user } = useAuth();
+  const [content, setContent] = useState<Content>({
+    title: "",
+    snippet: "",
+    author: "",
+    date: "",
     cover: null,
-    galleries: [],
+    keywords: [],
+    existingConditions: [],
+    ecologyDimension: {
+      dimensionType: "ECOLOGY",
+      title: "",
+      inputMethod: "",
+      significantAspects: ["", "", ""],
+      sustainabilityScore: 0,
+      images: [],
+      graphImages: [],
+    },
+    socialDimension: {
+      dimensionType: "SOCIAL",
+      title: "",
+      inputMethod: "",
+      significantAspects: ["", "", ""],
+      sustainabilityScore: 0,
+      images: [],
+      graphImages: [],
+    },
+    economyDimension: {
+      dimensionType: "ECONOMY",
+      title: "",
+      inputMethod: "",
+      significantAspects: ["", "", ""],
+      sustainabilityScore: 0,
+      images: [],
+      graphImages: [],
+    },
+    institutionalDimension: {
+      dimensionType: "INSTITUTIONAL",
+      title: "",
+      inputMethod: "",
+      significantAspects: ["", "", ""],
+      sustainabilityScore: 0,
+      images: [],
+      graphImages: [],
+    },
+    technologyDimension: {
+      dimensionType: "TECHNOLOGY",
+      title: "",
+      inputMethod: "",
+      significantAspects: ["", "", ""],
+      sustainabilityScore: 0,
+      images: [],
+      graphImages: [],
+    },
+    supportingDocuments: [],
     maps: [],
-    supportingDocs: [],
-    ecologyGraph: null,
-    ecologyLevel: null,
-    socialGraph: null,
-    socialLevel: null,
-    economyGraph: null,
-    economyLevel: null,
-    institutionalGraph: null,
-    institutionalLevel: null,
-    technologyGraph: null,
-    technologyLevel: null,
-    sustainabilityImage: null,
+    gallery: [],
+    videos: [],
+    status: "DRAFT",
   });
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitResponse, setSubmitResponse] = useState<{
+    success?: boolean;
+    message?: string;
+    error?: string;
+  } | null>(null);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { id, value } = e.target;
-    setFormData({
-      ...formData,
-      [id]: value,
+    const { name, value } = e.target;
+    setContent((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleKeywordsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const keywords = e.target.value.split(",").map((keyword) => keyword.trim());
+    setContent((prev) => ({ ...prev, keywords }));
+  };
+
+  const addExistingCondition = () => {
+    setContent((prev) => ({
+      ...prev,
+      existingConditions: [
+        ...prev.existingConditions,
+        { title: "", description: "", images: [] },
+      ],
+    }));
+  };
+
+  const removeExistingCondition = (index: number) => {
+    setContent((prev) => ({
+      ...prev,
+      existingConditions: prev.existingConditions.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleExistingConditionChange = (
+    index: number,
+    field: keyof ExistingCondition,
+    value: string | File
+  ) => {
+    setContent((prev) => ({
+      ...prev,
+      existingConditions: prev.existingConditions.map((condition, i) =>
+        i === index ? { ...condition, [field]: value } : condition
+      ),
+    }));
+  };
+
+  const handleExistingConditionImageChange = (
+    conditionIndex: number,
+    imageIndex: number,
+    field: "file" | "alt",
+    value: File | string
+  ) => {
+    console.log(
+      `Updating image for condition ${conditionIndex}, image ${imageIndex}:`,
+      {
+        field,
+        value: field === "file" ? (value as File).name : value,
+      }
+    );
+
+    setContent((prev) => {
+      const newContent = {
+        ...prev,
+        existingConditions: prev.existingConditions.map((condition, i) =>
+          i === conditionIndex
+            ? {
+                ...condition,
+                images: condition.images.map((img, imgI) =>
+                  imgI === imageIndex ? { ...img, [field]: value } : img
+                ),
+              }
+            : condition
+        ),
+      };
+
+      // Verifikasi perubahan
+      console.log(
+        `Updated condition ${conditionIndex} images:`,
+        newContent.existingConditions[conditionIndex].images
+      );
+
+      return newContent;
     });
   };
 
-  const handleFileChange = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-    label: keyof FileData
+  const addImageToExistingCondition = (conditionIndex: number) => {
+    setContent((prev) => ({
+      ...prev,
+      existingConditions: prev.existingConditions.map((condition, i) =>
+        i === conditionIndex
+          ? {
+              ...condition,
+              images: [...condition.images, { file: null, alt: "" }],
+            }
+          : condition
+      ),
+    }));
+  };
+
+  const removeImageFromExistingCondition = (
+    conditionIndex: number,
+    imageIndex: number
   ) => {
-    const file = e.target.files ? e.target.files[0] : null;
-    if (file) {
-      try {
-        // Kompresi gambar sebelum diunggah
-        const options = {
-          maxSizeMB: 1, // Ukuran maksimal dalam MB
-          maxWidthOrHeight: 800, // Resolusi maksimum
-          useWebWorker: true, // Gunakan Web Worker untuk performa
-        };
+    setContent((prev) => ({
+      ...prev,
+      existingConditions: prev.existingConditions.map((condition, i) =>
+        i === conditionIndex
+          ? {
+              ...condition,
+              images: condition.images.filter((_, imgI) => imgI !== imageIndex),
+            }
+          : condition
+      ),
+    }));
+  };
 
-        const compressedFile = await imageCompression(file, options);
-        const reader = new FileReader();
+  const handleDimensionChange = (
+    dimension: DimensionKey,
+    field: keyof SustainabilityDimension,
+    value: string | number | File | { file: File | null; alt: string }[]
+  ) => {
+    setContent((prev) => ({
+      ...prev,
+      [dimension]: {
+        ...(prev[dimension] as SustainabilityDimension),
+        [field]: value,
+      },
+    }));
+  };
 
-        reader.onloadend = () => {
-          const resultString = reader.result as string;
-          setFileData((prevFileData) => ({
-            ...prevFileData,
-            [label]: [
-              ...(prevFileData[label] || []),
-              resultString ? resultString.split(",")[1] : null,
-            ],
-          }));
-        };
+  const handleSignificantAspectChange = (
+    dimension: DimensionKey,
+    index: number,
+    value: string
+  ) => {
+    setContent((prev) => ({
+      ...prev,
+      [dimension]: {
+        ...(prev[dimension] as SustainabilityDimension),
+        significantAspects: (
+          prev[dimension] as SustainabilityDimension
+        ).significantAspects.map((aspect, i) => (i === index ? value : aspect)),
+      },
+    }));
+  };
 
-        reader.readAsDataURL(compressedFile);
-      } catch (error) {
-        console.error("Error during file compression:", error);
-      }
+  const addSupportingDocument = () => {
+    setContent((prev) => ({
+      ...prev,
+      supportingDocuments: [
+        ...prev.supportingDocuments,
+        { name: "", file: null },
+      ],
+    }));
+  };
+
+  const removeSupportingDocument = (index: number) => {
+    setContent((prev) => ({
+      ...prev,
+      supportingDocuments: prev.supportingDocuments.filter(
+        (_, i) => i !== index
+      ),
+    }));
+  };
+
+  const addMap = () => {
+    setContent((prev) => ({
+      ...prev,
+      maps: [...prev.maps, { file: null, alt: "" }],
+    }));
+  };
+
+  const removeMap = (index: number) => {
+    setContent((prev) => ({
+      ...prev,
+      maps: prev.maps.filter((_, i) => i !== index),
+    }));
+  };
+
+  const addGalleryImage = () => {
+    setContent((prev) => ({
+      ...prev,
+      gallery: [...prev.gallery, { file: null, alt: "" }],
+    }));
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setContent((prev) => ({
+      ...prev,
+      gallery: prev.gallery.filter((_, i) => i !== index),
+    }));
+  };
+
+  const addVideo = () => {
+    setContent((prev) => ({
+      ...prev,
+      videos: [...prev.videos, { url: "", title: "" }],
+    }));
+  };
+
+  const removeVideo = (index: number) => {
+    setContent((prev) => ({
+      ...prev,
+      videos: prev.videos.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleFileInput = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    updateFunction: (file: File) => void
+  ) => {
+    if (e.target.files && e.target.files[0]) {
+      updateFunction(e.target.files[0]);
     }
   };
 
-  const handleVideoLinkChange = (index: number, value: string) => {
-    const updatedVideoLinks = [...formData.videoLinks];
-    updatedVideoLinks[index] = value;
-    setFormData({ ...formData, videoLinks: updatedVideoLinks });
-  };
+  const handleSubmit = async (status: "DRAFT" | "PUBLISHED") => {
+    // Debug log di awal fungsi
+    console.log(
+      "Checking existing conditions before submit:",
+      content.existingConditions.map((ec) => ({
+        ...ec,
+        images: ec.images.map((img) => ({
+          hasFile: !!img.file,
+          fileName: img.file?.name,
+          alt: img.alt,
+        })),
+      }))
+    );
 
-  const addVideoLink = () => {
-    setFormData({ ...formData, videoLinks: [...formData.videoLinks, ""] });
-  };
-
-  const removeVideoLink = (index: number) => {
-    const updatedVideoLinks = formData.videoLinks.filter((_, i) => i !== index);
-    setFormData({ ...formData, videoLinks: updatedVideoLinks });
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
-
-    const contentData = {
-      ...formData,
-      cover: fileData.cover,
-      galleries: fileData.galleries,
-      maps: fileData.maps,
-      supportingDocs: fileData.supportingDocs,
-      ecologyGraph: fileData.ecologyGraph,
-      ecologyLevel: fileData.ecologyLevel,
-      socialGraph: fileData.socialGraph,
-      socialLevel: fileData.socialLevel,
-      economyGraph: fileData.economyGraph,
-      economyLevel: fileData.economyLevel,
-      institutionalGraph: fileData.institutionalGraph,
-      institutionalLevel: fileData.institutionalLevel,
-      technologyGraph: fileData.technologyGraph,
-      technologyLevel: fileData.technologyLevel,
-    };
+    setIsSubmitting(true);
+    setSubmitResponse(null);
 
     try {
+      const formData = new FormData();
+
+      // Add basic fields
+      formData.append("title", content.title);
+      formData.append("userId", user?.id || "");
+      formData.append("countryId", user?.countryId.toString() || "");
+      formData.append("summary", content.snippet);
+      formData.append("author", content.author);
+      formData.append("date", content.date);
+      formData.append("keywords", JSON.stringify(content.keywords));
+      formData.append("status", status);
+
+      // Add cover image if exists
+      if (content.cover) {
+        formData.append("cover", content.cover);
+      }
+
+      // Add existing conditions
+      content.existingConditions.forEach((condition, index) => {
+        formData.append(`existingConditions[${index}][title]`, condition.title);
+        formData.append(
+          `existingConditions[${index}][description]`,
+          condition.description
+        );
+
+        // Perbaikan penanganan gambar
+        if (condition.images && condition.images.length > 0) {
+          condition.images.forEach((image, imgIndex) => {
+            if (image.file) {
+              console.log(
+                `Appending image for condition ${index}, image ${imgIndex}:`,
+                image.file.name
+              );
+              formData.append(
+                `existingConditions[${index}][images][${imgIndex}]`,
+                image.file,
+                image.file.name // Tambahkan nama file
+              );
+              formData.append(
+                `existingConditions[${index}][imagesAlt][${imgIndex}]`,
+                image.alt || ""
+              );
+            }
+          });
+        }
+      });
+
+      // Add dimensions
+      const dimensions: DimensionKey[] = [
+        "ecologyDimension",
+        "socialDimension",
+        "economyDimension",
+        "institutionalDimension",
+        "technologyDimension",
+      ];
+
+      dimensions.forEach((dim) => {
+        const dimension = content[dim];
+        formData.append(
+          dim,
+          JSON.stringify({
+            dimensionType: dimension.dimensionType,
+            title: dimension.title,
+            inputMethod: dimension.inputMethod,
+            significantAspects: dimension.significantAspects,
+            sustainabilityScore: dimension.sustainabilityScore,
+          })
+        );
+
+        // Add dimension graph images
+        dimension.graphImages.forEach((image, index) => {
+          if (image.file) {
+            formData.append(`${dim}GraphImages[${index}]`, image.file);
+            formData.append(`${dim}GraphImagesAlt[${index}]`, image.alt);
+          }
+        });
+      });
+
+      // Add supporting documents
+      content.supportingDocuments.forEach((doc, index) => {
+        if (doc.file) {
+          formData.append(`supportingDocs[${index}]`, doc.file);
+          formData.append(`supportingDocsNames[${index}]`, doc.name);
+        }
+      });
+
+      // Add maps
+      content.maps.forEach((map, index) => {
+        if (map.file) {
+          formData.append(`maps[${index}]`, map.file);
+          formData.append(`mapsAlt[${index}]`, map.alt);
+        }
+      });
+
+      // Add gallery images
+      content.gallery.forEach((image, index) => {
+        if (image.file) {
+          formData.append(`galleries[${index}]`, image.file);
+          formData.append(`galleriesAlt[${index}]`, image.alt);
+        }
+      });
+
+      // Add videos
+      formData.append("videoLinks", JSON.stringify(content.videos));
+
+      // Log FormData untuk debugging
+      console.log("=== Data yang akan dikirim ===");
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
+
       const response = await fetch("/api/content", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(contentData),
+        body: formData,
       });
 
-      if (!response.ok) throw new Error("Failed to create content");
+      const data = await response.json();
 
-      const result = await response.json();
-
-      // Reset form data
-      setFormData({
-        title: "",
-        author: "",
-        date: "",
-        institution: "",
-        email: "",
-        summary: "",
-        keyword: "",
-        existingCondition1: "",
-        existingCondition2: "",
-        existingCondition3: "",
-        existingCondition4: "",
-        existingCondition5: "",
-        existingCondition6: "",
-        existingCondition7: "",
-        existingCondition8: "",
-        existingCondition9: "",
-        existingCondition10: "",
-        existingCondition11: "",
-        existingCondition12: "",
-        existingCondition13: "",
-        existingCondition14: "",
-        existingCondition15: "",
-        existingCondition16: "",
-        existingCondition17: "",
-        existingCondition18: "",
-        existingCondition19: "",
-        existingCondition20: "",
-        existingCondition21: "",
-        existingCondition22: "",
-        existingCondition23: "",
-        ecologyDim: 0.0,
-        ecologyMethod: "",
-        ecologyMost1: "",
-        ecologyMost2: "",
-        ecologyMost3: "",
-        socialDim: 0.0,
-        socialMethod: "",
-        socialMost1: "",
-        socialMost2: "",
-        socialMost3: "",
-        economyDim: 0.0,
-        economyMethod: "",
-        economyMost1: "",
-        economyMost2: "",
-        economyMost3: "",
-        institutionalDim: 0.0,
-        institutionalMethod: "",
-        institutionalMost1: "",
-        institutionalMost2: "",
-        institutionalMost3: "",
-        technologyDim: 0.0,
-        technologyMethod: "",
-        technologyMost1: "",
-        technologyMost2: "",
-        technologyMost3: "",
-
-        sustainability: "",
-        sustainabilityindex: 0.0,
-        videoLinks: [],
-      });
-
-      setFileData({
-        cover: null,
-        galleries: [],
-        maps: [],
-        supportingDocs: [],
-        ecologyGraph: null,
-        ecologyLevel: null,
-        socialGraph: null,
-        socialLevel: null,
-        economyGraph: null,
-        economyLevel: null,
-        institutionalGraph: null,
-        institutionalLevel: null,
-        technologyGraph: null,
-        technologyLevel: null,
-        sustainabilityImage: null,
-      });
-
-      router.push("/admin/dashboard/content");
+      if (response.ok) {
+        setSubmitResponse({
+          success: true,
+          message: `Content successfully ${
+            status === "DRAFT" ? "saved as draft" : "published"
+          }!`,
+        });
+        router.push("/admin/dashboard/content");
+      } else {
+        setSubmitResponse({
+          success: false,
+          error: data.error || data.details || "Failed to add content",
+        });
+      }
     } catch (error) {
-      setError("Failed to create content. Please try again.");
+      console.error("Error submitting form:", error);
+      setSubmitResponse({
+        success: false,
+        error: error instanceof Error ? error.message : "An error occurred",
+      });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex gap-8 items-center mb-6">
-        <h1 className="text-3xl font-semibold">Add Content</h1>
-        <a
-          href="https://docs.google.com/document/d/1rZy86-zbDkl3SnHWh7qiTGftC5w1QQGH/edit?usp=sharing&ouid=111865860740807580291&rtpof=true&sd=true"
-          className="text-blue-600 underline flex items-center justify-center gap-2"
+      <h1 className="text-3xl font-bold mb-8">Add New Content</h1>
+
+      {/* Response Message */}
+      {submitResponse && (
+        <div
+          className={`mb-6 p-4 rounded-lg ${
+            submitResponse.success
+              ? "bg-green-100 text-green-700 border border-green-400"
+              : "bg-red-100 text-red-700 border border-red-400"
+          }`}
         >
-          <Download />
-          Download Template
-        </a>
-      </div>
-
-      <form className="space-y-6" onSubmit={handleSubmit}>
-        {/* Main Form Fields */}
-        <div>
-          <Label htmlFor="title">Title</Label>
-          <Input
-            id="title"
-            placeholder="Enter title"
-            value={formData.title}
-            onChange={handleInputChange}
-            required
-          />
+          {submitResponse.success ? (
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5" />
+              <span>{submitResponse.message}</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <XCircle className="h-5 w-5" />
+              <span>{submitResponse.error}</span>
+            </div>
+          )}
         </div>
-        <div>
-          <Label htmlFor="cover">Upload Cover Image</Label>
-          <FileUpload
-            label="Choose a cover image"
-            accept="image/*"
-            onChange={(e) => handleFileChange(e, "cover")}
-          />
-        </div>
-        <div>
-          <Label htmlFor="author">Author</Label>
-          <Input
-            id="author"
-            placeholder="Enter author name"
-            value={formData.author}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="date">Date Content Created</Label>
-          <Input
-            id="date"
-            type="date"
-            value={formData.date}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="institution">Institution</Label>
-          <Input
-            id="institution"
-            placeholder="Enter institution"
-            value={formData.institution}
-            onChange={handleInputChange}
-          />
-        </div>
-        <div>
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="Enter email"
-            value={formData.email}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="summary">Summary</Label>
-          <Textarea
-            id="summary"
-            placeholder="Enter summary"
-            value={formData.summary}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="keyword">Keyword</Label>
-          <Input
-            id="keyword"
-            placeholder="Enter keywords"
-            value={formData.keyword}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
+      )}
 
-        <div className="mt-8">
-          <h2 className="text-lg font-semibold mb-4">Existing Condition</h2>
-
-          <div>
-            {/* Institutional Arrangement */}
+      <form className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Basic Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="existingCondition1">
-                Institutional Arrangement
-              </Label>
-              <Textarea
-                id="existingCondition1"
-                placeholder="Enter summary"
-                value={formData.existingCondition1}
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                name="title"
+                value={content.title}
                 onChange={handleInputChange}
                 required
               />
             </div>
-
-            {/* Regional Administration */}
             <div>
-              <Label htmlFor="existingCondition2">
-                Regional Administration
-              </Label>
+              <Label htmlFor="snippet">Summary</Label>
               <Textarea
-                id="existingCondition2"
-                placeholder="Enter summary"
-                value={formData.existingCondition2}
+                id="snippet"
+                name="snippet"
+                value={content.snippet}
                 onChange={handleInputChange}
                 required
               />
             </div>
-
-            {/* Population Demographics */}
             <div>
-              <Label htmlFor="existingCondition3">
-                Population Demographics
-              </Label>
-              <Textarea
-                id="existingCondition3"
-                placeholder="Enter summary"
-                value={formData.existingCondition3}
+              <Label htmlFor="author">Author</Label>
+              <Input
+                id="author"
+                name="author"
+                value={content.author}
                 onChange={handleInputChange}
                 required
               />
             </div>
-
-            {/* Community Education Level */}
             <div>
-              <Label htmlFor="existingCondition4">
-                Community Education Level
-              </Label>
-              <Textarea
-                id="existingCondition4"
-                placeholder="Enter summary"
-                value={formData.existingCondition4}
+              <Label htmlFor="date">Date</Label>
+              <Input
+                id="date"
+                name="date"
+                type="date"
+                value={content.date}
                 onChange={handleInputChange}
                 required
               />
             </div>
-
-            {/* Agricultural, Plantation, and Fisheries Conditions */}
             <div>
-              <Label htmlFor="existingCondition5">
-                Agricultural, Plantation, and Fisheries Conditions
-              </Label>
-              <Textarea
-                id="existingCondition5"
-                placeholder="Enter summary"
-                value={formData.existingCondition5}
-                onChange={handleInputChange}
+              <Label htmlFor="cover">Cover Image</Label>
+              <Input
+                id="cover"
+                name="cover"
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  handleFileInput(e, (file) =>
+                    setContent((prev) => ({ ...prev, cover: file }))
+                  )
+                }
                 required
               />
             </div>
-
-            {/* Community Culture and Ethnicity */}
             <div>
-              <Label htmlFor="existingCondition6">
-                Community Culture and Ethnicity
-              </Label>
-              <Textarea
-                id="existingCondition6"
-                placeholder="Enter summary"
-                value={formData.existingCondition6}
-                onChange={handleInputChange}
-                required
+              <Label htmlFor="keywords">Keywords (comma-separated)</Label>
+              <Input
+                id="keywords"
+                name="keywords"
+                value={content.keywords.join(", ")}
+                onChange={handleKeywordsChange}
               />
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Topography */}
-            <div>
-              <Label htmlFor="existingCondition7">Topography</Label>
-              <Textarea
-                id="existingCondition7"
-                placeholder="Enter summary"
-                value={formData.existingCondition7}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            {/* Climate */}
-            <div>
-              <Label htmlFor="existingCondition8">Climate</Label>
-              <Textarea
-                id="existingCondition8"
-                placeholder="Enter summary"
-                value={formData.existingCondition8}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            {/* Land Cover and Mangrove Density */}
-            <div>
-              <Label htmlFor="existingCondition9">
-                Land Cover and Mangrove Density
-              </Label>
-              <Textarea
-                id="existingCondition9"
-                placeholder="Enter summary"
-                value={formData.existingCondition9}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            {/* Shoreline Changes */}
-            <div>
-              <Label htmlFor="existingCondition10">Shoreline Changes</Label>
-              <Textarea
-                id="existingCondition10"
-                placeholder="Enter summary"
-                value={formData.existingCondition10}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            {/* Species Composition */}
-            <div>
-              <Label htmlFor="existingCondition11">Species Composition</Label>
-              <Textarea
-                id="existingCondition11"
-                placeholder="Enter summary"
-                value={formData.existingCondition11}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            {/* Dominant Mangrove Species */}
-            <div>
-              <Label htmlFor="existingCondition12">
-                Dominant Mangrove Species
-              </Label>
-              <Textarea
-                id="existingCondition12"
-                placeholder="Enter summary"
-                value={formData.existingCondition12}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            {/* Biomass, Carbon Storage, and Carbon Dioxide Absorption */}
-            <div>
-              <Label htmlFor="existingCondition13">
-                Biomass, Carbon Storage, and Carbon Dioxide Absorption
-              </Label>
-              <Textarea
-                id="existingCondition13"
-                placeholder="Enter summary"
-                value={formData.existingCondition13}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            {/* Fauna Diversity */}
-            <div>
-              <Label htmlFor="existingCondition14">Fauna Diversity</Label>
-              <Textarea
-                id="existingCondition14"
-                placeholder="Enter summary"
-                value={formData.existingCondition14}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            {/* Pond Conditions */}
-            <div>
-              <Label htmlFor="existingCondition15">Pond Conditions</Label>
-              <Textarea
-                id="existingCondition15"
-                placeholder="Enter summary"
-                value={formData.existingCondition15}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            {/* Pond Design & Constructions */}
-            <div>
-              <Label htmlFor="existingCondition16">
-                Pond Design & Constructions
-              </Label>
-              <Textarea
-                id="existingCondition16"
-                placeholder="Enter summary"
-                value={formData.existingCondition16}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            {/* Layout and Irrigation System */}
-            <div>
-              <Label htmlFor="existingCondition17">
-                Layout and Irrigation System
-              </Label>
-              <Textarea
-                id="existingCondition17"
-                placeholder="Enter summary"
-                value={formData.existingCondition17}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            {/* Water Quality Condition */}
-            <div>
-              <Label htmlFor="existingCondition18">
-                Water Quality Condition
-              </Label>
-              <Textarea
-                id="existingCondition18"
-                placeholder="Enter summary"
-                value={formData.existingCondition18}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            {/* Soil Quality Condition */}
-            <div>
-              <Label htmlFor="existingCondition19">
-                Soil Quality Condition
-              </Label>
-              <Textarea
-                id="existingCondition19"
-                placeholder="Enter summary"
-                value={formData.existingCondition19}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            {/* Cultivation */}
-            <div>
-              <Label htmlFor="existingCondition20">Cultivation</Label>
-              <Textarea
-                id="existingCondition20"
-                placeholder="Enter summary"
-                value={formData.existingCondition20}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            {/* Best Practice Financial Condition */}
-            <div>
-              <Label htmlFor="existingCondition21">
-                Best Practice Financial Condition
-              </Label>
-              <Textarea
-                id="existingCondition21"
-                placeholder="Enter summary"
-                value={formData.existingCondition21}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            {/* Financial Analysis of Livestock Farming */}
-            <div>
-              <Label htmlFor="existingCondition22">
-                Financial Analysis of Livestock Farming
-              </Label>
-              <Textarea
-                id="existingCondition22"
-                placeholder="Enter summary"
-                value={formData.existingCondition22}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            {/* Financial Analysis of Vegetation Cultivation */}
-            <div>
-              <Label htmlFor="existingCondition23">
-                Financial Analysis of Vegetation Cultivation
-              </Label>
-              <Textarea
-                id="existingCondition23"
-                placeholder="Enter summary"
-                value={formData.existingCondition23}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Analysis Sustainability */}
-        <div className="mt-8">
-          <h2 className="text-lg font-semibold mb-4">
-            Analysis Sustainability
-          </h2>
-
-          {/* Ecology Dimension */}
-          <div>
-            <Label className="text-lg font-semibold mb-4">
-              Ecology Dimension
-            </Label>
-            <h1>Index Score</h1>
-            <Input
-              id="ecologyDim"
-              type="number"
-              placeholder="Enter your score for ecology dimension"
-              value={formData.ecologyDim}
-              onChange={handleInputChange}
-            />
-            <h1>Methods</h1>
-            <Input
-              id="ecologyMethod"
-              type="text"
-              placeholder="Describe your method to get the score"
-              value={formData.ecologyMethod}
-              onChange={handleInputChange}
-            />
-            <h1>Graphs</h1>
-            <FileUpload
-              label="Enter Image Result by The Methods"
-              accept="image/*,application/pdf"
-              onChange={(e) => handleFileChange(e, "ecologyGraph")}
-            />
-            <h1>Most Significant Aspects to The Score</h1>
-            <Input
-              id="ecologyMost1"
-              type="text"
-              placeholder="1. Most Significant Aspects"
-              value={formData.ecologyMost1}
-              onChange={handleInputChange}
-            />
-            <Input
-              id="ecologyMost2"
-              type="text"
-              placeholder="2. Most Significant Aspects"
-              value={formData.ecologyMost2}
-              onChange={handleInputChange}
-            />
-            <Input
-              id="ecologyMost3"
-              type="text"
-              placeholder="3. Most Significant Aspects"
-              value={formData.ecologyMost3}
-              onChange={handleInputChange}
-            />
-            <h1>Overall Aspects</h1>
-            <FileUpload
-              label="Enter Image Score from Every Aspects"
-              accept="image/*,application/pdf"
-              onChange={(e) => handleFileChange(e, "ecologyLevel")}
-            />
-          </div>
-
-          {/* Social Dimension */}
-          <div>
-            <Label className="text-lg font-semibold mb-4">
-              Social Dimension
-            </Label>
-            <h1>Index Score</h1>
-            <Input
-              id="socialDim"
-              type="number"
-              placeholder="Enter your score for social dimension"
-              value={formData.socialDim}
-              onChange={handleInputChange}
-            />
-            <h1>Methods</h1>
-            <Input
-              id="socialMethod"
-              type="text"
-              placeholder="Describe your method to get the score"
-              value={formData.socialMethod}
-              onChange={handleInputChange}
-            />
-            <h1>Graphs</h1>
-            <FileUpload
-              label="Enter Image Result by The Methods"
-              accept="image/*,application/pdf"
-              onChange={(e) => handleFileChange(e, "socialGraph")}
-            />
-            <h1>Most Significant Aspects to The Score</h1>
-            <Input
-              id="socialMost1"
-              type="text"
-              placeholder="1. Most Significant Aspects"
-              value={formData.socialMost1}
-              onChange={handleInputChange}
-            />
-            <Input
-              id="socialMost2"
-              type="text"
-              placeholder="2. Most Significant Aspects"
-              value={formData.socialMost2}
-              onChange={handleInputChange}
-            />
-            <Input
-              id="socialMost3"
-              type="text"
-              placeholder="3. Most Significant Aspects"
-              value={formData.socialMost3}
-              onChange={handleInputChange}
-            />
-            <h1>Overall Aspects</h1>
-            <FileUpload
-              label="Enter Image Score from Every Aspects"
-              accept="image/*,application/pdf"
-              onChange={(e) => handleFileChange(e, "socialLevel")}
-            />
-          </div>
-
-          {/* Economy Dimension */}
-          <div>
-            <Label className="text-lg font-semibold mb-4">
-              Economy Dimension
-            </Label>
-            <h1>Index Score</h1>
-            <Input
-              id="economyDim"
-              type="number"
-              placeholder="Enter your score for economy dimension"
-              value={formData.economyDim}
-              onChange={handleInputChange}
-            />
-            <h1>Methods</h1>
-            <Input
-              id="economyMethod"
-              type="text"
-              placeholder="Describe your method to get the score"
-              value={formData.economyMethod}
-              onChange={handleInputChange}
-            />
-            <h1>Graphs</h1>
-            <FileUpload
-              label="Enter Image Result by The Methods"
-              accept="image/*,application/pdf"
-              onChange={(e) => handleFileChange(e, "economyGraph")}
-            />
-            <h1>Most Significant Aspects to The Score</h1>
-            <Input
-              id="economyMost1"
-              type="text"
-              placeholder="1. Most Significant Aspects"
-              value={formData.economyMost1}
-              onChange={handleInputChange}
-            />
-            <Input
-              id="economyMost2"
-              type="text"
-              placeholder="2. Most Significant Aspects"
-              value={formData.economyMost2}
-              onChange={handleInputChange}
-            />
-            <Input
-              id="economyMost3"
-              type="text"
-              placeholder="3. Most Significant Aspects"
-              value={formData.economyMost3}
-              onChange={handleInputChange}
-            />
-            <h1>Overall Aspects</h1>
-            <FileUpload
-              label="Enter Image Score from Every Aspects"
-              accept="image/*,application/pdf"
-              onChange={(e) => handleFileChange(e, "economyLevel")}
-            />
-          </div>
-
-          {/* Institutional Dimension */}
-          <div>
-            <Label className="text-lg font-semibold mb-4">
-              Institutional Dimension
-            </Label>
-            <h1>Index Score</h1>
-            <Input
-              id="institutionalDim"
-              type="number"
-              placeholder="Enter your score for institutional dimension"
-              value={formData.institutionalDim}
-              onChange={handleInputChange}
-            />
-            <h1>Methods</h1>
-            <Input
-              id="institutionalMethod"
-              type="text"
-              placeholder="Describe your method to get the score"
-              value={formData.institutionalMethod}
-              onChange={handleInputChange}
-            />
-            <h1>Graphs</h1>
-            <FileUpload
-              label="Enter Image Result by The Methods"
-              accept="image/*,application/pdf"
-              onChange={(e) => handleFileChange(e, "institutionalGraph")}
-            />
-            <h1>Most Significant Aspects to The Score</h1>
-            <Input
-              id="institutionalMost1"
-              type="text"
-              placeholder="1. Most Significant Aspects"
-              value={formData.institutionalMost1}
-              onChange={handleInputChange}
-            />
-            <Input
-              id="institutionalMost2"
-              type="text"
-              placeholder="2. Most Significant Aspects"
-              value={formData.institutionalMost2}
-              onChange={handleInputChange}
-            />
-            <Input
-              id="institutionalMost3"
-              type="text"
-              placeholder="3. Most Significant Aspects"
-              value={formData.institutionalMost3}
-              onChange={handleInputChange}
-            />
-            <h1>Overall Aspects</h1>
-            <FileUpload
-              label="Enter Image Score from Every Aspects"
-              accept="image/*,application/pdf"
-              onChange={(e) => handleFileChange(e, "institutionalLevel")}
-            />
-          </div>
-
-          {/* Technology Dimension */}
-          <div>
-            <Label className="text-lg font-semibold mb-4">
-              Technology Dimension
-            </Label>
-            <h1>Index Score</h1>
-            <Input
-              id="technologyDim"
-              type="number"
-              placeholder="Enter your score for technology dimension"
-              value={formData.technologyDim}
-              onChange={handleInputChange}
-            />
-            <h1>Methods</h1>
-            <Input
-              id="technologyMethod"
-              type="text"
-              placeholder="Describe your method to get the score"
-              value={formData.technologyMethod}
-              onChange={handleInputChange}
-            />
-            <h1>Graphs</h1>
-            <FileUpload
-              label="Enter Image Result by The Methods"
-              accept="image/*,application/pdf"
-              onChange={(e) => handleFileChange(e, "technologyGraph")}
-            />
-            <h1>Most Significant Aspects to The Score</h1>
-            <Input
-              id="technologyMost1"
-              type="text"
-              placeholder="1. Most Significant Aspects"
-              value={formData.technologyMost1}
-              onChange={handleInputChange}
-            />
-            <Input
-              id="technologyMost2"
-              type="text"
-              placeholder="2. Most Significant Aspects"
-              value={formData.technologyMost2}
-              onChange={handleInputChange}
-            />
-            <Input
-              id="technologyMost3"
-              type="text"
-              placeholder="3. Most Significant Aspects"
-              value={formData.technologyMost3}
-              onChange={handleInputChange}
-            />
-            <h1>Overall Aspects</h1>
-            <FileUpload
-              label="Enter Image Score from Every Aspects"
-              accept="image/*,application/pdf"
-              onChange={(e) => handleFileChange(e, "technologyLevel")}
-            />
-          </div>
-        </div>
-
-        <div>
-          <Label htmlFor="sustainabilitySummary">Sustainability Summary</Label>
-          <Textarea
-            id="sustainabilitySummary"
-            placeholder="Enter sustainability summary"
-            value={formData.sustainability}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="sustainabilitySummaryScore">
-            Sustainability Summary Score
-          </Label>
-          <Input
-            id="sustainabilitySummaryScore"
-            type="number"
-            placeholder="Enter sustainability summary score"
-            value={formData.sustainabilityindex}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="sustainabilitySummaryImage">
-            Sustainability Summary Image
-          </Label>
-          <FileUpload
-            label="Upload sustainability summary image"
-            accept="image/*,application/pdf"
-            onChange={(e) => handleFileChange(e, "sustainabilityImage")}
-          />
-        </div>
-
-        {/* File Uploads */}
-        <div className="mt-8">
-          <h2 className="text-lg font-semibold mb-4">File Uploads</h2>
-          <div>
-            <Label htmlFor="galleries">Galleries</Label>
-            <FileUpload
-              label="Add a gallery image"
-              accept="image/*"
-              onChange={(e) => handleFileChange(e, "galleries")}
-            />
-            {fileData.galleries.map((gallery, index) => (
-              <p key={index}>Gallery image {index + 1} uploaded</p>
+        <Card>
+          <CardHeader>
+            <CardTitle>Existing Conditions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {content.existingConditions.map((condition, index) => (
+              <div key={index} className="border p-4 my-4 rounded">
+                <div className="mb-2">
+                  <Label htmlFor={`condition-title-${index}`}>Title</Label>
+                  <Input
+                    id={`condition-title-${index}`}
+                    value={condition.title}
+                    onChange={(e) =>
+                      handleExistingConditionChange(
+                        index,
+                        "title",
+                        e.target.value
+                      )
+                    }
+                    placeholder="Condition title"
+                  />
+                </div>
+                <div className="mb-2">
+                  <Label htmlFor={`condition-description-${index}`}>
+                    Description
+                  </Label>
+                  <Textarea
+                    id={`condition-description-${index}`}
+                    value={condition.description}
+                    onChange={(e) =>
+                      handleExistingConditionChange(
+                        index,
+                        "description",
+                        e.target.value
+                      )
+                    }
+                    placeholder="Condition description"
+                  />
+                </div>
+                {condition.images.map((image, imgIndex) => (
+                  <div key={imgIndex} className="mt-2 flex items-center gap-2">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          console.log(
+                            `File selected for condition ${index}, image ${imgIndex}:`,
+                            file.name
+                          );
+                          handleExistingConditionImageChange(
+                            index,
+                            imgIndex,
+                            "file",
+                            file
+                          );
+                        }
+                      }}
+                      className="mb-2"
+                    />
+                    <Input
+                      value={image.alt}
+                      onChange={(e) =>
+                        handleExistingConditionImageChange(
+                          index,
+                          imgIndex,
+                          "alt",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Image alt text"
+                    />
+                    <Button
+                      type="button"
+                      onClick={() =>
+                        removeImageFromExistingCondition(index, imgIndex)
+                      }
+                      variant="destructive"
+                      size="sm"
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  onClick={() => addImageToExistingCondition(index)}
+                  size="sm"
+                  className="mt-2"
+                >
+                  Add Image
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => removeExistingCondition(index)}
+                  variant="destructive"
+                  size="sm"
+                  className="mt-2 ml-2"
+                >
+                  Remove Condition
+                </Button>
+              </div>
             ))}
-          </div>
-          <div>
-            <Label htmlFor="maps">Add Map Images</Label>
-            <FileUpload
-              label="Add a map image"
-              accept="image/*"
-              onChange={(e) => handleFileChange(e, "maps")}
-            />
-            {fileData.maps.map((map, index) => (
-              <p key={index}>Maps image {index + 1} uploaded</p>
-            ))}
-          </div>
-          <div>
-            <Label htmlFor="supportingDocs">Add Supporting Documents</Label>
-            <FileUpload
-              label="Add a gallery image"
-              accept="pdf"
-              onChange={(e) => handleFileChange(e, "supportingDocs")}
-            />
-            {fileData.supportingDocs.map((supportingDoc, index) => (
-              <p key={index}>Gallery image {index + 1} uploaded</p>
-            ))}
-          </div>
-          <div>
-            <Label htmlFor="videoLinks">Video Links</Label>
-            {formData.videoLinks.map((link, index) => (
-              <div key={index} className="flex items-center mb-2">
+            <Button
+              type="button"
+              onClick={addExistingCondition}
+              className="mt-2"
+            >
+              <PlusCircle className="mr-2 h-4 w-4" /> Add Existing Condition
+            </Button>
+          </CardContent>
+        </Card>
+
+        {(
+          [
+            "ecology",
+            "social",
+            "economy",
+            "institutional",
+            "technology",
+          ] as const
+        ).map((dim: DimensionBase) => {
+          const dimensionKey = `${dim}Dimension` as DimensionKey;
+          const dimensionData = content[
+            dimensionKey
+          ] as SustainabilityDimension;
+
+          return (
+            <Card key={dim}>
+              <CardHeader>
+                <CardTitle>
+                  {dim.charAt(0).toUpperCase() + dim.slice(1)} Dimension
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor={`${dim}-title`}>Title</Label>
+                  <Input
+                    id={`${dim}-title`}
+                    value={dimensionData.title}
+                    onChange={(e) =>
+                      handleDimensionChange(
+                        dimensionKey,
+                        "title",
+                        e.target.value
+                      )
+                    }
+                  />
+                </div>
+                <div>
+                  <Label htmlFor={`${dim}-input-method`}>Input Method</Label>
+                  <Input
+                    id={`${dim}-input-method`}
+                    value={dimensionData.inputMethod}
+                    onChange={(e) =>
+                      handleDimensionChange(
+                        dimensionKey,
+                        "inputMethod",
+                        e.target.value
+                      )
+                    }
+                  />
+                </div>
+                {[0, 1, 2].map((i) => (
+                  <div key={i}>
+                    <Label htmlFor={`${dim}-aspect-${i}`}>
+                      Significant Aspect {i + 1}
+                    </Label>
+                    <Input
+                      id={`${dim}-aspect-${i}`}
+                      value={dimensionData.significantAspects[i]}
+                      onChange={(e) =>
+                        handleSignificantAspectChange(
+                          dimensionKey,
+                          i,
+                          e.target.value
+                        )
+                      }
+                    />
+                  </div>
+                ))}
+                <div>
+                  <Label htmlFor={`${dim}-score`}>Sustainability Score</Label>
+                  <Input
+                    id={`${dim}-score`}
+                    type="number"
+                    value={dimensionData.sustainabilityScore}
+                    onChange={(e) =>
+                      handleDimensionChange(
+                        dimensionKey,
+                        "sustainabilityScore",
+                        parseFloat(e.target.value)
+                      )
+                    }
+                  />
+                </div>
+                {dimensionData.images.map((image, index) => (
+                  <div key={index} className="space-y-2">
+                    <Label htmlFor={`${dim}-image-${index}-file`}>
+                      Image {index + 1}
+                    </Label>
+                    <Input
+                      id={`${dim}-image-${index}-file`}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
+                          const newImages = [...dimensionData.images];
+                          newImages[index] = {
+                            ...newImages[index],
+                            file: e.target.files[0],
+                          };
+                          handleDimensionChange(
+                            dimensionKey,
+                            "images",
+                            newImages
+                          );
+                        }
+                      }}
+                    />
+                    <Input
+                      id={`${dim}-image-${index}-alt`}
+                      value={image.alt}
+                      onChange={(e) => {
+                        const newImages = [...dimensionData.images];
+                        newImages[index] = {
+                          ...newImages[index],
+                          alt: e.target.value,
+                        };
+                        handleDimensionChange(
+                          dimensionKey,
+                          "images",
+                          newImages
+                        );
+                      }}
+                      placeholder="Image alt text"
+                    />
+                  </div>
+                ))}
+                <div className="mt-4">
+                  <Label>Dimension Graphs (Optional)</Label>
+                  <div className="space-y-4">
+                    {[0, 1].map((graphIndex) => (
+                      <div key={graphIndex} className="space-y-2">
+                        <Label>Graph {graphIndex + 1}</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              if (e.target.files?.[0]) {
+                                const newGraphImages = [
+                                  ...dimensionData.graphImages,
+                                ];
+                                newGraphImages[graphIndex] = {
+                                  ...newGraphImages[graphIndex],
+                                  file: e.target.files[0],
+                                };
+                                handleDimensionChange(
+                                  dimensionKey,
+                                  "graphImages",
+                                  newGraphImages
+                                );
+                              }
+                            }}
+                          />
+                          <Input
+                            placeholder="Graph alt text"
+                            value={
+                              dimensionData.graphImages[graphIndex]?.alt || ""
+                            }
+                            onChange={(e) => {
+                              const newGraphImages = [
+                                ...dimensionData.graphImages,
+                              ];
+                              newGraphImages[graphIndex] = {
+                                ...newGraphImages[graphIndex],
+                                alt: e.target.value,
+                              };
+                              handleDimensionChange(
+                                dimensionKey,
+                                "graphImages",
+                                newGraphImages
+                              );
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Supporting Documents</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {content.supportingDocuments.map((doc, index) => (
+              <div key={index} className="flex gap-2 mb-2 items-center">
                 <Input
-                  type="text"
-                  value={link}
-                  placeholder={`Video Link ${index + 1}`}
-                  onChange={(e) => handleVideoLinkChange(index, e.target.value)}
+                  placeholder="Document Name"
+                  value={doc.name}
+                  onChange={(e) =>
+                    setContent((prev) => ({
+                      ...prev,
+                      supportingDocuments: prev.supportingDocuments.map(
+                        (d, i) =>
+                          i === index ? { ...d, name: e.target.value } : d
+                      ),
+                    }))
+                  }
+                />
+                <Input
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) =>
+                    handleFileInput(e, (file) =>
+                      setContent((prev) => ({
+                        ...prev,
+                        supportingDocuments: prev.supportingDocuments.map(
+                          (d, i) => (i === index ? { ...d, file } : d)
+                        ),
+                      }))
+                    )
+                  }
                 />
                 <Button
-                  variant="secondary"
                   type="button"
-                  onClick={() => removeVideoLink(index)}
+                  onClick={() => removeSupportingDocument(index)}
+                  variant="destructive"
+                  size="sm"
                 >
                   Remove
                 </Button>
               </div>
             ))}
-            <Button variant="default" type="button" onClick={addVideoLink}>
-              Add Video Link
+            <Button type="button" onClick={addSupportingDocument}>
+              Add Supporting Document
             </Button>
-          </div>
+          </CardContent>
+        </Card>
 
-          {/* <FileUpload
-            label="Map"
-            accept="image/*,application/pdf"
-            onChange={(e) => handleFileChange(e, "map")}
-          />
-          <FileUpload
-            label="Supporting Document"
-            accept="image/*,application/pdf"
-            onChange={(e) => handleFileChange(e, "supportingDocument")}
-          /> */}
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Maps</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {content.maps.map((map, index) => (
+              <div key={index} className="flex gap-2 mb-2 items-center">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    handleFileInput(e, (file) =>
+                      setContent((prev) => ({
+                        ...prev,
+                        maps: prev.maps.map((m, i) =>
+                          i === index ? { ...m, file } : m
+                        ),
+                      }))
+                    )
+                  }
+                />
+                <Input
+                  placeholder="Map Alt Text"
+                  value={map.alt}
+                  onChange={(e) =>
+                    setContent((prev) => ({
+                      ...prev,
+                      maps: prev.maps.map((m, i) =>
+                        i === index ? { ...m, alt: e.target.value } : m
+                      ),
+                    }))
+                  }
+                />
+                <Button
+                  type="button"
+                  onClick={() => removeMap(index)}
+                  variant="destructive"
+                  size="sm"
+                >
+                  Remove
+                </Button>
+              </div>
+            ))}
+            <Button type="button" onClick={addMap}>
+              Add Map
+            </Button>
+          </CardContent>
+        </Card>
 
-        {/* Action Buttons */}
-        <div className="flex justify-end gap-4 mt-8">
-          <Button variant="secondary" type="button">
-            Save as Draft
+        <Card>
+          <CardHeader>
+            <CardTitle>Gallery</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {content.gallery.map((image, index) => (
+              <div key={index} className="flex gap-2 mb-2 items-center">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    handleFileInput(e, (file) =>
+                      setContent((prev) => ({
+                        ...prev,
+                        gallery: prev.gallery.map((img, i) =>
+                          i === index ? { ...img, file } : img
+                        ),
+                      }))
+                    )
+                  }
+                />
+                <Input
+                  placeholder="Image Alt Text"
+                  value={image.alt}
+                  onChange={(e) =>
+                    setContent((prev) => ({
+                      ...prev,
+                      gallery: prev.gallery.map((img, i) =>
+                        i === index ? { ...img, alt: e.target.value } : img
+                      ),
+                    }))
+                  }
+                />
+                <Button
+                  type="button"
+                  onClick={() => removeGalleryImage(index)}
+                  variant="destructive"
+                  size="sm"
+                >
+                  Remove
+                </Button>
+              </div>
+            ))}
+            <Button type="button" onClick={addGalleryImage}>
+              Add Gallery Image
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Videos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {content.videos.map((video, index) => (
+              <div key={index} className="flex gap-2 mb-2 items-center">
+                <Input
+                  placeholder="Video URL (YouTube/Google Drive)"
+                  value={video.url}
+                  onChange={(e) =>
+                    setContent((prev) => ({
+                      ...prev,
+                      videos: prev.videos.map((v, i) =>
+                        i === index ? { ...v, url: e.target.value } : v
+                      ),
+                    }))
+                  }
+                />
+                <Input
+                  placeholder="Video Title"
+                  value={video.title}
+                  onChange={(e) =>
+                    setContent((prev) => ({
+                      ...prev,
+                      videos: prev.videos.map((v, i) =>
+                        i === index ? { ...v, title: e.target.value } : v
+                      ),
+                    }))
+                  }
+                />
+                <Button
+                  type="button"
+                  onClick={() => removeVideo(index)}
+                  variant="destructive"
+                  size="sm"
+                >
+                  Remove
+                </Button>
+              </div>
+            ))}
+            <Button type="button" onClick={addVideo}>
+              Add Video
+            </Button>
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-end gap-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => handleSubmit("DRAFT")}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              "Save as Draft"
+            )}
           </Button>
-          <Button variant="default" type="submit">
-            Post
+          <Button
+            type="button"
+            onClick={() => handleSubmit("PUBLISHED")}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Publishing...
+              </>
+            ) : (
+              "Publish"
+            )}
           </Button>
         </div>
       </form>

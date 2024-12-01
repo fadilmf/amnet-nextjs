@@ -149,9 +149,15 @@ export function Header() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/sign-out" className="w-full">
+                  <button
+                    onClick={() => {
+                      Cookie.remove("token"); // Lebih sederhana dengan js-cookie
+                      window.location.href = "/sign-in";
+                    }}
+                    className="w-full text-left"
+                  >
                     Sign Out
-                  </Link>
+                  </button>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

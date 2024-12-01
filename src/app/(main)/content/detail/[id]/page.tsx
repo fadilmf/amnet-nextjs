@@ -1,293 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
+  FileText,
+  Map,
+  ImageIcon,
+  Video,
   Leaf,
   Users,
   DollarSign,
   Building2,
   Monitor,
-  X,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import axios from "axios";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ShareButtons } from "@/components/share-buttons";
+import { ParallaxSection } from "@/components/parallax-section";
+import { ExistingConditionAccordion } from "@/components/existing-condition-accordion";
+// import { DimensionCard } from "@/components/dimension-card";
 import { useParams } from "next/navigation";
-import {
-  Comment,
-  Gallery,
-  Map,
-  SupportingDoc,
-  VideoLink,
-} from "@prisma/client";
 
-interface Content {
-  id: number;
-  userId: string | null;
-  email: string | null;
-  countryId: number | null;
-  title: string | null;
-  author: string | null;
-  institution: string | null;
-  cover: string | null; // Base64-encoded string if converting from Bytes
-  summary: string | null;
-  keyword: string | null;
-  ecologyDim: number | null;
-  ecologyMethod: string | null;
-  ecologyMost1: string | null;
-  ecologyMost2: string | null;
-  ecologyMost3: string | null;
-  socialDim: number | null;
-  socialMethod: string | null;
-  socialMost1: string | null;
-  socialMost2: string | null;
-  socialMost3: string | null;
-  economyDim: number | null;
-  economyMethod: string | null;
-  economyMost1: string | null;
-  economyMost2: string | null;
-  economyMost3: string | null;
-  institutionalDim: number | null;
-  institutionalMethod: string | null;
-  institutionalMost1: string | null;
-  institutionalMost2: string | null;
-  institutionalMost3: string | null;
-  technologyDim: number | null;
-  technologyMethod: string | null;
-  technologyMost1: string | null;
-  technologyMost2: string | null;
-  technologyMost3: string | null;
-
-  sustainability: string | null;
-  sustainabilityIndex: number | null;
-  sustainabilityImage: string | null; // Base64-encoded string if converting from Bytes
-
-  ecologyGraph: string | null; // Base64-encoded string if converting from Bytes
-  ecologyLevel: string | null; // Base64-encoded string if converting from Bytes
-  socialGraph: string | null; // Base64-encoded string if converting from Bytes
-  socialLevel: string | null; // Base64-encoded string if converting from Bytes
-  economyGraph: string | null; // Base64-encoded string if converting from Bytes
-  economyLevel: string | null; // Base64-encoded string if converting from Bytes
-  institutionalGraph: string | null; // Base64-encoded string if converting from Bytes
-  institutionalLevel: string | null; // Base64-encoded string if converting from Bytes
-  technologyGraph: string | null; // Base64-encoded string if converting from Bytes
-  technologyLevel: string | null; // Base64-encoded string if converting from Bytes
-
-  visitorRegistered: number | null;
-  visitorPublic: number | null;
-  createdAt: string | null;
-  updatedAt: string | null;
-
-  existingCondition1: string | null;
-  existingCondition2: string | null;
-  existingCondition3: string | null;
-  existingCondition4: string | null;
-  existingCondition5: string | null;
-  existingCondition6: string | null;
-  existingCondition7: string | null;
-  existingCondition8: string | null;
-  existingCondition9: string | null;
-  existingCondition10: string | null;
-  existingCondition11: string | null;
-  existingCondition12: string | null;
-  existingCondition13: string | null;
-  existingCondition14: string | null;
-  existingCondition15: string | null;
-  existingCondition16: string | null;
-  existingCondition17: string | null;
-  existingCondition18: string | null;
-  existingCondition19: string | null;
-  existingCondition20: string | null;
-  existingCondition21: string | null;
-  existingCondition22: string | null;
-  existingCondition23: string | null;
-
-  comments: Comment[];
-  supportingDocs: SupportingDoc[];
-  videoLinks: VideoLink[];
-  galleries: Gallery[];
-  maps: Map[];
-}
-
-// interface Comment {
-//   id: number;
-//   name: string | null;
-//   email: string | null;
-//   text: string;
-//   createdAt: string;
-// }
-
-const existingConditionTitles = [
-  "Institutional Arrangement",
-  "Regional Administration",
-  "Population Demographics",
-  "Community Education Level",
-  "Agricultural, Plantation, and Fisheries Conditions",
-  "Community Culture and Ethnicity",
-  "Topography",
-  "Climate",
-  "Land Cover and Mangrove Density",
-  "Shoreline Changes",
-  "Species Composition",
-  "Dominant Mangrove Species",
-  "Biomass, Carbon Storage, and Carbon Dioxide Absorption",
-  "Fauna Diversity",
-  "Pond Conditions",
-  "Pond Design & Constructions",
-  "Layout and Irrigation System",
-  "Water Quality Condition",
-  "Soil Quality Condition",
-  "Cultivation",
-  "Best Practice Financial Condition",
-  "Financial Analysis of Livestock Farming",
-  "Financial Analysis of Vegetation Cultivation",
-];
-
-const ExistingConditionCarousel: React.FC<{ content: Content }> = ({
-  content,
-}) => {
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const handlePrevious = () => {
-    setActiveIndex((prev) => (prev - 1 + 23) % 23);
-  };
-
-  const handleNext = () => {
-    setActiveIndex((prev) => (prev + 1) % 23);
-  };
-
-  return (
-    <div className="relative w-full max-w-6xl mx-auto">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeIndex}
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -50 }}
-          transition={{ duration: 0.3 }}
-          className="bg-white border border-gray-200 rounded-lg shadow-sm p-8 min-h-[500px] flex flex-col justify-between"
-        >
-          <h3 className="text-4xl font-bold mb-4 text-green-800">
-            {existingConditionTitles[activeIndex]}
-          </h3>
-          <p className="text-gray-600 text-2xl text-justify">
-            {(content[
-              `existingCondition${activeIndex + 1}` as keyof Content
-            ] as string) || "No data available"}
-          </p>
-
-          {/* Counter */}
-          <div className="text-center mt-4">
-            <span className="text-green-800 text-xl">{activeIndex + 1}/23</span>
-          </div>
-        </motion.div>
-      </AnimatePresence>
-
-      <Button
-        variant="outline"
-        size="icon"
-        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16"
-        onClick={handlePrevious}
-      >
-        <ChevronLeft className="h-6 w-6" />
-      </Button>
-      <Button
-        variant="outline"
-        size="icon"
-        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16"
-        onClick={handleNext}
-      >
-        <ChevronRight className="h-6 w-6" />
-      </Button>
-
-      <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2">
-        {Array.from({ length: 23 }).map((_, index) => (
-          <button
-            key={index}
-            className={`w-3 h-3 rounded-full ${
-              activeIndex === index ? "bg-green-600" : "bg-gray-300"
-            }`}
-            onClick={() => setActiveIndex(index)}
-            aria-label={`View ${existingConditionTitles[index]} section`}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// const dimensions = [
-//   { name: "Ecology", icon: Leaf, color: "#2E7D32", score: 75 }, // Hijau
-//   { name: "Social", icon: Users, color: "#1565C0", score: 68 }, // Biru
-//   { name: "Economy", icon: DollarSign, color: "#EF6C00", score: 82 }, // Oranye
-//   { name: "Institutional", icon: Building2, color: "#5E35B1", score: 70 }, // Ungu
-//   { name: "Technology", icon: Cpu, color: "#D32F2F", score: 88 }, // Merah
-// ];
-
-const dimensions: {
-  name: string;
-  icon: React.ElementType;
-  color: string;
-  scoreKey: keyof Content;
-  methodKey: keyof Content;
-  graphKey: keyof Content;
-  aspects: (keyof Content)[];
-}[] = [
-  {
-    name: "Ecology",
-    icon: Leaf,
-    color: "#2E7D32",
-    scoreKey: "ecologyDim",
-    methodKey: "ecologyMethod",
-    graphKey: "ecologyGraph",
-    aspects: ["ecologyMost1", "ecologyMost2", "ecologyMost3"],
-  },
-  {
-    name: "Social",
-    icon: Users,
-    color: "#1565C0",
-    scoreKey: "socialDim",
-    methodKey: "socialMethod",
-    graphKey: "socialGraph",
-    aspects: ["socialMost1", "socialMost2", "socialMost3"],
-  },
-  {
-    name: "Economy",
-    icon: DollarSign,
-    color: "#EF6C00",
-    scoreKey: "economyDim",
-    methodKey: "economyMethod",
-    graphKey: "economyGraph",
-    aspects: ["economyMost1", "economyMost2", "economyMost3"],
-  },
-  {
-    name: "Institutional",
-    icon: Building2,
-    color: "#5E35B1",
-    scoreKey: "institutionalDim",
-    methodKey: "institutionalMethod",
-    graphKey: "institutionalGraph",
-    aspects: ["institutionalMost1", "institutionalMost2", "institutionalMost3"],
-  },
-  {
-    name: "Technology",
-    icon: Monitor,
-    color: "#D32F2F",
-    scoreKey: "technologyDim",
-    methodKey: "technologyMethod",
-    graphKey: "technologyGraph",
-    aspects: ["technologyMost1", "technologyMost2", "technologyMost3"],
-  },
-];
-
-const CircularScore: React.FC<{ score: number; color: string }> = ({
-  score,
-  color,
-}) => (
+const CircularScore = ({ score, color }: { score: number; color: string }) => (
   <motion.div
     className="relative w-40 h-40"
     initial={{ scale: 0, opacity: 0 }}
@@ -331,110 +67,120 @@ const CircularScore: React.FC<{ score: number; color: string }> = ({
   </motion.div>
 );
 
-const DimensionCard: React.FC<{
+const DimensionCard = ({
+  dimension,
+  isActive,
+  onClick,
+  onClose,
+}: {
   dimension: {
     name: string;
     icon: React.ElementType;
     color: string;
-    scoreKey: keyof Content;
-    methodKey: keyof Content;
-    graphKey: keyof Content;
-    aspects: (keyof Content)[];
+    score: number;
+    graphImages: Array<{
+      id: string;
+      file: string;
+      alt: string;
+    }>;
   };
-  content: Content;
   isActive: boolean;
   onClick: () => void;
   onClose: () => void;
-}> = ({ dimension, content, isActive, onClick, onClose }) => {
-  const score = content[dimension.scoreKey] as number | null;
-  const method = content[dimension.methodKey] as string | null;
-  const aspects = dimension.aspects.map(
-    (aspectKey) => content[aspectKey] as string | null
-  );
-  const graphData = content[dimension.graphKey] as Buffer | null;
-  const graphDataBase64 = graphData
-    ? Buffer.from(graphData).toString("base64")
-    : null;
-
+}) => {
   return (
     <motion.div
       layout
-      className={`bg-white rounded-lg shadow-lg overflow-hidden ${
-        isActive ? "fixed inset-4 z-50 max-w-4xl mx-auto" : "cursor-pointer"
+      className={`bg-white rounded-xl shadow-lg overflow-hidden transition-shadow duration-300 ${
+        isActive
+          ? "fixed inset-4 z-50 max-w-4xl mx-auto"
+          : "cursor-pointer hover:shadow-xl"
       }`}
       onClick={!isActive ? onClick : undefined}
     >
       <div
-        className={`p-4 ${isActive ? "pb-2" : ""}`}
-        style={{ backgroundColor: "white" }}
+        className={`p-6 ${isActive ? "pb-4" : ""}`}
+        style={{ backgroundColor: `${dimension.color}15` }}
       >
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-3">
             <dimension.icon
               style={{ color: dimension.color }}
-              className="w-8 h-8"
+              className="w-10 h-10"
             />
             <h2
               style={{ color: dimension.color }}
-              className="text-2xl font-bold"
+              className="text-3xl font-bold font-serif"
             >
               {dimension.name} Dimension
             </h2>
           </div>
           {isActive && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={(e) => {
                 e.stopPropagation();
                 onClose();
               }}
-              className="p-2 rounded-full bg-white shadow-md hover:bg-gray-100 transition-colors"
+              className="rounded-full hover:bg-gray-100 transition-colors"
               aria-label="Close"
             >
-              <X className="w-6 h-6" />
-            </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </Button>
           )}
         </div>
       </div>
       {isActive && (
-        <div className="p-4 space-y-6 overflow-y-auto max-h-[calc(100vh-200px)]">
+        <div className="p-6 space-y-8 overflow-y-auto max-h-[calc(100vh-200px)]">
           <div className="flex justify-center">
-            {score !== null ? (
-              <CircularScore score={score} color={dimension.color} />
-            ) : (
-              <p className="text-gray-500">Score not available</p>
-            )}
+            <CircularScore score={dimension.score} color={dimension.color} />
           </div>
-          {graphDataBase64 && (
-            <img
-              src={`data:image/png;base64,${graphDataBase64}`}
-              alt={`${dimension.name} Graph`}
-              className="w-full h-auto rounded-lg"
-            />
-          )}
-          {/* <p>{dimension.name + ": " + graphData}</p> */}
           <div>
-            <h3 className="text-lg font-semibold mb-2">Method</h3>
-            <p className="text-gray-600 mb-4">
-              {method || "Method not available"}
+            <h3 className="text-xl font-semibold mb-3 text-gray-800">Method</h3>
+            <p className="text-gray-600 leading-relaxed">
+              {dimension.inputMethod}
             </p>
           </div>
           <div>
-            <h3 className="text-lg font-semibold mb-2">
+            <h3 className="text-xl font-semibold mb-3 text-gray-800">
               Most Significant Aspects
             </h3>
-            <ul className="list-disc list-inside text-gray-600 mb-4">
-              {aspects.map((aspect, index) =>
-                aspect ? <li key={index}>{aspect}</li> : null
-              )}
+            <ul className="space-y-2">
+              {dimension.significantAspects.map((aspect, index) => (
+                <li key={index} className="flex items-start">
+                  <span className="text-green-500 mr-2">•</span>
+                  <span className="text-gray-600">{aspect}</span>
+                </li>
+              ))}
             </ul>
           </div>
-          {graphDataBase64 && (
-            <img
-              src={`/social1.png`}
-              alt={`${dimension.name} Graph`}
-              className="w-full h-auto rounded-lg"
-            />
-          )}
+          <div className="grid grid-cols-2 gap-4">
+            {dimension.graphImages?.map((image, index) => (
+              <div key={image.id}>
+                <Image
+                  src={image.file}
+                  alt={image.alt || `${dimension.name} Graph ${index + 1}`}
+                  width={500}
+                  height={300}
+                  className="w-full"
+                />
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </motion.div>
@@ -442,307 +188,641 @@ const DimensionCard: React.FC<{
 };
 
 export default function ArticleDetail() {
-  const [content, setContent] = useState<Content | null>(null);
+  const params = useParams();
+  const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [commentText, setCommentText] = useState("");
+  const [error, setError] = useState(null);
+
+  const [activeDimension, setActiveDimension] = useState(null);
+  const [activeTab, setActiveTab] = useState("documents");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
   const [commentName, setCommentName] = useState("");
   const [commentEmail, setCommentEmail] = useState("");
-  const [activeDimension, setActiveDimension] = useState<string | null>(null);
-
-  const params = useParams();
-  const id = params.id as string;
+  const [commentText, setCommentText] = useState("");
+  const galleryRef = useRef(null);
 
   useEffect(() => {
-    const fetchContent = async () => {
+    const fetchArticleDetail = async () => {
       try {
-        const response = await axios.get(`/api/content/${id}`);
-        console.log("ini detail artikel: ", response.data);
-        setContent(response.data);
+        setLoading(true);
+        const response = await fetch(`/api/content/${params.id}`);
+
+        // console.log("ini response: ", response.json());
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch article");
+        }
+
+        const data = await response.json();
+        console.log("ini data: ", data);
+        setContent(data);
+        setError(null);
       } catch (err) {
-        setError("Failed to fetch content");
-        console.error("Error fetching content:", err);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchContent();
-  }, [id]);
+    if (params.id) {
+      fetchArticleDetail();
+    }
+  }, [params.id]);
 
-  const handleCommentSubmit = async (e: React.FormEvent) => {
+  const openModal = (image) => {
+    setSelectedImage(image);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedImage(null);
+  };
+
+  const scrollToGallery = () => {
+    galleryRef.current?.scrollIntoView({ behavior: "smooth" });
+    setActiveTab("gallery");
+  };
+
+  const handleCommentSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      await axios.post(`/api/comments`, {
-        articleId: parseInt(id),
-        name: commentName || "Anonymous",
-        email: commentEmail || null,
-        text: commentText,
+      const response = await fetch(`/api/comments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          articleId: params.id,
+          name: commentName,
+          email: commentEmail,
+          text: commentText,
+        }),
       });
 
-      setCommentText("");
+      if (!response.ok) {
+        throw new Error("Failed to post comment");
+      }
+
+      // Reset form
       setCommentName("");
       setCommentEmail("");
+      setCommentText("");
 
-      const response = await axios.get(`/api/content/${id}`);
-      setContent(response.data);
-    } catch (error) {
-      console.error("Error submitting comment:", error);
-      setError(`Failed to submit comment: ${error}`);
+      // Refresh article data to get new comment
+      const updatedArticle = await fetch(`/api/content/${params.id}`).then(
+        (res) => res.json()
+      );
+      setContent(updatedArticle);
+    } catch (err) {
+      console.error("Error posting comment:", err);
+      // You might want to show an error message to the user
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!content) return <div>No content found</div>;
+  const dimensionIcons = {
+    ecology: { icon: Leaf, color: "#2E7D32" },
+    social: { icon: Users, color: "#1565C0" },
+    economy: { icon: DollarSign, color: "#EF6C00" },
+    institutional: { icon: Building2, color: "#5E35B1" },
+    technology: { icon: Monitor, color: "#D32F2F" },
+  };
+
+  const dimensions = [
+    {
+      name: "Ecology",
+      icon: Leaf,
+      inputMethod: content?.ecologyDimension?.inputMethod,
+      significantAspects: content?.ecologyDimension?.significantAspects,
+      color: "#2E7D32",
+      score: content?.ecologyDimension?.sustainabilityScore,
+    },
+    {
+      name: "Social",
+      icon: Users,
+      inputMethod: content?.socialDimension?.inputMethod,
+      significantAspects: content?.socialDimension?.significantAspects,
+      color: "#1565C0",
+      score: content?.socialDimension?.sustainabilityScore,
+    },
+    {
+      name: "Economy",
+      icon: DollarSign,
+      inputMethod: content?.economyDimension?.inputMethod,
+      significantAspects: content?.economyDimension?.significantAspects,
+      color: "#EF6C00",
+      score: content?.economyDimension?.sustainabilityScore,
+    },
+    {
+      name: "Institutional",
+      icon: Building2,
+      inputMethod: content?.institutionalDimension?.inputMethod,
+      significantAspects: content?.institutionalDimension?.significantAspects,
+      color: "#5E35B1",
+      score: content?.institutionalDimension?.sustainabilityScore,
+    },
+    {
+      name: "Technology",
+      icon: Monitor,
+      inputMethod: content?.technologyDimension?.inputMethod,
+      significantAspects: content?.technologyDimension?.significantAspects,
+      color: "#D32F2F",
+      score: content?.technologyDimension?.sustainabilityScore,
+    },
+  ];
+
+  // Helper function to collect all images
+  const getAllImages = () => {
+    const images = [];
+
+    // Add images from existing conditions
+    content?.existingConditions?.forEach((condition) => {
+      if (condition.images && condition.images.length > 0) {
+        condition.images.forEach((image) => {
+          images.push({
+            id: `existing-${images.length}`,
+            image: image.filePath,
+            alt: `${condition.title} image`,
+            source: "Existing Condition",
+          });
+        });
+      }
+    });
+
+    // Add images from sustainability dimensions
+    const dimensions = [
+      { data: content?.ecologyDimension, name: "Ecology" },
+      { data: content?.socialDimension, name: "Social" },
+      { data: content?.economyDimension, name: "Economy" },
+      { data: content?.institutionalDimension, name: "Institutional" },
+      { data: content?.technologyDimension, name: "Technology" },
+    ];
+
+    dimensions.forEach(({ data, name }) => {
+      if (data?.graphImages && data.graphImages.length > 0) {
+        data.graphImages.forEach((image) => {
+          images.push({
+            id: image.id || `dimension-${images.length}`,
+            image: image.file,
+            alt: image.alt || `${name} Dimension Graph`,
+            source: `${name} Dimension`,
+          });
+        });
+      }
+    });
+
+    // Add original gallery images if they exist
+    content?.galleries?.forEach((gallery) => {
+      images.push({
+        id: gallery.id,
+        image: gallery.image,
+        alt: gallery.alt || "Gallery image",
+        source: "Gallery",
+      });
+    });
+
+    return images;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <h1 className="text-2xl font-bold text-red-500 mb-4">Error</h1>
+        <p className="text-gray-600">{error}</p>
+      </div>
+    );
+  }
+
+  if (!content) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <h1 className="text-2xl font-bold text-gray-500">Article not found</h1>
+      </div>
+    );
+  }
 
   return (
-    <div className="py-8">
-      <section className="flex flex-col items-center mb-8">
-        <h1 className="text-3xl font-bold mb-8">{content.title}</h1>
-        <div className="w-full flex justify-evenly items-center text-gray-600 mb-8 px-16">
-          {content.author && (
-            <p className="text-lg">Author: {content.author}</p>
-          )}
-          {content.institution && (
-            <p className="text-lg">Institution: {content.institution}</p>
-          )}
-          {content.createdAt && (
+    <div>
+      {/* Hero Section */}
+      <ParallaxSection>
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+          <motion.h1
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-5xl font-bold mb-8 text-center text-green-800 font-serif"
+          >
+            {content.title}
+          </motion.h1>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="flex flex-wrap justify-center items-center text-gray-600 mb-8 gap-6"
+          >
+            <p className="text-lg">By {content.author}</p>
+            {content.institution && (
+              <p className="text-lg">From {content.institution}</p>
+            )}
             <p className="text-lg">
-              Published on: {new Date(content.createdAt).toLocaleDateString()}
+              Published on {new Date(content.date).toLocaleDateString()}
+            </p>
+          </motion.div>
+
+          {content.cover && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="w-full mb-8 flex items-center justify-center sticky top-0 z-10"
+            >
+              <Image
+                // src={`data:image/jpeg;base64,${content.cover}`}
+                src={content.cover}
+                alt={content.title}
+                width={1000}
+                height={600}
+                className="object-cover rounded-2xl shadow-2xl"
+              />
+            </motion.div>
+          )}
+
+          <ShareButtons />
+        </section>
+      </ParallaxSection>
+
+      {/* Summary Section */}
+      <motion.section
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-green-800 mb-16 z-10"
+      >
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-white">
+          <h2 className="text-3xl font-bold mb-6 text-center font-serif">
+            Summary
+          </h2>
+          <div className="w-24 h-1 bg-white mx-auto mb-8"></div>
+          <p className="text-lg leading-relaxed mb-8">{content.summary}</p>
+          {content.keywords && content.keywords.length > 0 && (
+            <p className="text-lg font-semibold">
+              Keywords: {content.keywords.join(", ")}
             </p>
           )}
-          {content.email && (
-            <p className="text-sm text-gray-500">Contact: {content.email}</p>
-          )}
         </div>
-        <div className="w-full mb-8 flex items-center justify-center">
-          {content.cover && (
-            <Image
-              src={content.cover}
-              alt={content.title || "Cover image"}
-              width={1000}
-              height={1000}
-              className="object-cover rounded-lg"
-            />
-          )}
-        </div>
-      </section>
+      </motion.section>
 
-      <section className="bg-green-800 px-16 text-white mb-8">
-        <div className="flex flex-col items-center py-8">
-          <h2 className="text-2xl text-white font-semibold mb-4">Summary</h2>
-          <div className="w-1/4 h-1 bg-white my-2"></div>
-          <p className="mt-8">{content.summary}</p>
-          <p className="mt-12">Keyword: {content.keyword}</p>
-        </div>
-      </section>
-
-      <section className="mb-16 bg-white px-16">
-        <div className="flex flex-col items-center py-8">
-          <h2 className="text-2xl text-gray-800 font-semibold mb-4">
+      {/* Existing Condition Section */}
+      <section className="mb-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.h2
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-3xl text-green-800 font-bold mb-8 text-center font-serif"
+          >
             Existing Condition
-          </h2>
-          <div className="w-1/4 h-1 bg-gray-800 my-2 mb-8"></div>
-          <ExistingConditionCarousel content={content} />
+          </motion.h2>
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: "6rem" }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="h-1 bg-green-800 mx-auto mb-12"
+          ></motion.div>
+          <ExistingConditionAccordion
+            conditions={content.existingConditions}
+            scrollToGallery={scrollToGallery}
+          />
         </div>
       </section>
 
-      <section className="mb-8 px-16">
-        <div className="flex flex-col items-center py-8">
-          <h2 className="text-4xl font-bold text-center text-gray-800 mb-12">
+      {/* Sustainability Analysis Results */}
+      <motion.section
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="mb-16 bg-white py-16 shadow-inner"
+      >
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-4xl font-bold text-center text-green-800 mb-12 font-serif">
             Sustainability Analysis Results
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <AnimatePresence>
-              {dimensions.map((dimension) => (
-                <DimensionCard
-                  key={dimension.name}
-                  dimension={dimension}
-                  content={content}
-                  isActive={activeDimension === dimension.name}
-                  onClick={() => setActiveDimension(dimension.name)}
-                  onClose={() => setActiveDimension(null)}
-                />
-              ))}
+              {content &&
+                [
+                  {
+                    key: "ecology",
+                    data: content.ecologyDimension,
+                    name: "Ecology",
+                    icon: dimensionIcons.ecology.icon,
+                    color: dimensionIcons.ecology.color,
+                  },
+                  {
+                    key: "social",
+                    data: content.socialDimension,
+                    name: "Social",
+                    icon: dimensionIcons.social.icon,
+                    color: dimensionIcons.social.color,
+                  },
+                  {
+                    key: "economy",
+                    data: content.economyDimension,
+                    name: "Economy",
+                    icon: dimensionIcons.economy.icon,
+                    color: dimensionIcons.economy.color,
+                  },
+                  {
+                    key: "institutional",
+                    data: content.institutionalDimension,
+                    name: "Institutional",
+                    icon: dimensionIcons.institutional.icon,
+                    color: dimensionIcons.institutional.color,
+                  },
+                  {
+                    key: "technology",
+                    data: content.technologyDimension,
+                    name: "Technology",
+                    icon: dimensionIcons.technology.icon,
+                    color: dimensionIcons.technology.color,
+                  },
+                ].map(({ key, data, name, icon, color }) => (
+                  <DimensionCard
+                    key={data.id}
+                    dimension={{
+                      id: data.id,
+                      name: name,
+                      title: data.title,
+                      inputMethod: data.inputMethod,
+                      significantAspects: data.significantAspects,
+                      score: data.sustainabilityScore,
+                      color: color,
+                      icon: icon,
+                      graphImages: data.graphImages,
+                    }}
+                    isActive={activeDimension === data.id}
+                    onClick={() =>
+                      setActiveDimension(
+                        activeDimension === data.id ? null : data.id
+                      )
+                    }
+                    onClose={() => setActiveDimension(null)}
+                  />
+                ))}
             </AnimatePresence>
           </div>
         </div>
-      </section>
+      </motion.section>
 
-      <section className="mb-8 bg-green-800 px-16 text-white">
-        <div className="flex flex-col items-center py-8">
-          <h2 className="text-2xl font-semibold mb-4">Sustainability</h2>
-          <div className="w-1/4 h-1 bg-white my-2"></div>
-          <p className="mt-8">{content.sustainability}</p>
-        </div>
-      </section>
+      {/* Additional Resources Section */}
+      <section className="mb-16" ref={galleryRef}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.h2
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-3xl font-bold mb-8 text-center text-green-800 font-serif"
+          >
+            Additional Resources
+          </motion.h2>
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="documents">
+                <FileText className="w-5 h-5 mr-2" />
+                Documents
+              </TabsTrigger>
+              <TabsTrigger value="maps">
+                <Map className="w-5 h-5 mr-2" />
+                Maps
+              </TabsTrigger>
+              <TabsTrigger value="gallery">
+                <ImageIcon className="w-5 h-5 mr-2" />
+                Gallery
+              </TabsTrigger>
+              <TabsTrigger value="videos">
+                <Video className="w-5 h-5 mr-2" />
+                Videos
+              </TabsTrigger>
+            </TabsList>
 
-      <section className="mb-8 bg-white px-16">
-        <div className="flex flex-col items-center py-8">
-          <h2 className="text-2xl font-semibold mb-4">Supporting Documents</h2>
-          <div className="w-1/4 h-1 bg-gray-800 my-2"></div>
-
-          {content.supportingDocs.length > 0 ? (
-            content.supportingDocs.map((doc, index) => (
-              <div key={doc.id} className="mb-8 w-full">
-                {/* <embed
-                  src={`data:application/pdf;base64,${doc.file.toString(
-                    "base64"
-                  )}`}
-                  type="application/pdf"
-                  width="100%"
-                  height="600px"
-                  className="rounded-lg"
-                /> */}
-                <div className="mt-4 flex justify-center">
-                  <a
-                    href={`data:application/pdf;base64,${doc.file.toString(
-                      "base64"
-                    )}`}
-                    download={`supporting-document-${index + 1}.pdf`}
+            {/* Documents Tab */}
+            <TabsContent value="documents" className="mt-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {content.supportingDocs?.map((doc) => (
+                  <div
+                    key={doc.id}
+                    className="bg-white p-4 rounded-lg shadow-md"
                   >
-                    <Button className="bg-green-800 hover:bg-green-900">
-                      Download PDF {index + 1}
-                    </Button>
-                  </a>
-                </div>
+                    <h3 className="text-lg font-semibold mb-2">{doc.name}</h3>
+                    <a
+                      href={`/api/download?file=${encodeURIComponent(
+                        doc.file
+                      )}`}
+                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button className="w-full bg-green-600 hover:bg-green-700">
+                        Download
+                      </Button>
+                    </a>
+                  </div>
+                ))}
               </div>
-            ))
-          ) : (
-            <p className="text-gray-500">No supporting documents available</p>
-          )}
+            </TabsContent>
+
+            {/* Maps Tab */}
+            <TabsContent value="maps" className="mt-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {content.maps?.map((map, index) => (
+                  <div
+                    key={map.id}
+                    className="bg-white p-4 rounded-lg shadow-md"
+                  >
+                    <img
+                      src={map.file}
+                      alt={map.alt || `Map ${index + 1}`}
+                      className="w-full h-full object-cover rounded-md"
+                    />
+                    <p className="text-center mt-2">
+                      {map.alt || `Map ${index + 1}`}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+
+            {/* Gallery Tab */}
+            <TabsContent value="gallery" className="mt-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {getAllImages().map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-white p-2 rounded-lg shadow-md cursor-pointer group"
+                    onClick={() => openModal(item.image)}
+                  >
+                    <div className="aspect-square relative bg-gray-200 rounded-md overflow-hidden">
+                      <Image
+                        src={item.image}
+                        alt={item.alt}
+                        fill
+                        className="object-cover rounded-md transition-transform group-hover:scale-105"
+                      />
+                      <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-2">
+                        <p className="font-medium">{item.source}</p>
+                        <p className="truncate">{item.alt}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Modal Popup */}
+              {isModalOpen && selectedImage && (
+                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+                  <div className="relative max-w-5xl w-full mx-4">
+                    <button
+                      className="absolute top-2 right-2 text-white text-2xl"
+                      onClick={closeModal}
+                    >
+                      &times;
+                    </button>
+                    <img
+                      src={selectedImage}
+                      alt="Selected"
+                      className="w-full h-auto max-h-[90vh] rounded-lg shadow-lg object-contain"
+                    />
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Videos Tab */}
+            <TabsContent value="videos" className="mt-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {content.videoLinks?.map((video) => {
+                  // Convert video URL to embed URL
+                  let embedUrl = video.url;
+
+                  if (
+                    video.url.includes("youtube.com") ||
+                    video.url.includes("youtu.be")
+                  ) {
+                    // Extract video ID from YouTube URL
+                    const videoId = video.url.includes("youtube.com")
+                      ? video.url.split("v=")[1]?.split("&")[0]
+                      : video.url.split("youtu.be/")[1]?.split("?")[0];
+
+                    if (videoId) {
+                      embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                    }
+                  } else if (video.url.includes("drive.google.com")) {
+                    // Convert Google Drive URL to embed URL
+                    const fileId = video.url.match(
+                      /\/d\/(.*?)\/|id=(.*?)(&|$)/
+                    )?.[1];
+                    if (fileId) {
+                      embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+                    }
+                  }
+
+                  return (
+                    <div key={video.id} className="aspect-video">
+                      <iframe
+                        src={embedUrl}
+                        className="w-full h-full rounded-lg"
+                        allowFullScreen
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </section>
 
-      {content.maps && content.maps.length > 0 && (
-        <section className="mb-8 bg-white px-16">
-          <div className="flex flex-col items-center py-8">
-            <h2 className="text-2xl font-semibold mb-4">Maps</h2>
-            <div className="w-1/4 h-1 bg-gray-800 my-2"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8 w-full">
-              {content.maps.map((map, index) => {
-                // Convert byte array to Base64 string
-                const base64String = `data:image/jpeg;base64,${Buffer.from(
-                  map.mapFile
-                ).toString("base64")}`;
-                return (
-                  <div key={index} className="relative w-full h-64">
-                    <img
-                      src={base64String}
-                      alt={`Map Image - ${index + 1}`}
-                      className="object-cover rounded-lg w-full h-full"
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {content.galleries && content.galleries.length > 0 && (
-        <section className="mb-8 bg-white px-16">
-          <div className="flex flex-col items-center py-8">
-            <h2 className="text-2xl font-semibold mb-4">Galleries</h2>
-            <div className="w-1/4 h-1 bg-gray-800 my-2"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8 w-full">
-              {content.galleries.map((gallery, index) => {
-                // Convert byte array to Base64 string
-                const base64String = `data:image/jpeg;base64,${Buffer.from(
-                  gallery.image
-                ).toString("base64")}`;
-                return (
-                  <div key={index} className="relative w-full h-64">
-                    <img
-                      src={base64String}
-                      alt={`Gallery Image - ${index + 1}`}
-                      className="object-cover rounded-lg w-full h-full"
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {content.videoLinks && content.videoLinks.length > 0 && (
-        <section className="mb-8 bg-white px-16">
-          <div className="flex flex-col items-center py-8">
-            <h2 className="text-2xl font-semibold mb-4">Videos</h2>
-            <div className="w-1/4 h-1 bg-gray-800 my-2"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8 w-full">
-              {content.videoLinks.map((video, index) => {
-                // Transform YouTube URL into embed-friendly format
-                let videoId;
-                if (video.url.includes("youtube.com")) {
-                  const urlParams = new URL(video.url).searchParams;
-                  videoId = urlParams.get("v"); // Get the video ID from "v" parameter
-                } else if (video.url.includes("youtu.be")) {
-                  videoId = video.url.split("/").pop(); // Get the video ID from the URL path
-                }
-                const embedUrl = `https://www.youtube.com/embed/${videoId}`;
-
-                return (
-                  <div key={index} className="relative aspect-video w-full">
-                    <iframe
-                      src={embedUrl}
-                      title={`${content.title || "Video"} - ${index + 1}`}
-                      className="absolute inset-0 w-full h-full rounded-lg"
-                      allowFullScreen
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-      )}
-
-      <section className="mb-8 bg-white px-16">
-        <div className="flex flex-col items-center py-8">
-          <h2 className="text-2xl font-semibold mb-4">Comments</h2>
-          <div className="w-1/4 h-1 bg-gray-800 my-2"></div>
-          <div className="space-y-4 w-full mt-8">
+      {/* Comments Section */}
+      <section className="mb-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.h2
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-3xl font-bold mb-8 text-center text-green-800 font-serif"
+          >
+            Comments
+          </motion.h2>
+          <div className="space-y-6">
             {content.comments?.map((comment) => (
-              <div key={comment.id} className="bg-gray-100 p-4 rounded-lg">
-                <div className="flex justify-between mb-2">
-                  <span className="font-medium">
+              <motion.div
+                key={comment.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="bg-white p-6 rounded-xl shadow-md"
+              >
+                <div className="flex justify-between mb-3">
+                  <span className="font-semibold text-lg">
                     {comment.name || "Anonymous"}
                   </span>
                   <span className="text-gray-500">
                     {new Date(comment.createdAt).toLocaleDateString()}
                   </span>
                 </div>
-                <p>{comment.text}</p>
-              </div>
+                <p className="text-gray-700">{comment.text}</p>
+              </motion.div>
             ))}
-            <form className="space-y-4" onSubmit={handleCommentSubmit}>
+
+            <motion.form
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="bg-white p-6 rounded-xl shadow-md space-y-4"
+              onSubmit={handleCommentSubmit}
+            >
               <input
                 type="text"
                 placeholder="Your Name (optional)"
-                className="w-full p-2 border rounded"
+                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 value={commentName}
                 onChange={(e) => setCommentName(e.target.value)}
               />
               <input
                 type="email"
                 placeholder="Your Email (optional)"
-                className="w-full p-2 border rounded"
+                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                 value={commentEmail}
                 onChange={(e) => setCommentEmail(e.target.value)}
               />
               <Textarea
                 placeholder="Add a comment..."
-                className="min-h-[100px]"
+                className="min-h-[120px] focus:outline-none focus:ring-2 focus:ring-green-500"
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
               />
-              <Button type="submit" className="bg-green-800 hover:bg-green-900">
+              <Button
+                type="submit"
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-md transition-colors duration-300"
+              >
                 Post Comment
               </Button>
-            </form>
+            </motion.form>
           </div>
         </div>
       </section>

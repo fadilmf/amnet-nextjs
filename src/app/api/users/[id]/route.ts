@@ -21,33 +21,73 @@ export async function GET(req: Request, { params }: any) {
 }
 
 // PUT /users/:id - Update user information
-export async function PUT(req: Request, { params }: any) {
+export async function PUT(request: Request, { params }: any) {
   try {
-    // const user = await authorizeUser(Role.ADMIN, Role.SUPER_ADMIN);
+    const { id } = await params; // Await the params object
 
-    const { username, email, role, status } = await req.json();
+    // Check if user is super_admin
+    const existingUser = await prisma.user.findUnique({
+      where: { id },
+    });
 
+    if (existingUser?.role === "SUPER_ADMIN") {
+      return NextResponse.json(
+        { error: "Super admin cannot be modified" },
+        { status: 403 }
+      );
+    }
+
+    const body = await request.json();
     const updatedUser = await prisma.user.update({
-      where: { id: params.id },
-      data: { username, email, role, status },
+      where: { id }, // Use the awaited id
+      data: {
+        username: body.username,
+        firstName: body.firstName,
+        lastName: body.lastName,
+        email: body.email,
+        handphone: body.handphone,
+        institution: body.institution,
+        position: body.position,
+        status: body.status,
+        role: body.role,
+      },
     });
     return NextResponse.json(updatedUser);
   } catch (error) {
-    return NextResponse.json({ error: error }, { status: 500 });
+    console.error("Error updating user:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
 
 // DELETE /users/:id - Soft delete a user
-export async function DELETE(req: Request, { params }: any) {
+export async function DELETE(request: Request, { params }: any) {
   try {
-    // const user = await authorizeUser(Role.SUPER_ADMIN);
+    const { id } = await params; // Await the params object
 
-    const deletedUser = await prisma.user.update({
-      where: { id: params.id },
-      data: { status: Status.DISABLED },
+    // Check if user is super_admin
+    const existingUser = await prisma.user.findUnique({
+      where: { id },
     });
-    return NextResponse.json(deletedUser);
+
+    if (existingUser?.role === "SUPER_ADMIN") {
+      return NextResponse.json(
+        { error: "Super admin cannot be deleted" },
+        { status: 403 }
+      );
+    }
+
+    await prisma.user.delete({
+      where: { id }, // Use the awaited id
+    });
+    return NextResponse.json({ message: "User deleted successfully" });
   } catch (error) {
-    return NextResponse.json({ error: error }, { status: 500 });
+    console.error("Error deleting user:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

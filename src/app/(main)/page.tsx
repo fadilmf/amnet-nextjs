@@ -185,9 +185,13 @@ export default function Home() {
               {articles.map((article) => (
                 <ArticleCard
                   key={article.id}
+                  id={article.id}
                   title={article.title}
                   summary={article.summary}
-                  imageUrl={article.cover}
+                  imageUrl={article.cover || ""}
+                  author={article.author}
+                  date={article.date}
+                  keywords={article.keywords}
                 />
               ))}
             </div>

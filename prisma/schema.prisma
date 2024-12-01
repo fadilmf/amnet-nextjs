@@ -32,7 +32,7 @@ model User {
   handphone   String?
   institution String?
   position    String?
-  image       Bytes?
+  image       String?
   password    String?
   status      Status    @default(ACTIVE)
   createdAt   DateTime? @default(now())
@@ -94,96 +94,135 @@ model Country {
   contents Content[] // One country can have multiple associated content items
 }
 
+// model Content {
+//   id                  Int     @id @default(autoincrement())
+//   userId              String?
+//   email               String?
+//   countryId           Int?
+//   title               String?
+//   author              String?
+//   institution         String?
+//   cover               Bytes?
+//   summary             String?
+//   keyword             String?
+//   ecologyDim          Float?
+//   ecologyMethod       String?
+//   ecologyMost1        String?
+//   ecologyMost2        String?
+//   ecologyMost3        String?
+//   socialDim           Float?
+//   socialMethod        String?
+//   socialMost1         String?
+//   socialMost2         String?
+//   socialMost3         String?
+//   economyDim          Float?
+//   economyMethod       String?
+//   economyMost1        String?
+//   economyMost2        String?
+//   economyMost3        String?
+//   institutionalDim    Float?
+//   institutionalMethod String?
+//   institutionalMost1  String?
+//   institutionalMost2  String?
+//   institutionalMost3  String?
+//   technologyDim       Float?
+//   technologyMethod    String?
+//   technologyMost1     String?
+//   technologyMost2     String?
+//   technologyMost3     String?
+
+//   sustainability      String?
+//   sustainabilityIndex Float?
+//   sustainabilityImage Bytes?
+
+//   ecologyGraph       Bytes? // Kolom untuk menyimpan ecologyGraph
+//   ecologyLevel       Bytes? // Kolom untuk menyimpan ecologyLeve
+//   socialGraph        Bytes? // Kolom untuk menyimpan socialGraph
+//   socialLevel        Bytes? // Kolom untuk menyimpan socialLeve
+//   economyGraph       Bytes? // Kolom untuk menyimpan economyGraph
+//   economyLevel       Bytes? // Kolom untuk menyimpan economyLeve
+//   institutionalGraph Bytes? // Kolom untuk menyimpan institutionalGraph
+//   institutionalLevel Bytes? // Kolom untuk menyimpan institutionalLeve
+//   technologyGraph    Bytes? // Kolom untuk menyimpan technologyGraph
+//   technologyLevel    Bytes? // Kolom untuk menyimpan technologyLeve
+
+//   visitorRegistered Int?
+//   visitorPublic     Int?
+//   createdAt         DateTime? @default(now())
+//   updatedAt         DateTime? @updatedAt
+
+//   existingCondition1  String?
+//   existingCondition2  String?
+//   existingCondition3  String?
+//   existingCondition4  String?
+//   existingCondition5  String?
+//   existingCondition6  String?
+//   existingCondition7  String?
+//   existingCondition8  String?
+//   existingCondition9  String?
+//   existingCondition10 String?
+//   existingCondition11 String?
+//   existingCondition12 String?
+//   existingCondition13 String?
+//   existingCondition14 String?
+//   existingCondition15 String?
+//   existingCondition16 String?
+//   existingCondition17 String?
+//   existingCondition18 String?
+//   existingCondition19 String?
+//   existingCondition20 String?
+//   existingCondition21 String?
+//   existingCondition22 String?
+//   existingCondition23 String?
+
+//   // Relations
+//   user           User?           @relation(fields: [userId], references: [id], onDelete: Cascade) // Many-to-one relation with User
+//   country        Country?        @relation(fields: [countryId], references: [id], onDelete: SetNull) // Many-to-one relation with Country
+//   bookmarks      Bookmark[] // One content item can have multiple bookmarks
+//   supportingDocs SupportingDoc[] // One-to-many relation with SupportingDoc
+//   galleries      Gallery[] // One-to-many relation with Gallery
+//   videoLinks     VideoLink[] // One-to-many relation with VideoLink
+//   maps           Map[] // One-to-many relation with Map
+//   comments       Comment[] // One-to-many relation with Comment
+// }
+
 model Content {
-  id                  Int     @id @default(autoincrement())
-  userId              String?
-  email               String?
-  countryId           Int?
-  title               String?
-  author              String?
-  institution         String?
-  cover               Bytes?
-  summary             String?
-  keyword             String?
-  ecologyDim          Float?
-  ecologyMethod       String?
-  ecologyMost1        String?
-  ecologyMost2        String?
-  ecologyMost3        String?
-  socialDim           Float?
-  socialMethod        String?
-  socialMost1         String?
-  socialMost2         String?
-  socialMost3         String?
-  economyDim          Float?
-  economyMethod       String?
-  economyMost1        String?
-  economyMost2        String?
-  economyMost3        String?
-  institutionalDim    Float?
-  institutionalMethod String?
-  institutionalMost1  String?
-  institutionalMost2  String?
-  institutionalMost3  String?
-  technologyDim       Float?
-  technologyMethod    String?
-  technologyMost1     String?
-  technologyMost2     String?
-  technologyMost3     String?
+  id        Int       @id @default(autoincrement())
+  userId    String?
+  countryId Int?
+  title     String?
+  summary   String?
+  author    String?
+  date      DateTime?
+  cover     String?
+  keywords  String[]
 
-  sustainability      String?
-  sustainabilityIndex Float?
-  sustainabilityImage Bytes?
+  existingConditions     ExistingCondition[]
+  ecologyDimension       EcologyDimension?
+  socialDimension        SocialDimension?
+  economyDimension       EconomyDimension?
+  institutionalDimension InstitutionalDimension?
+  technologyDimension    TechnologyDimension?
+  // supportingDocuments   SupportingDoc[]
+  // videos                Video[]
 
-  ecologyGraph       Bytes? // Kolom untuk menyimpan ecologyGraph
-  ecologyLevel       Bytes? // Kolom untuk menyimpan ecologyLeve
-  socialGraph        Bytes? // Kolom untuk menyimpan socialGraph
-  socialLevel        Bytes? // Kolom untuk menyimpan socialLeve
-  economyGraph       Bytes? // Kolom untuk menyimpan economyGraph
-  economyLevel       Bytes? // Kolom untuk menyimpan economyLeve
-  institutionalGraph Bytes? // Kolom untuk menyimpan institutionalGraph
-  institutionalLevel Bytes? // Kolom untuk menyimpan institutionalLeve
-  technologyGraph    Bytes? // Kolom untuk menyimpan technologyGraph
-  technologyLevel    Bytes? // Kolom untuk menyimpan technologyLeve
+  // status ContentStatus @default(DRAFT)
+  status String? @default("DRAFT")
 
-  visitorRegistered Int?
-  visitorPublic     Int?
-  createdAt         DateTime? @default(now())
-  updatedAt         DateTime? @updatedAt
-
-  existingCondition1  String?
-  existingCondition2  String?
-  existingCondition3  String?
-  existingCondition4  String?
-  existingCondition5  String?
-  existingCondition6  String?
-  existingCondition7  String?
-  existingCondition8  String?
-  existingCondition9  String?
-  existingCondition10 String?
-  existingCondition11 String?
-  existingCondition12 String?
-  existingCondition13 String?
-  existingCondition14 String?
-  existingCondition15 String?
-  existingCondition16 String?
-  existingCondition17 String?
-  existingCondition18 String?
-  existingCondition19 String?
-  existingCondition20 String?
-  existingCondition21 String?
-  existingCondition22 String?
-  existingCondition23 String?
-
-  // Relations
   user           User?           @relation(fields: [userId], references: [id], onDelete: Cascade) // Many-to-one relation with User
-  country        Country?        @relation(fields: [countryId], references: [id], onDelete: SetNull) // Many-to-one relation with Country
+  country        Country?        @relation(fields: [countryId], references: [id], onDelete: Cascade) // Many-to-one relation with Country
   bookmarks      Bookmark[] // One content item can have multiple bookmarks
   supportingDocs SupportingDoc[] // One-to-many relation with SupportingDoc
+  maps           Map[]
   galleries      Gallery[] // One-to-many relation with Gallery
   videoLinks     VideoLink[] // One-to-many relation with VideoLink
-  maps           Map[] // One-to-many relation with Map
   comments       Comment[] // One-to-many relation with Comment
+
+  views Int? @default(0)
+
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+  sustainabilityDimensionId String?
 }
 
 model Comment {
@@ -201,32 +240,99 @@ model Comment {
   user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model ExistingCondition {
+  id          String  @id @default(cuid())
+  title       String
+  description String
+  images      Image[]
+  content     Content @relation(fields: [contentId], references: [id])
+  contentId   Int
+}
+
+model EcologyDimension {
+  id                  String   @id @default(cuid())
+  title               String
+  inputMethod         String
+  significantAspects  String[]
+  sustainabilityScore Float
+  graphImages         Image[]
+  content             Content  @relation(fields: [contentId], references: [id])
+  contentId           Int      @unique
+}
+
+model SocialDimension {
+  id                  String   @id @default(cuid())
+  title               String
+  inputMethod         String
+  significantAspects  String[]
+  sustainabilityScore Float
+  graphImages         Image[]
+  content             Content  @relation(fields: [contentId], references: [id])
+  contentId           Int      @unique
+}
+
+model EconomyDimension {
+  id                  String   @id @default(cuid())
+  title               String
+  inputMethod         String
+  significantAspects  String[]
+  sustainabilityScore Float
+  graphImages         Image[]
+  content             Content  @relation(fields: [contentId], references: [id])
+  contentId           Int      @unique
+}
+
+model InstitutionalDimension {
+  id                  String   @id @default(cuid())
+  title               String
+  inputMethod         String
+  significantAspects  String[]
+  sustainabilityScore Float
+  graphImages         Image[]
+  content             Content  @relation(fields: [contentId], references: [id])
+  contentId           Int      @unique
+}
+
+model TechnologyDimension {
+  id                  String   @id @default(cuid())
+  title               String
+  inputMethod         String
+  significantAspects  String[]
+  sustainabilityScore Float
+  graphImages         Image[]
+  content             Content  @relation(fields: [contentId], references: [id])
+  contentId           Int      @unique
+}
+
 model SupportingDoc {
   id        Int     @id @default(autoincrement())
+  name      String?
+  filePath  String?
+  content   Content @relation(fields: [contentId], references: [id])
   contentId Int
-  file      Bytes // The actual file content
-  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 }
 
 model Gallery {
   id        Int     @id @default(autoincrement())
   contentId Int
-  image     Bytes // The actual image content
+  imagePath String?
+  alt       String?
   content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 }
 
 model VideoLink {
   id        Int     @id @default(autoincrement())
   contentId Int
-  url       String // URL of the video
+  url       String? // URL of the video
   content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 }
 
 model Map {
-  id        Int     @id @default(autoincrement())
+  id        String  @id @default(cuid())
+  filePath  String?
+  alt       String?
+  content   Content @relation(fields: [contentId], references: [id])
   contentId Int
-  mapFile   Bytes // The actual map content
-  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 }
 
 model Bookmark {
@@ -251,4 +357,28 @@ model Announcement {
 
   // Relations
   notifications Notification[] // One announcement can have multiple associated notifications
+}
+
+model Image {
+  id                  String             @id @default(cuid())
+  filePath            String?
+  alt                 String?
+  existingCondition   ExistingCondition? @relation(fields: [existingConditionId], references: [id])
+  existingConditionId String?
+
+  ecologyDimension         EcologyDimension?       @relation(fields: [ecologyDimensionId], references: [id])
+  ecologyDimensionId       String?
+  socialDimension          SocialDimension?        @relation(fields: [socialDimensionId], references: [id])
+  socialDimensionId        String?
+  economyDimension         EconomyDimension?       @relation(fields: [economyDimensionId], references: [id])
+  economyDimensionId       String?
+  institutionalDimension   InstitutionalDimension? @relation(fields: [institutionalDimensionId], references: [id])
+  institutionalDimensionId String?
+  technologyDimension      TechnologyDimension?    @relation(fields: [technologyDimensionId], references: [id])
+  technologyDimensionId    String?
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
 }

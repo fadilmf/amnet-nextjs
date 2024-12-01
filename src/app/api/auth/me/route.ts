@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const decoded = verifyToken(token) as { userId: string };
+    const decoded = verifyToken(token) as { userId: string; user?: any };
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       include: {
@@ -17,8 +17,13 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 401 });
+    }
+
     return NextResponse.json({ user });
-  } catch {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  } catch (error) {
+    // Token verification failed (including expired token)
+    return NextResponse.json({ error: "Token expired" }, { status: 401 });
   }
 }

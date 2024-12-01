@@ -85,9 +85,23 @@ export async function POST(request: Request) {
 // PUT /api/users/[id] - Update a user
 export async function PUT(request: Request, { params }: any) {
   try {
+    const { id } = await params; // Await the params object
+
+    // Check if user is super_admin
+    const existingUser = await prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (existingUser?.role === "SUPER_ADMIN") {
+      return NextResponse.json(
+        { error: "Super admin cannot be modified" },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const updatedUser = await prisma.user.update({
-      where: { id: params.id },
+      where: { id }, // Use the awaited id
       data: {
         username: body.username,
         firstName: body.firstName,
@@ -113,8 +127,22 @@ export async function PUT(request: Request, { params }: any) {
 // DELETE /api/users/[id] - Delete a user
 export async function DELETE(request: Request, { params }: any) {
   try {
+    const { id } = await params; // Await the params object
+
+    // Check if user is super_admin
+    const existingUser = await prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (existingUser?.role === "SUPER_ADMIN") {
+      return NextResponse.json(
+        { error: "Super admin cannot be deleted" },
+        { status: 403 }
+      );
+    }
+
     await prisma.user.delete({
-      where: { id: params.id },
+      where: { id }, // Use the awaited id
     });
     return NextResponse.json({ message: "User deleted successfully" });
   } catch (error) {
