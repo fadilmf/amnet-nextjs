@@ -17,6 +17,17 @@ export default function AboutUsPage() {
         </Card>
         <Card className="bg-green-800 p-8 flex justify-center items-center w-2/3">
           <h1 className="text-white">
+            AMNET is an innovative digital platform designed to enhance natural
+            resource management and environmental sustainability by providing
+            accurate and relevant data-driven information. This platform serves
+            as a hub for documentation, information sharing, and discussions,
+            facilitating collaboration among countries in the Southeast Asia
+            region. With its intuitive design, AMNET offers users the
+            convenience of accessing information, adding content, and retrieving
+            supporting documents relevant to specific issues across various
+            areas.
+          </h1>
+          {/* <h1 className="text-white">
             The ASEAN Mangrove Network (AMNET) is a collaborative initiative
             among ASEAN Member States (AMS) that focuses on enhancing efforts to
             conserve and rehabilitate mangrove ecosystems in the region. The
@@ -27,7 +38,7 @@ export default function AboutUsPage() {
             another in developing better management strategies, policies, and
             systems, while also empowering stakeholders in sustainable mangrove
             ecosystem management.
-          </h1>
+          </h1> */}
         </Card>
       </div>
     </div>
