@@ -76,11 +76,11 @@ export function Header() {
                   Country Profile
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
+              {/* <DropdownMenuItem asChild>
                 <Link href="/statistics" className="w-full">
                   Statistics
                 </Link>
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
               <DropdownMenuItem asChild>
                 <Link href="/faq" className="w-full">
                   FAQ
