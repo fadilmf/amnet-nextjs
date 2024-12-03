@@ -12,22 +12,20 @@ import Cookies from "js-cookie";
 
 interface User {
   id: string;
-  username: string;
+  firstName: string;
+  lastName: string;
   role: string;
-  countryId: number;
+  country: {
+    countryName: string;
+  };
   email: string;
-  fullName: string;
+  avatarUrl?: string;
   phoneNumber?: string;
   address?: string;
-  profileImage?: string;
   createdAt: string;
   updatedAt: string;
   isActive: boolean;
   lastLogin?: string;
-  // Informasi tambahan yang mungkin berguna
-  department?: string;
-  position?: string;
-  permissions?: string[];
 }
 
 interface AuthContextType {
@@ -59,7 +57,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Move fetchUserData inside useEffect
     const fetchUserData = async (authToken: string) => {
       try {
         const response = await fetch("/api/auth/me", {
@@ -74,7 +71,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         const data = await response.json();
-        setUser(data.user);
+        if (data.data) {
+          setUser(data.data);
+        } else {
+          console.error("Invalid user data format:", data);
+          logout();
+        }
       } catch (error) {
         console.error("Error fetching user data:", error);
         logout();
@@ -83,11 +85,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Check token from cookies on initial load
     const storedToken = Cookies.get("token");
-    if (storedToken) {
+    if (storedToken && !user) {
       setToken(storedToken);
       fetchUserData(storedToken);
     }
-  }, [logout]); // Only include logout in dependencies
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, token, login, logout }}>

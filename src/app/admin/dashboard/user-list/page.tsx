@@ -41,6 +41,7 @@ interface User {
   position: string | null;
   status: "ACTIVE" | "INACTIVE";
   role: "ADMIN" | "SUPER_ADMIN";
+  country: string | null;
 }
 
 export default function UserManagement() {
@@ -263,8 +264,19 @@ function UserForm({ onSubmit, initialData }: UserFormProps) {
       status: "ACTIVE",
       role: "ADMIN",
       password: "", // Tambahkan default state untuk password
+      country: "",
     }
   );
+
+  const countries = [
+    { id: 1, name: "Indonesia" },
+    { id: 2, name: "Malaysia" },
+    { id: 3, name: "Singapore" },
+    { id: 4, name: "Thailand" },
+    { id: 5, name: "Vietnam" },
+    { id: 6, name: "Philippines" },
+    // Add more countries as needed
+  ];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -394,6 +406,32 @@ function UserForm({ onSubmit, initialData }: UserFormProps) {
           value={formData.position || ""}
           onChange={handleChange}
         />
+      </div>
+      <div>
+        <label
+          htmlFor="country"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Country
+        </label>
+        <Select
+          name="country"
+          value={formData.countryId?.toString() || ""}
+          onValueChange={(value) =>
+            setFormData({ ...formData, countryId: parseInt(value) })
+          }
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select country" />
+          </SelectTrigger>
+          <SelectContent>
+            {countries.map((country) => (
+              <SelectItem key={country.id} value={country.id.toString()}>
+                {country.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <label

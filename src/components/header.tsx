@@ -14,39 +14,38 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Cookie from "js-cookie"; // Import js-cookie untuk mengakses cookies
+import { useAuth } from "@/contexts/AuthContext";
 
 export function Header() {
-  const [user, setUser] = useState<any>(null); // State untuk menyimpan data user
-  const [unreadNotifications, setUnreadNotifications] = useState(0); // Notifications mock-up
+  const [user, setUser] = useState<any>(null);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  // const { user, logout } = useAuth();
 
-  // Mengambil data pengguna dari API /api/auth/me jika token ada
+  // useEffect(() => {
+  //   console.log("ini user: ", user);
+  // }, [user]);
+
   useEffect(() => {
-    const token = Cookie.get("token"); // Ambil token JWT dari cookies
+    const fetchUser = async () => {
+      const token = Cookie.get("token");
 
-    console.log("ini token: ", token);
-    if (token) {
-      // Jika token ada, ambil data pengguna dari API
-      fetch("/api/auth/me", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`, // Mengirimkan token dalam header
-          // Authorization: `${token}`, // Mengirimkan token dalam header
-        },
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.user) {
-            setUser(data.user); // Set data user jika berhasil
-            console.log("ini data: ", data);
-            console.log("ini data user: ", data.user);
-          } else {
-            setUser(null); // Reset user jika tidak ada data
-          }
-        })
-        .catch(() => {
-          setUser(null); // Reset user jika terjadi error
+      if (!token || user) return; // Skip if no token or user already exists
+
+      try {
+        const response = await fetch("/api/auth/me", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
-    }
+        const data = await response.json();
+        setUser(data.user || null);
+      } catch (error) {
+        setUser(null);
+      }
+    };
+
+    fetchUser();
   }, []);
 
   return (
@@ -126,13 +125,15 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="p-0">
                   <Avatar className="h-8 w-8 mr-2">
-                    <AvatarImage src={user.avatarUrl} alt={user.name} />
-                    <AvatarFallback>{user.firstName.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={user?.avatarUrl} alt={user?.name} />
+                    <AvatarFallback>
+                      {user?.firstName?.charAt(0)}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col items-start">
-                    <span className="text-sm font-medium">{`${user.firstName} ${user.lastName}`}</span>
+                    <span className="text-sm font-medium">{`${user?.firstName} ${user?.lastName}`}</span>
                     <span className="text-xs text-muted-foreground">
-                      {user.role} - {user.country.countryName}
+                      {user?.role} - {user?.country.countryName}
                     </span>
                   </div>
                   <ChevronDown className="ml-2 h-4 w-4" />

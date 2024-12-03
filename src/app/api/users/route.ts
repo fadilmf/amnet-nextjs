@@ -67,6 +67,7 @@ export async function POST(request: Request) {
         position: body.position,
         status: body.status,
         role: body.role,
+        countryId: body.countryId,
         password: hashedPassword, // Store the hashed password
       },
     });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArticleCard } from "@/components/article-card";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,48 +12,91 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
+import axios from "axios";
 
-// Define the Article type
-interface Article {
+interface Draft {
   id: number;
   title: string;
-  lastUpdated: string;
-  keywords: string[];
+  summary: string;
   author: string;
   date: string;
-  summary: string;
-  image: string;
+  cover: string;
+  keywords: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
-// Sample article data
-const articles: Article[] = []; // Explicitly type as an array of Article
-
 export default function AdminDraftPage() {
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [sortBy, setSortBy] = useState<string>("lastUpdated");
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("lastUpdated");
+  const [error, setError] = useState<string | null>(null);
 
-  // Filter articles based on search term
-  const filteredArticles = articles.filter(
-    (article) =>
-      article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      article.keywords.some((keyword) =>
+  useEffect(() => {
+    const fetchDrafts = async () => {
+      try {
+        const response = await axios.get("/api/admin/draft");
+
+        console.log("ini response:", response.data);
+        setDrafts(response.data);
+      } catch (err) {
+        setError("Failed to fetch drafts");
+        console.error("Error fetching drafts:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDrafts();
+  }, []);
+
+  const filteredDrafts = drafts.filter(
+    (draft) =>
+      draft.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      draft.keywords.some((keyword) =>
         keyword.toLowerCase().includes(searchTerm.toLowerCase())
       )
   );
 
+  const sortedDrafts = [...filteredDrafts].sort((a, b) => {
+    if (sortBy === "lastUpdated") {
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    }
+    return a.title.localeCompare(b.title);
+  });
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8 text-center">
+        <p className="text-red-500">{error}</p>
+        <Button onClick={() => window.location.reload()} className="mt-4">
+          Retry
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Search and Sort Section */}
       <div className="flex flex-col lg:flex-row items-center gap-4 mb-8">
         <div className="flex flex-1 items-center gap-2">
           <Input
             type="text"
-            placeholder="Search here..."
+            placeholder="Search drafts..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full lg:w-80"
           />
-          <Button className="bg-yellow-500 text-white px-4 py-2">Go</Button>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-gray-700">Sort by</span>
@@ -69,29 +112,33 @@ export default function AdminDraftPage() {
         </div>
       </div>
 
-      {/* Drafts Section */}
       <div>
         <h2 className="text-2xl font-semibold mb-4">Drafts</h2>
-
-        {/* Check if there are any filtered articles */}
-        {/* {filteredArticles.length > 0 ? (
+        {sortedDrafts.length === 0 ? (
+          <p className="text-gray-500 text-center">No drafts found.</p>
+        ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredArticles.map((article) => (
-              <ArticleCard key={article.id} {...article} />
+            {sortedDrafts.map((draft) => (
+              <div key={draft.id} className="relative">
+                <ArticleCard
+                  id={draft.id.toString()}
+                  title={draft.title}
+                  summary={draft.summary}
+                  author={draft.author}
+                  date={draft.date}
+                  keywords={draft.keywords}
+                  imageUrl={draft.cover}
+                />
+                <Link
+                  href={`/admin/dashboard/content/edit/${draft.id}`}
+                  className="absolute top-2 right-2 bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600 transition"
+                >
+                  Edit
+                </Link>
+              </div>
             ))}
           </div>
-        ) : (
-          <p className="text-gray-500 text-center">
-            No drafts found. Please add new content or adjust your search
-            criteria.
-          </p>
-        )} */}
-
-        <div className="mt-4 text-right">
-          <Link href="/content" className="text-green-600">
-            Show All →
-          </Link>
-        </div>
+        )}
       </div>
     </div>
   );
