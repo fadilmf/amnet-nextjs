@@ -4,6 +4,7 @@ import { notFound, useParams } from "next/navigation";
 import Image from "next/image";
 import { Frown } from "lucide-react";
 import CountryArticlesList from "@/components/country-articles-list";
+import { useEffect, useState } from "react";
 
 type Country =
   | "brunei"
@@ -65,46 +66,69 @@ const countryDataMap: Record<Country, { name: string; flagUrl: string }> = {
   },
 };
 
-// Mock data for articles, each with a `country` property
-const articles = [
-  {
-    id: "1",
-    title: "The Importance of Mangrove Conservation",
-    snippet:
-      "Mangroves play a crucial role in coastal ecosystems, providing habitat for diverse species and protecting shorelines...",
-    author: "Dr. Jane Smith",
-    date: "2024-05-15",
-    keywords: ["conservation", "mangroves", "ecosystem"],
-    country: "indonesia",
-    imageUrl: "/images/mangrove-conservation.jpg",
-  },
-  {
-    id: "2",
-    title: "Sustainable Fishing Practices in ASEAN",
-    snippet:
-      "ASEAN countries are implementing new sustainable fishing practices to preserve marine biodiversity and ensure...",
-    author: "John Doe",
-    date: "2024-05-10",
-    keywords: ["fishing", "sustainability", "ASEAN"],
-    country: "malaysia",
-    imageUrl: "/images/sustainable-fishing.jpg",
-  },
-  // Add more mock articles as needed
-];
+// Definisikan interface untuk Content berdasarkan schema Prisma
+interface Content {
+  id: string;
+  title: string;
+  cover: string;
+  summary: string;
+  author: string;
+  date: string;
+  keywords: string[];
+  status: string;
+  countryId: number;
+  // ... tambahkan field lain sesuai kebutuhan
+}
+
+// Map nama negara ke countryId
+const countryIdMap: Record<Country, number> = {
+  brunei: 1,
+  cambodia: 2,
+  indonesia: 3,
+  laos: 4,
+  malaysia: 5,
+  myanmar: 6,
+  philippines: 7,
+  singapore: 8,
+  thailand: 9,
+  timorleste: 10,
+  vietnam: 11,
+};
 
 export default function CountryContentPage() {
   const params = useParams();
   const country = params?.country as Country;
+  const [contents, setContents] = useState<Content[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchContents = async () => {
+      try {
+        setIsLoading(true);
+        const countryId = countryIdMap[country];
+        const response = await fetch(`/api/content?countryId=${countryId}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch contents");
+        }
+        const data = await response.json();
+        setContents(data);
+      } catch (error) {
+        console.error("Error fetching contents:", error);
+        setContents([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (country) {
+      fetchContents();
+    }
+  }, [country]);
 
   // Check if the country is valid
   if (!country || !countryDataMap[country]) {
     notFound();
   }
-
-  // Filter articles based on the `country` parameter
-  const countryArticles = articles.filter(
-    (article) => article.country === country
-  );
 
   return (
     <div className="container mx-auto p-4">
@@ -121,8 +145,12 @@ export default function CountryContentPage() {
         </h1>
       </div>
 
-      {countryArticles.length > 0 ? (
-        <CountryArticlesList articles={countryArticles} />
+      {isLoading ? (
+        <div className="h-[800px] flex items-center justify-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900" />
+        </div>
+      ) : contents.length > 0 ? (
+        <CountryArticlesList articles={contents} />
       ) : (
         <div className="h-[800px] flex flex-col items-center justify-center text-gray-500">
           <Frown size={200} className="mb-4" />

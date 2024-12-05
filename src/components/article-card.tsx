@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { ImageIcon } from "lucide-react";
 
 interface ArticleCardProps {
   id: number;
@@ -28,13 +29,20 @@ export function ArticleCard({
     <Link href={`/content/detail/${id}`}>
       <Card className="overflow-hidden h-full hover:shadow-lg transition-shadow duration-300">
         <div className="relative aspect-video">
-          <Image
-            src={imageUrl}
-            alt={title || "Article cover"}
-            fill
-            className="object-cover"
-            priority
-          />
+          {imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt={title || "Article cover"}
+              fill
+              className="object-cover"
+              priority
+            />
+          ) : (
+            <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
+              <ImageIcon className="w-12 h-12 text-gray-400" />
+            </div>
+          )}
+
           {status === "DRAFT" && (
             <Badge
               variant="secondary"

@@ -197,12 +197,15 @@ model Content {
   cover     String?
   keywords  String[]
 
-  existingConditions     ExistingCondition[]
+  existingConditions ExistingCondition[]
+
   ecologyDimension       EcologyDimension?
   socialDimension        SocialDimension?
   economyDimension       EconomyDimension?
   institutionalDimension InstitutionalDimension?
   technologyDimension    TechnologyDimension?
+  overallDimension       OverallDimension?
+
   // supportingDocuments   SupportingDoc[]
   // videos                Video[]
 
@@ -304,6 +307,15 @@ model TechnologyDimension {
   contentId           Int      @unique
 }
 
+model OverallDimension {
+  id                  String  @id @default(cuid())
+  overall             String
+  sustainabilityScore Float
+  graphImages         Image[]
+  content             Content @relation(fields: [contentId], references: [id])
+  contentId           Int     @unique
+}
+
 model SupportingDoc {
   id        Int     @id @default(autoincrement())
   name      String?
@@ -376,6 +388,8 @@ model Image {
   institutionalDimensionId String?
   technologyDimension      TechnologyDimension?    @relation(fields: [technologyDimensionId], references: [id])
   technologyDimensionId    String?
+  overallDimension         OverallDimension?       @relation(fields: [overallDimensionId], references: [id])
+  overallDimensionId       String?
 }
 
 enum ContentStatus {

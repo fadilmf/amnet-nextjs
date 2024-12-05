@@ -91,39 +91,46 @@ export async function GET() {
     const registeredUsers = await prisma.user.count();
 
     // Fetch total posts by country
-    // const postsByCountry = await prisma.country.findMany({
-    //   select: {
-    //     countryName: true,
-    //     _count: {
-    //       select: {
-    //         contents: true,
-    //       },
-    //     },
-    //   },
-    // });
+    const postsByCountry = await prisma.country.findMany({
+      select: {
+        countryName: true,
+        _count: {
+          select: {
+            contents: {
+              where: {
+                status: "PUBLISHED",
+              },
+            },
+          },
+        },
+      },
+    });
 
     // Format postsByCountry data
-    // const postsByCountryFormatted = postsByCountry.map((country) => ({
-    //   country: country.countryName,
-    //   posts: country._count.contents,
-    // }));
+    const postsByCountryFormatted = postsByCountry.map((country) => ({
+      country: country.countryName,
+      posts: country._count.contents,
+    }));
 
     // Fetch most popular content (e.g., based on views)
-    // const mostPopularContent = await prisma.content.findMany({
-    //   orderBy: {
-    //     views: "desc",
-    //   },
-    //   take: 5, // Top 5 popular content
-    //   select: {
-    //     title: true,
-    //     views: true,
-    //   },
-    // });
+    const mostPopularContent = await prisma.content.findMany({
+      where: {
+        status: "PUBLISHED",
+      },
+      orderBy: {
+        views: "desc",
+      },
+      take: 5, // Top 5 popular content
+      select: {
+        title: true,
+        views: true,
+      },
+    });
 
-    // const mostPopularContentFormatted = mostPopularContent.map((content) => ({
-    //   title: content.title,
-    //   views: content.views,
-    // }));
+    const mostPopularContentFormatted = mostPopularContent.map((content) => ({
+      title: content.title,
+      views: content.views,
+    }));
 
     // Create the final response object
     const dashboardData = {
@@ -132,8 +139,8 @@ export async function GET() {
         newUsers,
         registeredUsers,
       },
-      // postsByCountry: postsByCountryFormatted,
-      // mostPopularContent: mostPopularContentFormatted,
+      postsByCountry: postsByCountryFormatted,
+      mostPopularContent: mostPopularContentFormatted,
     };
 
     return NextResponse.json(dashboardData, { status: 200 });

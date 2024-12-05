@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
+import { PublishedArticleCard } from "@/components/published-article-card";
 
 // Updated interface to match new schema
 interface Article {
@@ -35,38 +36,38 @@ export default function AdminContentPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("lastUpdated");
 
-  useEffect(() => {
-    const fetchArticles = async () => {
-      try {
-        const response = await fetch("/api/admin/content");
-        if (!response.ok) {
-          throw new Error("Failed to fetch articles");
-        }
-        const data = await response.json();
-
-        // Transform the data to match our Article interface
-        const transformedArticles: Article[] = data.map((item: any) => ({
-          id: item.id,
-          title: item.title || "",
-          summary: item.summary || "",
-          author: item.author || "",
-          date: item.date ? new Date(item.date).toISOString() : null,
-          keywords: item.keywords || [],
-          cover: item.cover || "", // base64 string from API
-          status: item.status,
-          createdAt: item.createdAt,
-          updatedAt: item.updatedAt,
-        }));
-
-        setArticles(transformedArticles);
-      } catch (err) {
-        setError("Error fetching articles. Please try again later.");
-        console.error("Error fetching articles:", err);
-      } finally {
-        setLoading(false);
+  const fetchArticles = async () => {
+    try {
+      const response = await fetch("/api/admin/content");
+      if (!response.ok) {
+        throw new Error("Failed to fetch articles");
       }
-    };
+      const data = await response.json();
 
+      // Transform the data to match our Article interface
+      const transformedArticles: Article[] = data.map((item: any) => ({
+        id: item.id,
+        title: item.title || "",
+        summary: item.summary || "",
+        author: item.author || "",
+        date: item.date ? new Date(item.date).toISOString() : null,
+        keywords: item.keywords || [],
+        cover: item.cover || "", // base64 string from API
+        status: item.status,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+      }));
+
+      setArticles(transformedArticles);
+    } catch (err) {
+      setError("Error fetching articles. Please try again later.");
+      console.error("Error fetching articles:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchArticles();
   }, []);
 
@@ -89,10 +90,18 @@ export default function AdminContentPage() {
     return 0;
   });
 
-  // Filter your content (articles created by the logged-in user)
-  // Note: You'll need to add userId comparison once authentication is implemented
-  const yourContent = sortedArticles.slice(0, 3);
-  const allContent = sortedArticles;
+  // Filter untuk konten yang published dan draft
+  const publishedContent = sortedArticles.filter(
+    (article) => article.status === "PUBLISHED"
+  );
+  const draftContent = sortedArticles.filter(
+    (article) => article.status === "DRAFT"
+  );
+
+  // Handler untuk refresh data setelah membuat draft
+  const handleDraftCreated = () => {
+    fetchArticles();
+  };
 
   if (loading) {
     return (
@@ -144,7 +153,7 @@ export default function AdminContentPage() {
       {/* "Your Content" Section */}
       <div className="mb-8">
         <div className="flex gap-4 items-center mb-4">
-          <h2 className="text-2xl font-semibold">Your Content</h2>
+          {/* <h2 className="text-2xl font-semibold">Your Content</h2> */}
           <Link
             href="/admin/dashboard/content/add"
             className="bg-yellow-500 text-white rounded-md px-4 py-2"
@@ -152,11 +161,11 @@ export default function AdminContentPage() {
             Add Content
           </Link>
         </div>
-        {yourContent.length === 0 ? (
-          <p className="text-gray-500">Belum ada data</p>
+        {/* {draftContent.length === 0 ? (
+          <p className="text-gray-500">No drafts available</p>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {yourContent.map((article) => (
+            {draftContent.map((article) => (
               <ArticleCard
                 key={article.id}
                 id={article.id.toString()}
@@ -169,15 +178,15 @@ export default function AdminContentPage() {
               />
             ))}
           </div>
-        )}
+        )} */}
       </div>
 
-      {/* "All Content" Section */}
+      {/* "Published Content" Section */}
       <div>
-        <h2 className="text-2xl font-semibold mb-4">All Content</h2>
+        <h2 className="text-2xl font-semibold mb-4">Published Content</h2>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {allContent.map((article) => (
-            <ArticleCard
+          {publishedContent.map((article) => (
+            <PublishedArticleCard
               key={article.id}
               id={article.id.toString()}
               title={article.title || "Untitled"}
@@ -185,14 +194,10 @@ export default function AdminContentPage() {
               author={article.author || "Unknown"}
               date={article.date || article.createdAt}
               keywords={article.keywords}
-              imageUrl={`data:image/jpeg;base64,${article.cover}`}
+              imageUrl={article.cover}
+              onDraftCreated={handleDraftCreated}
             />
           ))}
-        </div>
-        <div className="mt-4 text-right">
-          <Link href="/content" className="text-green-600">
-            Show All →
-          </Link>
         </div>
       </div>
     </div>

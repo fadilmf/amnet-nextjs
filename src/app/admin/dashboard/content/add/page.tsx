@@ -55,6 +55,11 @@ interface Content {
   gallery: { file: File | null; alt: string }[];
   videos: { url: string; title: string }[];
   status: "DRAFT" | "PUBLISHED";
+  overallDimension: {
+    overall: string;
+    sustainabilityScore: number;
+    graphImages: { file: File | null; alt: string }[];
+  };
 }
 
 type DimensionKey =
@@ -131,6 +136,11 @@ export default function AddContentPage() {
     gallery: [],
     videos: [],
     status: "DRAFT",
+    overallDimension: {
+      overall: "",
+      sustainabilityScore: 0,
+      graphImages: [],
+    },
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitResponse, setSubmitResponse] = useState<{
@@ -909,6 +919,106 @@ export default function AddContentPage() {
             </Card>
           );
         })}
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Overall Dimension</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="overall">Overall Assessment</Label>
+              <Textarea
+                id="overall"
+                value={content.overallDimension.overall}
+                onChange={(e) =>
+                  setContent((prev) => ({
+                    ...prev,
+                    overallDimension: {
+                      ...prev.overallDimension,
+                      overall: e.target.value,
+                    },
+                  }))
+                }
+              />
+            </div>
+            <div>
+              <Label htmlFor="overall-score">
+                Overall Sustainability Score
+              </Label>
+              <Input
+                id="overall-score"
+                type="number"
+                value={content.overallDimension.sustainabilityScore}
+                onChange={(e) =>
+                  setContent((prev) => ({
+                    ...prev,
+                    overallDimension: {
+                      ...prev.overallDimension,
+                      sustainabilityScore: parseFloat(e.target.value),
+                    },
+                  }))
+                }
+              />
+            </div>
+            <div className="mt-4">
+              <Label>Overall Graphs (Optional)</Label>
+              <div className="space-y-4">
+                {[0, 1].map((graphIndex) => (
+                  <div key={graphIndex} className="space-y-2">
+                    <Label>Graph {graphIndex + 1}</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) {
+                            const newGraphImages = [
+                              ...content.overallDimension.graphImages,
+                            ];
+                            newGraphImages[graphIndex] = {
+                              ...newGraphImages[graphIndex],
+                              file: e.target.files[0],
+                            };
+                            setContent((prev) => ({
+                              ...prev,
+                              overallDimension: {
+                                ...prev.overallDimension,
+                                graphImages: newGraphImages,
+                              },
+                            }));
+                          }
+                        }}
+                      />
+                      <Input
+                        placeholder="Graph alt text"
+                        value={
+                          content.overallDimension.graphImages[graphIndex]
+                            ?.alt || ""
+                        }
+                        onChange={(e) => {
+                          const newGraphImages = [
+                            ...content.overallDimension.graphImages,
+                          ];
+                          newGraphImages[graphIndex] = {
+                            ...newGraphImages[graphIndex],
+                            alt: e.target.value,
+                          };
+                          setContent((prev) => ({
+                            ...prev,
+                            overallDimension: {
+                              ...prev.overallDimension,
+                              graphImages: newGraphImages,
+                            },
+                          }));
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

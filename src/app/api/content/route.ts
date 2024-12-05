@@ -365,14 +365,55 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const countryId = searchParams.get("countryId");
+
     const contents = await prisma.content.findMany({
       where: {
         status: "PUBLISHED",
+        // countryId: parseInt(countryId as string),
+        ...(countryId ? { countryId: parseInt(countryId) } : {}),
+      },
+      include: {
+        existingConditions: {
+          include: {
+            images: true,
+          },
+        },
+        ecologyDimension: {
+          include: {
+            graphImages: true,
+          },
+        },
+        socialDimension: {
+          include: {
+            graphImages: true,
+          },
+        },
+        economyDimension: {
+          include: {
+            graphImages: true,
+          },
+        },
+        institutionalDimension: {
+          include: {
+            graphImages: true,
+          },
+        },
+        technologyDimension: {
+          include: {
+            graphImages: true,
+          },
+        },
+        supportingDocs: true,
+        maps: true,
+        galleries: true,
+        videoLinks: true,
       },
     });
-    console.log("ini contents: ", contents);
+
     return NextResponse.json(contents);
   } catch (error) {
     return NextResponse.json(

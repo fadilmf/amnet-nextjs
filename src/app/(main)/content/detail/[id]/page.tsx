@@ -78,10 +78,18 @@ const DimensionCard = ({
     icon: React.ElementType;
     color: string;
     score: number;
-    graphImages: Array<{
+    graphImages?: Array<{
       id: string;
       file: string;
       alt: string;
+    }>;
+    isOverall?: boolean;
+    conclusion?: string;
+    spiderGraph?: string;
+    tableData?: Array<{
+      dimension: string;
+      score: number;
+      category: string;
     }>;
   };
   isActive: boolean;
@@ -146,41 +154,88 @@ const DimensionCard = ({
       </div>
       {isActive && (
         <div className="p-6 space-y-8 overflow-y-auto max-h-[calc(100vh-200px)]">
-          <div className="flex justify-center">
-            <CircularScore score={dimension.score} color={dimension.color} />
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold mb-3 text-gray-800">Method</h3>
-            <p className="text-gray-600 leading-relaxed">
-              {dimension.inputMethod}
-            </p>
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold mb-3 text-gray-800">
-              Most Significant Aspects
-            </h3>
-            <ul className="space-y-2">
-              {dimension.significantAspects.map((aspect, index) => (
-                <li key={index} className="flex items-start">
-                  <span className="text-green-500 mr-2">•</span>
-                  <span className="text-gray-600">{aspect}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            {dimension.graphImages?.map((image, index) => (
-              <div key={image.id}>
+          {dimension.isOverall ? (
+            <>
+              <div className="flex justify-between items-center gap-8">
+                {/* <CircularScore
+                  score={dimension.score}
+                  color={dimension.color}
+                /> */}
                 <Image
-                  src={image.file}
-                  alt={image.alt || `${dimension.name} Graph ${index + 1}`}
-                  width={500}
-                  height={300}
-                  className="w-full"
+                  src={dimension.spiderGraph}
+                  alt="Sustainability Dimensions Spider Graph"
+                  width={400}
+                  height={400}
+                  className="flex-1"
                 />
               </div>
-            ))}
-          </div>
+
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-gray-800">
+                  Conclusion
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
+                  {dimension.conclusion}
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-gray-800">
+                  Dimension Analysis
+                </h3>
+                <Image
+                  src="/kesimpulan_table.png"
+                  alt="Dimension Analysis Table"
+                  width={500}
+                  height={300}
+                  className="w-full max-w-md mx-auto"
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex justify-center">
+                <CircularScore
+                  score={dimension.score}
+                  color={dimension.color}
+                />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-gray-800">
+                  Method
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
+                  {dimension.inputMethod}
+                </p>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-gray-800">
+                  Most Significant Aspects
+                </h3>
+                <ul className="space-y-2">
+                  {dimension.significantAspects?.map((aspect, index) => (
+                    <li key={index} className="flex items-start">
+                      <span className="text-green-500 mr-2">•</span>
+                      <span className="text-gray-600">{aspect}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {dimension.graphImages?.map((image, index) => (
+                  <div key={image.id}>
+                    <Image
+                      src={image.file}
+                      alt={image.alt || `${dimension.name} Graph ${index + 1}`}
+                      width={500}
+                      height={300}
+                      className="w-full"
+                    />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
     </motion.div>
@@ -292,6 +347,23 @@ export default function ArticleDetail() {
 
   const dimensions = [
     {
+      name: "Overall",
+      icon: FileText,
+      color: "#000000",
+      score: 75.6,
+      isOverall: true,
+      conclusion:
+        "The sustainability analysis uses a Multi-Dimensional Scaling (MDS) approach adapted from the RAPFISH (Rapid Appraisal for Fisheries) method, which has been modified into RAPMANGROVE (Rapid Appraisal for Mangrove). This approach is developed using five evaluation categories: ecology, economy, social, institutional, and technology. The analysis is conducted through several stages: 1) reviewing the attributes within each sustainability dimension and defining these attributes through field observations and literature studies; 2) assigning scores based on the results of field observations and stakeholder opinions according to the defined attributes; 3) analyzing the assigned scores to determine the sustainability status of mangrove ecosystem management, as shown in Table 1 below. Based on the sustainability status analysis of the mangrove ecosystem area in Sidoarjo Regency, covering the dimensions of Ecology, Economy, Social, Institutional, and Technology, the average management of the mangrove ecosystem area in Sidoarjo shows a relatively sustainable result. This is evident from the RAP-MANGROVE score produced, where out of the five dimensions of sustainability status assessment, only the Social Dimension has a less sustainable value with a score of 47.23 (25 < SIR ≤ 50). Figure 11 below shows the sustainability status of the mangrove ecosystem in Sidoarjo Regency.",
+      spiderGraph: "/spider-graph-placeholder.png",
+      tableData: [
+        { dimension: "Ecology", score: 85, category: "Very Good" },
+        { dimension: "Social", score: 78, category: "Good" },
+        { dimension: "Economy", score: 72, category: "Good" },
+        { dimension: "Institutional", score: 68, category: "Fair" },
+        { dimension: "Technology", score: 75, category: "Good" },
+      ],
+    },
+    {
       name: "Ecology",
       icon: Leaf,
       inputMethod: content?.ecologyDimension?.inputMethod,
@@ -333,59 +405,6 @@ export default function ArticleDetail() {
     },
   ];
 
-  // Helper function to collect all images
-  const getAllImages = () => {
-    const images = [];
-
-    // Add images from existing conditions
-    content?.existingConditions?.forEach((condition) => {
-      if (condition.images && condition.images.length > 0) {
-        condition.images.forEach((image) => {
-          images.push({
-            id: `existing-${images.length}`,
-            image: image.filePath,
-            alt: `${condition.title} image`,
-            source: "Existing Condition",
-          });
-        });
-      }
-    });
-
-    // Add images from sustainability dimensions
-    const dimensions = [
-      { data: content?.ecologyDimension, name: "Ecology" },
-      { data: content?.socialDimension, name: "Social" },
-      { data: content?.economyDimension, name: "Economy" },
-      { data: content?.institutionalDimension, name: "Institutional" },
-      { data: content?.technologyDimension, name: "Technology" },
-    ];
-
-    dimensions.forEach(({ data, name }) => {
-      if (data?.graphImages && data.graphImages.length > 0) {
-        data.graphImages.forEach((image) => {
-          images.push({
-            id: image.id || `dimension-${images.length}`,
-            image: image.file,
-            alt: image.alt || `${name} Dimension Graph`,
-            source: `${name} Dimension`,
-          });
-        });
-      }
-    });
-
-    // Add original gallery images if they exist
-    content?.galleries?.forEach((gallery) => {
-      images.push({
-        id: gallery.id,
-        image: gallery.image,
-        alt: gallery.alt || "Gallery image",
-        source: "Gallery",
-      });
-    });
-
-    return images;
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -415,7 +434,7 @@ export default function ArticleDetail() {
     <div>
       {/* Hero Section */}
       <ParallaxSection>
-        <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+        <section className="max-w-6xl mt-16 mx-auto px-4 sm:px-6 lg:px-8 mb-16">
           <motion.h1
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -434,9 +453,12 @@ export default function ArticleDetail() {
             {content.institution && (
               <p className="text-lg">From {content.institution}</p>
             )}
+            <span>|</span>
             <p className="text-lg">
               Published on {new Date(content.date).toLocaleDateString()}
             </p>
+            <span>|</span>
+            <p className="text-lg">{content.country.countryName}</p>
           </motion.div>
 
           {content.cover && (
@@ -556,6 +578,39 @@ export default function ArticleDetail() {
                     icon: dimensionIcons.technology.icon,
                     color: dimensionIcons.technology.color,
                   },
+                  {
+                    key: "overall",
+                    data: {
+                      id: "overall",
+                      // sustainabilityScore: 75.6,
+                      isOverall: true,
+                      conclusion:
+                        "The sustainability analysis uses a Multi-Dimensional Scaling (MDS) approach adapted from the RAPFISH (Rapid Appraisal for Fisheries) method, which has been modified into RAPMANGROVE (Rapid Appraisal for Mangrove). This approach is developed using five evaluation categories: ecology, economy, social, institutional, and technology. The analysis is conducted through several stages: 1) reviewing the attributes within each sustainability dimension and defining these attributes through field observations and literature studies; 2) assigning scores based on the results of field observations and stakeholder opinions according to the defined attributes; 3) analyzing the assigned scores to determine the sustainability status of mangrove ecosystem management, as shown in Table 1 below. Based on the sustainability status analysis of the mangrove ecosystem area in Sidoarjo Regency, covering the dimensions of Ecology, Economy, Social, Institutional, and Technology, the average management of the mangrove ecosystem area in Sidoarjo shows a relatively sustainable result. This is evident from the RAP-MANGROVE score produced, where out of the five dimensions of sustainability status assessment, only the Social Dimension has a less sustainable value with a score of 47.23 (25 < SIR ≤ 50). Figure 11 below shows the sustainability status of the mangrove ecosystem in Sidoarjo Regency.",
+                      spiderGraph: "/kesimpulan.png",
+                      tableData: [
+                        {
+                          dimension: "Ecology",
+                          score: 85,
+                          category: "Very Good",
+                        },
+                        { dimension: "Social", score: 78, category: "Good" },
+                        { dimension: "Economy", score: 72, category: "Good" },
+                        {
+                          dimension: "Institutional",
+                          score: 68,
+                          category: "Fair",
+                        },
+                        {
+                          dimension: "Technology",
+                          score: 75,
+                          category: "Good",
+                        },
+                      ],
+                    },
+                    name: "Overall",
+                    icon: FileText,
+                    color: "#000000",
+                  },
                 ].map(({ key, data, name, icon, color }) => (
                   <DimensionCard
                     key={data.id}
@@ -569,6 +624,10 @@ export default function ArticleDetail() {
                       color: color,
                       icon: icon,
                       graphImages: data.graphImages,
+                      isOverall: data.isOverall,
+                      conclusion: data.conclusion,
+                      spiderGraph: data.spiderGraph,
+                      tableData: data.tableData,
                     }}
                     isActive={activeDimension === data.id}
                     onClick={() =>
@@ -669,7 +728,7 @@ export default function ArticleDetail() {
             {/* Gallery Tab */}
             <TabsContent value="gallery" className="mt-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {getAllImages().map((item) => (
+                {content.galleries?.map((item) => (
                   <div
                     key={item.id}
                     className="bg-white p-2 rounded-lg shadow-md cursor-pointer group"
@@ -683,7 +742,6 @@ export default function ArticleDetail() {
                         className="object-cover rounded-md transition-transform group-hover:scale-105"
                       />
                       <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-2">
-                        <p className="font-medium">{item.source}</p>
                         <p className="truncate">{item.alt}</p>
                       </div>
                     </div>

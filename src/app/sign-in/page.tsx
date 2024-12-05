@@ -147,7 +147,7 @@ export default function LoginPage() {
           </form>
 
           <div className="text-center space-y-2">
-            <p className="text-gray-600">You don{`&apos;`}t have an account?</p>
+            <p className="text-gray-600">You don&apos;t have an account?</p>
             <p className="text-[#446A46]">Please contact your Country Admin</p>
           </div>
         </div>
