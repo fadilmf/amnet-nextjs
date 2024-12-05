@@ -712,9 +712,10 @@ export default function ArticleDetail() {
                     key={map.id}
                     className="bg-white p-4 rounded-lg shadow-md"
                   >
-                    <img
-                      src={map.file}
+                    <Image
+                      src={map.filePath}
                       alt={map.alt || `Map ${index + 1}`}
+                      fill
                       className="w-full h-full object-cover rounded-md"
                     />
                     <p className="text-center mt-2">
@@ -759,9 +760,10 @@ export default function ArticleDetail() {
                     >
                       &times;
                     </button>
-                    <img
+                    <Image
                       src={selectedImage}
                       alt="Selected"
+                      fill
                       className="w-full h-auto max-h-[90vh] rounded-lg shadow-lg object-contain"
                     />
                   </div>
