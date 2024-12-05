@@ -707,20 +707,23 @@ export default function ArticleDetail() {
             {/* Maps Tab */}
             <TabsContent value="maps" className="mt-8">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {content.maps?.map((map, index) => (
+                {content.maps?.map((item) => (
                   <div
-                    key={map.id}
-                    className="bg-white p-4 rounded-lg shadow-md"
+                    key={item.id}
+                    className="bg-white p-2 rounded-lg shadow-md cursor-pointer group"
+                    onClick={() => openModal(item.file)}
                   >
-                    <Image
-                      src={map.filePath}
-                      alt={map.alt || `Map ${index + 1}`}
-                      fill
-                      className="w-full h-full object-cover rounded-md"
-                    />
-                    <p className="text-center mt-2">
-                      {map.alt || `Map ${index + 1}`}
-                    </p>
+                    <div className="aspect-square relative bg-gray-200 rounded-md overflow-hidden">
+                      <Image
+                        src={item.file}
+                        alt={item.alt}
+                        fill
+                        className="object-cover rounded-md transition-transform group-hover:scale-105"
+                      />
+                      <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-2">
+                        <p className="truncate">{item.alt}</p>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -749,27 +752,35 @@ export default function ArticleDetail() {
                   </div>
                 ))}
               </div>
+            </TabsContent>
 
-              {/* Modal Popup */}
-              {isModalOpen && selectedImage && (
-                <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-                  <div className="relative max-w-5xl w-full mx-4">
-                    <button
-                      className="absolute top-2 right-2 text-white text-2xl"
-                      onClick={closeModal}
-                    >
-                      &times;
-                    </button>
+            {/* Modal Popup */}
+            {isModalOpen && selectedImage && (
+              <div
+                className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+                onClick={closeModal}
+              >
+                <div
+                  className="relative max-w-5xl w-full mx-4"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    className="absolute top-2 right-2 text-white text-2xl z-10"
+                    onClick={closeModal}
+                  >
+                    &times;
+                  </button>
+                  <div className="relative w-full h-[80vh]">
                     <Image
                       src={selectedImage}
                       alt="Selected"
                       fill
-                      className="w-full h-auto max-h-[90vh] rounded-lg shadow-lg object-contain"
+                      className="rounded-lg shadow-lg object-contain"
                     />
                   </div>
                 </div>
-              )}
-            </TabsContent>
+              </div>
+            )}
 
             {/* Videos Tab */}
             <TabsContent value="videos" className="mt-8">
