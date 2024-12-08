@@ -1074,60 +1074,92 @@ export default function EditContentPage() {
                   <div className="mt-4">
                     <Label>Dimension Graphs (Optional)</Label>
                     <div className="space-y-4">
-                      {dimensionData.graphImages.map((image, index) => (
-                        <div key={index} className="space-y-2">
-                          <Label>Graph {index + 1}</Label>
-                          <div className="flex gap-2">
-                            <Input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => {
-                                if (e.target.files?.[0]) {
-                                  const newGraphImages = [
-                                    ...dimensionData.graphImages,
-                                  ];
-                                  newGraphImages[index] = {
-                                    ...newGraphImages[index],
-                                    file: e.target.files[0],
-                                  };
-                                  handleDimensionChange(
-                                    dimensionKey,
-                                    "graphImages",
-                                    newGraphImages
-                                  );
-                                }
-                              }}
-                            />
-                            <Input
-                              placeholder="Graph alt text"
-                              value={image.alt || ""}
-                              onChange={(e) => {
+                      <div className="space-y-2">
+                        <Label>Graph 1</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              if (e.target.files?.[0]) {
                                 const newGraphImages = [
                                   ...dimensionData.graphImages,
                                 ];
-                                newGraphImages[index] = {
-                                  ...newGraphImages[index],
-                                  alt: e.target.value,
+                                newGraphImages[0] = {
+                                  file: e.target.files[0],
+                                  alt: e.target.files[0].name,
                                 };
                                 handleDimensionChange(
                                   dimensionKey,
                                   "graphImages",
                                   newGraphImages
                                 );
-                              }}
-                            />
-                            {image.preview && (
-                              <Image
-                                src={image.preview}
-                                alt={image.alt}
-                                width={64}
-                                height={64}
-                                className="object-cover rounded"
-                              />
-                            )}
-                          </div>
+                              }
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            onClick={() => {
+                              const newGraphImages = [
+                                ...dimensionData.graphImages,
+                              ];
+                              newGraphImages[0] = { file: null, alt: "" };
+                              handleDimensionChange(
+                                dimensionKey,
+                                "graphImages",
+                                newGraphImages
+                              );
+                            }}
+                            variant="destructive"
+                            size="sm"
+                          >
+                            Remove
+                          </Button>
                         </div>
-                      ))}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Graph 2</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              if (e.target.files?.[0]) {
+                                const newGraphImages = [
+                                  ...dimensionData.graphImages,
+                                ];
+                                newGraphImages[1] = {
+                                  file: e.target.files[0],
+                                  alt: e.target.files[0].name,
+                                };
+                                handleDimensionChange(
+                                  dimensionKey,
+                                  "graphImages",
+                                  newGraphImages
+                                );
+                              }
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            onClick={() => {
+                              const newGraphImages = [
+                                ...dimensionData.graphImages,
+                              ];
+                              newGraphImages[1] = { file: null, alt: "" };
+                              handleDimensionChange(
+                                dimensionKey,
+                                "graphImages",
+                                newGraphImages
+                              );
+                            }}
+                            variant="destructive"
+                            size="sm"
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -1156,66 +1188,103 @@ export default function EditContentPage() {
                   }
                 />
               </div>
-              <div>
-                <Label htmlFor="overallScore">
-                  Overall Sustainability Score
-                </Label>
-                <Input
-                  id="overallScore"
-                  type="number"
-                  value={content.overallDimension.sustainabilityScore}
-                  onChange={(e) =>
-                    setContent((prev) => ({
-                      ...prev,
-                      overallDimension: {
-                        ...prev.overallDimension,
-                        sustainabilityScore: parseFloat(e.target.value),
-                      },
-                    }))
-                  }
-                />
-              </div>
               <div className="mt-4">
-                <Label>Overall Graphs</Label>
+                <Label>Overall Graphs (Optional)</Label>
                 <div className="space-y-4">
-                  {content.overallDimension.graphImages.map((image, index) => (
-                    <div key={index} className="space-y-2">
-                      <Label>Graph {index + 1}</Label>
-                      <div className="flex gap-2 items-center">
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            if (e.target.files?.[0]) {
-                              const newGraphImages = [
-                                ...content.overallDimension.graphImages,
-                              ];
-                              newGraphImages[index] = {
-                                file: e.target.files[0],
-                                alt: e.target.files[0].name,
-                              };
-                              setContent((prev) => ({
-                                ...prev,
-                                overallDimension: {
-                                  ...prev.overallDimension,
-                                  graphImages: newGraphImages,
-                                },
-                              }));
-                            }
-                          }}
-                        />
-                        {image.preview && (
-                          <Image
-                            src={image.preview}
-                            alt={image.alt}
-                            width={64}
-                            height={64}
-                            className="object-cover rounded"
-                          />
-                        )}
-                      </div>
+                  <div className="space-y-2">
+                    <Label>Spider Graph</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) {
+                            const newGraphImages = [
+                              ...content.overallDimension.graphImages,
+                            ];
+                            newGraphImages[0] = {
+                              file: e.target.files[0],
+                              alt: e.target.files[0].name,
+                            };
+                            setContent((prev) => ({
+                              ...prev,
+                              overallDimension: {
+                                ...prev.overallDimension,
+                                graphImages: newGraphImages,
+                              },
+                            }));
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          const newGraphImages = [
+                            ...content.overallDimension.graphImages,
+                          ];
+                          newGraphImages[0] = { file: null, alt: "" };
+                          setContent((prev) => ({
+                            ...prev,
+                            overallDimension: {
+                              ...prev.overallDimension,
+                              graphImages: newGraphImages,
+                            },
+                          }));
+                        }}
+                        variant="destructive"
+                        size="sm"
+                      >
+                        Remove
+                      </Button>
                     </div>
-                  ))}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Table Dimension Analysis</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) {
+                            const newGraphImages = [
+                              ...content.overallDimension.graphImages,
+                            ];
+                            newGraphImages[1] = {
+                              file: e.target.files[0],
+                              alt: e.target.files[0].name,
+                            };
+                            setContent((prev) => ({
+                              ...prev,
+                              overallDimension: {
+                                ...prev.overallDimension,
+                                graphImages: newGraphImages,
+                              },
+                            }));
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          const newGraphImages = [
+                            ...content.overallDimension.graphImages,
+                          ];
+                          newGraphImages[1] = { file: null, alt: "" };
+                          setContent((prev) => ({
+                            ...prev,
+                            overallDimension: {
+                              ...prev.overallDimension,
+                              graphImages: newGraphImages,
+                            },
+                          }));
+                        }}
+                        variant="destructive"
+                        size="sm"
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>

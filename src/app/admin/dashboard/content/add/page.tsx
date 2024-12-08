@@ -387,7 +387,7 @@ export default function AddContentPage() {
     }
   };
 
-  const handleSubmit = async (status: "DRAFT" | "PUBLISHED") => {
+  const handleSubmit = async (status: "DRAFT" | "REVIEW") => {
     // Debug log di awal fungsi
     console.log(
       "Checking existing conditions before submit:",

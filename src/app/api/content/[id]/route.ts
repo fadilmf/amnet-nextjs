@@ -292,6 +292,30 @@ export async function PUT(
     // Debug log processed data
     // console.log("Processed videoLinksData:", videoLinksData);
 
+    // Add handling for overallDimension
+    const overallDimensionData = JSON.parse(
+      formData.get("overallDimension") as string
+    );
+    const overallDimensionGraphImages = [];
+
+    // Process overall dimension graph images
+    for (let i = 0; i < 2; i++) {
+      const graphImage = formData.get(
+        `overallDimensionGraphImages[${i}]`
+      ) as File;
+      const graphAlt = formData.get(
+        `overallDimensionGraphImagesAlt[${i}]`
+      ) as string;
+
+      if (graphImage && graphImage instanceof File) {
+        const filepath = await saveFile(graphImage);
+        overallDimensionGraphImages.push({
+          filePath: filepath,
+          alt: graphAlt || "",
+        });
+      }
+    }
+
     // Update in database
     const updatedContent = await prisma.content.update({
       where: { id },
@@ -402,6 +426,29 @@ export async function PUT(
             // title: link.title || "",
           })),
         },
+
+        // Add overallDimension update
+        overallDimension: {
+          upsert: {
+            create: {
+              overall: overallDimensionData.overall || "",
+              sustainabilityScore:
+                overallDimensionData.sustainabilityScore || 0,
+              graphImages: {
+                create: overallDimensionGraphImages,
+              },
+            },
+            update: {
+              overall: overallDimensionData.overall || "",
+              sustainabilityScore:
+                overallDimensionData.sustainabilityScore || 0,
+              graphImages: {
+                deleteMany: {},
+                create: overallDimensionGraphImages,
+              },
+            },
+          },
+        },
       },
       include: {
         existingConditions: {
@@ -411,6 +458,11 @@ export async function PUT(
         galleries: true,
         supportingDocs: true,
         videoLinks: true,
+        overallDimension: {
+          include: {
+            graphImages: true,
+          },
+        },
       },
     });
 
