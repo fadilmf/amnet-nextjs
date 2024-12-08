@@ -63,8 +63,12 @@ interface Content {
     preview?: string;
     filePath?: string;
   }[];
-  maps: { file: File | null; alt: string; filePath: string }[];
-  gallery: { file: File | null; alt: string }[];
+  maps: {
+    file: File | null;
+    filePath: string;
+    preview?: string;
+  }[];
+  gallery: { file: File | null }[];
   videos: { url: string; preview?: boolean }[];
   status: "DRAFT" | "REVIEW";
   overallDimension: {
@@ -211,13 +215,12 @@ export default function EditContentPage() {
           maps:
             data.maps?.map((map: any) => ({
               file: null,
-              alt: map.alt,
-              filePath: map.file,
+              filePath: map.file || "",
+              preview: map.file || "",
             })) || [],
           gallery:
             data.galleries?.map((gallery: any) => ({
               file: null,
-              alt: gallery.alt,
               preview: gallery.image,
             })) || [],
           videos:
@@ -324,11 +327,7 @@ export default function EditContentPage() {
         if (map.file) {
           // New map
           formData.append(`maps[${index}][file]`, map.file);
-          formData.append(`maps[${index}][alt]`, map.alt);
-        } else if (map.filePath) {
-          // Existing map
-          formData.append(`maps[${index}][existingFile]`, map.filePath);
-          formData.append(`maps[${index}][alt]`, map.alt);
+          formData.append(`maps[${index}][filePath]`, map.filePath);
         }
       });
 
@@ -337,11 +336,9 @@ export default function EditContentPage() {
         if (image.file) {
           // New gallery image
           formData.append(`galleries[${index}][file]`, image.file);
-          formData.append(`galleries[${index}][alt]`, image.alt);
         } else if (image.preview) {
           // Existing gallery image
           formData.append(`galleries[${index}][existingFile]`, image.preview);
-          formData.append(`galleries[${index}][alt]`, image.alt);
         }
       });
 
@@ -461,14 +458,14 @@ export default function EditContentPage() {
   const addMap = () => {
     setContent((prev) => ({
       ...prev,
-      maps: [...prev.maps, { file: null, alt: "", filePath: "" }],
+      maps: [...prev.maps, { file: null, filePath: "" }],
     }));
   };
 
   const addGalleryImage = () => {
     setContent((prev) => ({
       ...prev,
-      gallery: [...prev.gallery, { file: null, alt: "" }],
+      gallery: [...prev.gallery, { file: null }],
     }));
   };
 
@@ -640,26 +637,12 @@ export default function EditContentPage() {
             ? {
                 ...map,
                 file,
-                filePath: map.filePath || "",
+                preview: URL.createObjectURL(file),
               }
             : map
         ),
       }));
     }
-  };
-
-  const handleMapAltChange = (index: number, value: string) => {
-    setContent((prev) => ({
-      ...prev,
-      maps: prev.maps.map((map, i) =>
-        i === index
-          ? {
-              ...map,
-              alt: value,
-            }
-          : map
-      ),
-    }));
   };
 
   const handleExistingConditionImageChange = (
@@ -1317,13 +1300,13 @@ export default function EditContentPage() {
               <div className="mt-4">
                 <Label>Current Maps</Label>
                 <div className="flex flex-wrap gap-4 mt-2">
-                  {content.maps.map(
-                    (map, index) =>
-                      map.filePath && (
-                        <div key={index} className="relative">
+                  {content.maps.map((map, index) => (
+                    <div key={index} className="relative">
+                      {(map.preview || map.filePath) && (
+                        <>
                           <Image
-                            src={map.filePath}
-                            alt={map.alt}
+                            src={map.preview || map.filePath}
+                            alt="Map"
                             width={64}
                             height={64}
                             className="object-cover rounded"
@@ -1337,42 +1320,32 @@ export default function EditContentPage() {
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
+                        </>
+                      )}
+                      {!map.preview && !map.filePath && (
+                        <div className="flex gap-2 mb-2 items-center">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleMapFileChange(index, e)}
+                          />
+                          <Button
+                            type="button"
+                            onClick={() => removeMap(index)}
+                            variant="destructive"
+                            size="sm"
+                          >
+                            Remove
+                          </Button>
                         </div>
-                      )
-                  )}
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {/* Input fields for new maps */}
-              {content.maps.map(
-                (map, index) =>
-                  !map.filePath && (
-                    <div key={index} className="flex gap-2 mb-2 items-center">
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleMapFileChange(index, e)}
-                      />
-                      <Input
-                        placeholder="Map Alt Text"
-                        value={map.alt}
-                        onChange={(e) =>
-                          handleMapAltChange(index, e.target.value)
-                        }
-                      />
-                      <Button
-                        type="button"
-                        onClick={() => removeMap(index)}
-                        variant="destructive"
-                        size="sm"
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  )
-              )}
-
-              <Button type="button" onClick={addMap}>
+              <Button type="button" onClick={addMap} className="mt-4">
+                <PlusCircle className="h-4 w-4 mr-2" />
                 Add Map
               </Button>
             </CardContent>
@@ -1393,7 +1366,7 @@ export default function EditContentPage() {
                         <div key={index} className="relative">
                           <Image
                             src={image.preview}
-                            alt={image.alt}
+                            alt="Gallery image"
                             width={64}
                             height={64}
                             className="object-cover rounded"
@@ -1438,20 +1411,6 @@ export default function EditContentPage() {
                             }));
                           }
                         }}
-                      />
-                      <Input
-                        placeholder="Image Alt Text"
-                        value={image.alt}
-                        onChange={(e) =>
-                          setContent((prev) => ({
-                            ...prev,
-                            gallery: prev.gallery.map((img, i) =>
-                              i === index
-                                ? { ...img, alt: e.target.value }
-                                : img
-                            ),
-                          }))
-                        }
                       />
                       <Button
                         type="button"

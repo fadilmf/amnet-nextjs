@@ -313,8 +313,8 @@ model TechnologyDimension {
 
 model OverallDimension {
   id                  String  @id @default(cuid())
-  overall             String
-  sustainabilityScore Float
+  overall             String?
+  sustainabilityScore Float?
   graphImages         Image[]
   content             Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
   contentId           Int     @unique
