@@ -158,10 +158,6 @@ const DimensionCard = ({
           {dimension.isOverall ? (
             <>
               <div className="flex justify-between items-center gap-8">
-                {/* <CircularScore
-                  score={dimension.score}
-                  color={dimension.color}
-                /> */}
                 <Image
                   src={dimension.spiderGraph || ""}
                   alt="Sustainability Dimensions Spider Graph"
@@ -180,20 +176,18 @@ const DimensionCard = ({
                 </p>
               </div>
 
-              {dimension.tableImage && (
-                <div>
-                  <h3 className="text-xl font-semibold mb-3 text-gray-800">
-                    Dimension Analysis
-                  </h3>
-                  <Image
-                    src={dimension.tableImage || ""}
-                    alt="Dimension Analysis Table"
-                    width={500}
-                    height={300}
-                    className="w-full max-w-md mx-auto"
-                  />
-                </div>
-              )}
+              <div>
+                <h3 className="text-xl font-semibold mb-3 text-gray-800">
+                  Dimension Analysis
+                </h3>
+                <Image
+                  src={dimension?.tableImage || ""}
+                  alt="Dimension Analysis Table"
+                  width={800}
+                  height={480}
+                  className="w-full max-w-2xl mx-auto"
+                />
+              </div>
             </>
           ) : (
             <>
@@ -585,7 +579,6 @@ export default function ArticleDetail() {
                     key: "overall",
                     data: {
                       id: "overall",
-                      // sustainabilityScore: 75.6,
                       isOverall: true,
                       conclusion: content.overallDimension?.overall,
                       spiderGraph:
@@ -632,6 +625,7 @@ export default function ArticleDetail() {
                       isOverall: data.isOverall,
                       conclusion: data.conclusion,
                       spiderGraph: data.spiderGraph,
+                      tableImage: data.tableImage,
                       tableData: data.tableData,
                     }}
                     isActive={activeDimension === data.id}
