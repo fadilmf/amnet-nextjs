@@ -587,11 +587,11 @@ export default function ArticleDetail() {
                       id: "overall",
                       // sustainabilityScore: 75.6,
                       isOverall: true,
-                      conclusion: content.overallDimension.overall,
+                      conclusion: content.overallDimension?.overall,
                       spiderGraph:
-                        content.overallDimension.graphImages?.[0]?.file,
+                        content.overallDimension?.graphImages?.[0]?.file,
                       tableImage:
-                        content.overallDimension.graphImages?.[1]?.file,
+                        content.overallDimension?.graphImages?.[1]?.file,
                       tableData: [
                         {
                           dimension: "Ecology",

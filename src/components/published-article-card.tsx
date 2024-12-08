@@ -18,6 +18,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface PublishedArticleCardProps {
   id: string;
@@ -79,11 +80,7 @@ export function PublishedArticleCard({
   return (
     <Card className="overflow-hidden cursor-pointer">
       <div className="relative h-48">
-        <img
-          src={imageUrl}
-          alt={title}
-          className="w-full h-full object-cover"
-        />
+        <Image src={imageUrl} alt={title} fill className="object-cover" />
         <Badge className="absolute top-2 right-2 bg-green-500">Published</Badge>
       </div>
       <CardContent className="p-4">

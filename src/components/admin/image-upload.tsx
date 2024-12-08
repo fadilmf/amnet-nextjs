@@ -5,6 +5,7 @@ import {
   DropzoneInputProps,
 } from "react-dropzone";
 import imageCompression from "browser-image-compression";
+import Image from "next/image";
 
 function ImageUpload() {
   const [images, setImages] = useState<string[]>([]);
@@ -64,10 +65,12 @@ function ImageUpload() {
         <div key={index} className="mt-4">
           {image ? (
             <div className="relative group">
-              <img
+              <Image
                 src={image}
                 alt={`Uploaded ${index}`}
                 className="max-w-full h-auto rounded shadow-lg"
+                width={1920}
+                height={1080}
               />
               <button
                 onClick={() => removeImage(index)}

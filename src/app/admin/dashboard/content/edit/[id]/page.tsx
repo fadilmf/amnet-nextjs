@@ -17,6 +17,7 @@ import {
   FileIcon,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import Image from "next/image";
 
 interface ExistingCondition {
   title: string;
@@ -796,10 +797,13 @@ export default function EditContentPage() {
                   className="mt-1"
                 />
                 {content.coverPreview && (
-                  <img
+                  <Image
                     src={content.coverPreview}
                     alt="Cover preview"
-                    className="mt-2 max-w-xs rounded"
+                    width={320}
+                    height={240}
+                    className="mt-2 rounded"
+                    style={{ objectFit: "cover" }}
                   />
                 )}
               </div>
@@ -858,10 +862,12 @@ export default function EditContentPage() {
                         (image, imgIndex) =>
                           image.preview && (
                             <div key={imgIndex} className="relative">
-                              <img
+                              <Image
                                 src={image.preview}
                                 alt={image.alt}
-                                className="w-16 h-16 object-cover rounded"
+                                width={64}
+                                height={64}
+                                className="object-cover rounded"
                               />
                               <Button
                                 type="button"
@@ -1068,10 +1074,12 @@ export default function EditContentPage() {
                           placeholder="Image alt text"
                         />
                         {image.preview && (
-                          <img
+                          <Image
                             src={image.preview}
                             alt={image.alt}
-                            className="w-16 h-16 object-cover"
+                            width={64}
+                            height={64}
+                            className="object-cover rounded"
                           />
                         )}
                       </div>
@@ -1124,10 +1132,12 @@ export default function EditContentPage() {
                               }}
                             />
                             {image.preview && (
-                              <img
+                              <Image
                                 src={image.preview}
                                 alt={image.alt}
-                                className="w-16 h-16 object-cover rounded"
+                                width={64}
+                                height={64}
+                                className="object-cover rounded"
                               />
                             )}
                           </div>
@@ -1210,10 +1220,12 @@ export default function EditContentPage() {
                           }}
                         />
                         {image.preview && (
-                          <img
+                          <Image
                             src={image.preview}
                             alt={image.alt}
-                            className="w-16 h-16 object-cover rounded"
+                            width={64}
+                            height={64}
+                            className="object-cover rounded"
                           />
                         )}
                       </div>
@@ -1309,10 +1321,12 @@ export default function EditContentPage() {
                     (map, index) =>
                       map.filePath && (
                         <div key={index} className="relative">
-                          <img
+                          <Image
                             src={map.filePath}
                             alt={map.alt}
-                            className="w-16 h-16 object-cover rounded"
+                            width={64}
+                            height={64}
+                            className="object-cover rounded"
                           />
                           <Button
                             type="button"
@@ -1377,10 +1391,12 @@ export default function EditContentPage() {
                     (image, index) =>
                       image.preview && (
                         <div key={index} className="relative">
-                          <img
+                          <Image
                             src={image.preview}
                             alt={image.alt}
-                            className="w-16 h-16 object-cover rounded"
+                            width={64}
+                            height={64}
+                            className="object-cover rounded"
                           />
                           <Button
                             type="button"

@@ -3,7 +3,7 @@
 import { notFound, useParams } from "next/navigation";
 import Image from "next/image";
 import { Frown } from "lucide-react";
-import CountryArticlesList from "@/components/country-articles-list";
+import { PublicArticleCard } from "@/components/public-article-card";
 import { useEffect, useState } from "react";
 
 type Country =
@@ -150,7 +150,20 @@ export default function CountryContentPage() {
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900" />
         </div>
       ) : contents.length > 0 ? (
-        <CountryArticlesList articles={contents} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {contents.map((content) => (
+            <PublicArticleCard
+              key={content.id}
+              id={content.id}
+              title={content.title}
+              summary={content.summary}
+              author={content.author}
+              date={content.date}
+              keywords={content.keywords}
+              imageUrl={content.cover}
+            />
+          ))}
+        </div>
       ) : (
         <div className="h-[800px] flex flex-col items-center justify-center text-gray-500">
           <Frown size={200} className="mb-4" />
