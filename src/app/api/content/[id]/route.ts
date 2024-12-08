@@ -316,10 +316,92 @@ export async function PUT(
       }
     }
 
+    // Process dimensions data
+    const dimensions = [
+      "ecology",
+      "social",
+      "economy",
+      "institutional",
+      "technology",
+    ];
+
+    const dimensionUpdates = {};
+
+    for (const dim of dimensions) {
+      const dimensionData = JSON.parse(
+        formData.get(`${dim}Dimension`) as string
+      );
+      const graphImages = [];
+
+      // Process graph images for each dimension
+      for (let i = 0; i < 2; i++) {
+        const graphImage = formData.get(
+          `${dim}DimensionGraphImages[${i}]`
+        ) as File;
+        const graphAlt = formData.get(
+          `${dim}DimensionGraphImagesAlt[${i}]`
+        ) as string;
+        const existingGraphImage = formData.get(
+          `${dim}DimensionExistingGraphImages[${i}]`
+        ) as string;
+
+        if (graphImage && graphImage instanceof File) {
+          // Handle new uploaded image
+          const filepath = await saveFile(graphImage);
+          graphImages.push({
+            filePath: filepath,
+            alt: graphAlt || "",
+          });
+        } else if (existingGraphImage) {
+          // Handle existing image
+          graphImages.push({
+            filePath: existingGraphImage,
+            alt: graphAlt || "",
+          });
+        }
+      }
+
+      // Create dimension update object
+      dimensionUpdates[`${dim}Dimension`] = {
+        upsert: {
+          create: {
+            title: dim.toUpperCase(),
+            inputMethod: dimensionData.inputMethod || "",
+            significantAspects: dimensionData.significantAspects || [],
+            sustainabilityScore: dimensionData.sustainabilityScore || 0,
+            graphImages: {
+              create: graphImages,
+            },
+          },
+          update: {
+            title: dim.toUpperCase(),
+            inputMethod: dimensionData.inputMethod || "",
+            significantAspects: dimensionData.significantAspects || [],
+            sustainabilityScore: dimensionData.sustainabilityScore || 0,
+            graphImages: {
+              deleteMany: {},
+              create: graphImages,
+            },
+          },
+        },
+      };
+    }
+
     // Update in database
     const updatedContent = await prisma.content.update({
       where: { id },
       data: {
+        title: formData.get("title") as string,
+        summary: formData.get("summary") as string,
+        author: formData.get("author") as string,
+        date: formData.get("date")
+          ? new Date(formData.get("date") as string)
+          : null,
+        keywords: JSON.parse(formData.get("keywords") as string),
+        status: formData.get("status") as string,
+        userId: formData.get("userId") as string,
+        countryId: parseInt(formData.get("countryId") as string),
+        ...dimensionUpdates,
         existingConditions: {
           deleteMany: {},
           create: await Promise.all(
@@ -453,6 +535,21 @@ export async function PUT(
       include: {
         existingConditions: {
           include: { images: true },
+        },
+        ecologyDimension: {
+          include: { graphImages: true },
+        },
+        socialDimension: {
+          include: { graphImages: true },
+        },
+        economyDimension: {
+          include: { graphImages: true },
+        },
+        institutionalDimension: {
+          include: { graphImages: true },
+        },
+        technologyDimension: {
+          include: { graphImages: true },
         },
         maps: true,
         galleries: true,
