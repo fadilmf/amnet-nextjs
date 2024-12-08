@@ -7,13 +7,16 @@ import BestPracticesDimensions from "@/components/best-practice-dimension";
 import { NewsCard } from "@/components/news/news-card";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { ArticleCard } from "@/components/article-card";
+import { PublicArticleCard } from "@/components/public-article-card";
 
 interface Article {
   id: number;
   title: string;
   summary: string;
-  cover: string | null; // Base64 string for cover image or null
+  cover: string | null;
+  author: string;
+  date: string;
+  keywords: string[];
 }
 
 export default function Home() {
@@ -183,15 +186,15 @@ export default function Home() {
           ) : (
             <div className="grid md:grid-cols-3 gap-6 mt-8">
               {articles.map((article) => (
-                <ArticleCard
+                <PublicArticleCard
                   key={article.id}
-                  id={article.id}
+                  id={String(article.id)}
                   title={article.title}
                   summary={article.summary}
                   imageUrl={article.cover || ""}
                   author={article.author}
                   date={article.date}
-                  keywords={article.keywords}
+                  keywords={article.keywords || []}
                 />
               ))}
             </div>

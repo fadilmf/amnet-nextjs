@@ -31,6 +31,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   token: string | null;
+  isLoading: boolean;
   login: (token: string, userData: User) => void;
   logout: () => void;
 }
@@ -40,6 +41,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   const login = (newToken: string, userData: User) => {
@@ -80,6 +82,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error("Error fetching user data:", error);
         logout();
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -88,11 +92,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (storedToken && !user) {
       setToken(storedToken);
       fetchUserData(storedToken);
+    } else {
+      setIsLoading(false);
     }
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

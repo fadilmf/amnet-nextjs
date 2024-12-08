@@ -2,6 +2,52 @@ import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
+// import sharp from "sharp";
+import sharp from "sharp";
+
+// Helper function untuk kompresi gambar
+async function compressImage(buffer: Buffer, quality: number = 80) {
+  try {
+    // Deteksi format gambar
+    const metadata = await sharp(buffer).metadata();
+
+    // Jika file bukan gambar atau format tidak didukung
+    if (!metadata.format) {
+      // Return buffer asli jika bukan gambar
+      return buffer;
+    }
+
+    // Proses kompresi berdasarkan format
+    let processedImage = sharp(buffer);
+
+    switch (metadata.format.toLowerCase()) {
+      case "jpeg":
+      case "jpg":
+        processedImage = processedImage.jpeg({ quality });
+        break;
+      case "png":
+        processedImage = processedImage.png({ quality });
+        break;
+      case "webp":
+        processedImage = processedImage.webp({ quality });
+        break;
+      default:
+        // Format lain, kembalikan buffer asli
+        return buffer;
+    }
+
+    return processedImage
+      .resize(1920, undefined, {
+        withoutEnlargement: true,
+        fit: "inside",
+      })
+      .toBuffer();
+  } catch (error) {
+    console.error("Error compressing image:", error);
+    // Jika terjadi error, kembalikan buffer asli
+    return buffer;
+  }
+}
 
 export async function POST(request: Request) {
   try {
@@ -42,7 +88,8 @@ export async function POST(request: Request) {
     if (cover && cover instanceof File) {
       const coverBuffer = Buffer.from(await cover.arrayBuffer());
       const coverFilename = `${Date.now()}-${cover.name}`;
-      await writeFile(path.join(uploadDir, coverFilename), coverBuffer);
+      const compressedBuffer = await compressImage(coverBuffer);
+      await writeFile(path.join(uploadDir, coverFilename), compressedBuffer);
       coverPath = `/uploads/${coverFilename}`;
     }
 
@@ -66,7 +113,8 @@ export async function POST(request: Request) {
         // Save image file
         const imageBuffer = Buffer.from(await image.arrayBuffer());
         const filename = `${Date.now()}-${image.name}`;
-        await writeFile(path.join(uploadDir, filename), imageBuffer);
+        const compressedBuffer = await compressImage(imageBuffer);
+        await writeFile(path.join(uploadDir, filename), compressedBuffer);
 
         images.push({
           filePath: `/uploads/${filename}`,
@@ -117,7 +165,8 @@ export async function POST(request: Request) {
         if (graphImage && graphImage instanceof File) {
           const buffer = Buffer.from(await graphImage.arrayBuffer());
           const filename = `${Date.now()}-${graphImage.name}`;
-          await writeFile(path.join(uploadDir, filename), buffer);
+          const compressedBuffer = await compressImage(buffer);
+          await writeFile(path.join(uploadDir, filename), compressedBuffer);
 
           graphImages.push({
             filePath: `/uploads/${filename}`,
@@ -168,7 +217,8 @@ export async function POST(request: Request) {
 
       const buffer = Buffer.from(await doc.arrayBuffer());
       const filename = `${Date.now()}-${doc.name}`;
-      await writeFile(path.join(uploadDir, filename), buffer);
+      const compressedBuffer = await compressImage(buffer);
+      await writeFile(path.join(uploadDir, filename), compressedBuffer);
 
       supportingDocPaths.push({
         filePath: `/uploads/${filename}`,
@@ -201,7 +251,8 @@ export async function POST(request: Request) {
 
       const buffer = Buffer.from(await gallery.arrayBuffer());
       const filename = `${Date.now()}-${gallery.name}`;
-      await writeFile(path.join(uploadDir, filename), buffer);
+      const compressedBuffer = await compressImage(buffer);
+      await writeFile(path.join(uploadDir, filename), compressedBuffer);
 
       galleryPaths.push({
         imagePath: `/uploads/${filename}`,
@@ -239,7 +290,8 @@ export async function POST(request: Request) {
 
       const buffer = Buffer.from(await map.arrayBuffer());
       const filename = `${Date.now()}-${map.name}`;
-      await writeFile(path.join(uploadDir, filename), buffer);
+      const compressedBuffer = await compressImage(buffer);
+      await writeFile(path.join(uploadDir, filename), compressedBuffer);
 
       // Menambahkan path dan alt ke mapPaths
       mapPaths.push({
@@ -255,6 +307,34 @@ export async function POST(request: Request) {
       (formData.get("videoLinks") as string) || "[]"
     );
     const keywords = JSON.parse((formData.get("keywords") as string) || "[]");
+
+    // Handle overall dimension
+    const overallDimensionData = JSON.parse(
+      formData.get("overallDimension") as string
+    );
+    const overallDimensionGraphImages = [];
+
+    // Process overall dimension graph images
+    for (let i = 0; i < 2; i++) {
+      const graphImage = formData.get(
+        `overallDimensionGraphImages[${i}]`
+      ) as File;
+      const graphAlt = formData.get(
+        `overallDimensionGraphImagesAlt[${i}]`
+      ) as string;
+
+      if (graphImage && graphImage instanceof File) {
+        const buffer = Buffer.from(await graphImage.arrayBuffer());
+        const filename = `${Date.now()}-${graphImage.name}`;
+        const compressedBuffer = await compressImage(buffer);
+        await writeFile(path.join(uploadDir, filename), compressedBuffer);
+
+        overallDimensionGraphImages.push({
+          filePath: `/uploads/${filename}`,
+          alt: graphAlt || "",
+        });
+      }
+    }
 
     console.log("ini obj yang mau dibikin: ", {
       title,
@@ -277,6 +357,18 @@ export async function POST(request: Request) {
         url: link.url,
         title: link.title,
       })),
+      overallDimension: {
+        create: {
+          overall: overallDimensionData.overall || "",
+          sustainabilityScore: overallDimensionData.sustainabilityScore || 0,
+          graphImages: {
+            create: overallDimensionGraphImages.map((image) => ({
+              filePath: image.filePath,
+              alt: image.alt,
+            })),
+          },
+        },
+      },
     });
 
     // Create content in database with file paths
@@ -330,6 +422,18 @@ export async function POST(request: Request) {
           create: videoLinks.map((link: any) => ({
             url: link.url,
           })),
+        },
+        overallDimension: {
+          create: {
+            overall: overallDimensionData.overall || "",
+            sustainabilityScore: overallDimensionData.sustainabilityScore || 0,
+            graphImages: {
+              create: overallDimensionGraphImages.map((image) => ({
+                filePath: image.filePath,
+                alt: image.alt,
+              })),
+            },
+          },
         },
       },
     });
@@ -411,6 +515,11 @@ export async function GET(request: Request) {
         maps: true,
         galleries: true,
         videoLinks: true,
+        overallDimension: {
+          include: {
+            graphImages: true,
+          },
+        },
       },
     });
 

@@ -14,13 +14,18 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
+  FileIcon,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface ExistingCondition {
   title: string;
   description: string;
-  images: { file: File | null; alt: string }[];
+  images: {
+    file: File | null;
+    alt: string;
+    filePath?: string;
+  }[];
 }
 
 interface SustainabilityDimension {
@@ -30,7 +35,6 @@ interface SustainabilityDimension {
     | "ECONOMY"
     | "INSTITUTIONAL"
     | "TECHNOLOGY";
-  title: string;
   inputMethod: string;
   significantAspects: string[];
   sustainabilityScore: number;
@@ -52,18 +56,27 @@ interface Content {
   economyDimension: SustainabilityDimension;
   institutionalDimension: SustainabilityDimension;
   technologyDimension: SustainabilityDimension;
-  supportingDocuments: { name: string; file: File | null }[];
-  maps: { file: File | null; alt: string }[];
+  supportingDocs: {
+    file: File | null;
+    name: string;
+    preview?: string;
+    filePath?: string;
+  }[];
+  maps: { file: File | null; alt: string; filePath: string }[];
   gallery: { file: File | null; alt: string }[];
-  videos: { url: string; title: string }[];
-  status: "DRAFT" | "PUBLISHED";
+  videos: { url: string; preview?: boolean }[];
+  status: "DRAFT" | "REVIEW";
+  overallDimension: {
+    overall: string;
+    sustainabilityScore: number;
+    graphImages: { file: File | null; alt: string; preview?: string }[];
+  };
 }
 
 const initialDimensionState = (
   type: SustainabilityDimension["dimensionType"]
 ): SustainabilityDimension => ({
   dimensionType: type,
-  title: "",
   inputMethod: "",
   significantAspects: ["", "", ""],
   sustainabilityScore: 0,
@@ -84,11 +97,16 @@ const initialContent: Content = {
   economyDimension: initialDimensionState("ECONOMY"),
   institutionalDimension: initialDimensionState("INSTITUTIONAL"),
   technologyDimension: initialDimensionState("TECHNOLOGY"),
-  supportingDocuments: [],
+  supportingDocs: [],
   maps: [],
   gallery: [],
   videos: [],
   status: "DRAFT",
+  overallDimension: {
+    overall: "",
+    sustainabilityScore: 0,
+    graphImages: [],
+  },
 };
 
 export default function EditContentPage() {
@@ -128,7 +146,8 @@ export default function EditContentPage() {
                 condition.images?.map((img: any) => ({
                   file: null,
                   alt: img.alt || "",
-                  preview: img.url || "",
+                  preview: img.file || "",
+                  filePath: img.file || "",
                 })) || [],
             })) || [],
           ecologyDimension: {
@@ -181,17 +200,18 @@ export default function EditContentPage() {
                 preview: img.file,
               })) || [],
           },
-          supportingDocuments:
+          supportingDocs:
             data.supportingDocs?.map((doc: any) => ({
-              name: doc.name,
               file: null,
-              preview: doc.file,
+              name: doc.name || "",
+              preview: doc.filePath || "",
+              filePath: doc.filePath || "",
             })) || [],
           maps:
             data.maps?.map((map: any) => ({
               file: null,
               alt: map.alt,
-              preview: map.file,
+              filePath: map.file,
             })) || [],
           gallery:
             data.galleries?.map((gallery: any) => ({
@@ -199,8 +219,23 @@ export default function EditContentPage() {
               alt: gallery.alt,
               preview: gallery.image,
             })) || [],
-          videos: data.videoLinks || [],
+          videos:
+            data.videoLinks?.map((video: any) => ({
+              url: video.url,
+              preview: true,
+            })) || [],
           status: data.status || "DRAFT",
+          overallDimension: {
+            overall: data.overallDimension?.overall || "",
+            sustainabilityScore:
+              data.overallDimension?.sustainabilityScore || 0,
+            graphImages:
+              data.overallDimension?.graphImages?.map((img: any) => ({
+                file: null,
+                alt: img.alt,
+                preview: img.file,
+              })) || [],
+          },
         });
       } catch (error) {
         console.error("Error fetching content:", error);
@@ -244,14 +279,14 @@ export default function EditContentPage() {
     }
   };
 
-  const handleSubmit = async (status: "DRAFT" | "PUBLISHED") => {
+  const handleSubmit = async (status: "DRAFT" | "REVIEW") => {
     setIsSubmitting(true);
     setSubmitResponse(null);
 
     try {
       const formData = new FormData();
 
-      // Append basic fields
+      // Basic fields
       formData.append("title", content.title);
       formData.append("summary", content.snippet);
       formData.append("author", content.author);
@@ -261,12 +296,7 @@ export default function EditContentPage() {
       formData.append("userId", user?.id || "");
       formData.append("countryId", user?.countryId.toString() || "");
 
-      // Append cover if it's a new File
-      if (content.cover instanceof File) {
-        formData.append("cover", content.cover);
-      }
-
-      // Append existing conditions
+      // Handle existing conditions dengan format yang sama seperti AddContentPage
       content.existingConditions.forEach((condition, index) => {
         formData.append(`existingConditions[${index}][title]`, condition.title);
         formData.append(
@@ -274,50 +304,100 @@ export default function EditContentPage() {
           condition.description
         );
 
-        condition.images.forEach((image, imgIndex) => {
+        condition.images.forEach((image) => {
           if (image.file) {
+            // New image
+            formData.append(`existingConditions[${index}][images]`, image.file);
+          } else if (image.filePath) {
+            // Existing image
             formData.append(
-              `existingConditions[${index}][images][${imgIndex}]`,
-              image.file
-            );
-            formData.append(
-              `existingConditions[${index}][imagesAlt][${imgIndex}]`,
-              image.alt
+              `existingConditions[${index}][existingImages]`,
+              image.filePath
             );
           }
         });
       });
 
-      // Append dimensions data
-      const dimensions: (keyof Content)[] = [
-        "ecologyDimension",
-        "socialDimension",
-        "economyDimension",
-        "institutionalDimension",
-        "technologyDimension",
-      ];
-
-      dimensions.forEach((dim) => {
-        const dimension = content[dim] as SustainabilityDimension;
-        formData.append(
-          dim,
-          JSON.stringify({
-            title: dimension.title,
-            inputMethod: dimension.inputMethod,
-            significantAspects: dimension.significantAspects,
-            sustainabilityScore: dimension.sustainabilityScore,
-          })
-        );
-
-        dimension.graphImages.forEach((image, index) => {
-          if (image.file) {
-            formData.append(`${dim}GraphImages[${index}]`, image.file);
-            formData.append(`${dim}GraphImagesAlt[${index}]`, image.alt);
-          }
-        });
+      // Handle maps
+      content.maps.forEach((map, index) => {
+        if (map.file) {
+          // New map
+          formData.append(`maps[${index}][file]`, map.file);
+          formData.append(`maps[${index}][alt]`, map.alt);
+        } else if (map.filePath) {
+          // Existing map
+          formData.append(`maps[${index}][existingFile]`, map.filePath);
+          formData.append(`maps[${index}][alt]`, map.alt);
+        }
       });
 
-      // ... append other data (supporting docs, maps, gallery, videos) ...
+      // Handle gallery images
+      content.gallery.forEach((image, index) => {
+        if (image.file) {
+          // New gallery image
+          formData.append(`galleries[${index}][file]`, image.file);
+          formData.append(`galleries[${index}][alt]`, image.alt);
+        } else if (image.preview) {
+          // Existing gallery image
+          formData.append(`galleries[${index}][existingFile]`, image.preview);
+          formData.append(`galleries[${index}][alt]`, image.alt);
+        }
+      });
+
+      // Handle supporting documents
+      content.supportingDocs.forEach((doc, index) => {
+        if (doc.file) {
+          // New document
+          formData.append(`supportingDocs[${index}][file]`, doc.file);
+          formData.append(`supportingDocs[${index}][name]`, doc.name);
+        } else if (doc.preview) {
+          // Existing document
+          formData.append(
+            `supportingDocs[${index}][existingFile]`,
+            doc.preview
+          );
+          formData.append(`supportingDocs[${index}][name]`, doc.name);
+        }
+      });
+
+      // Update video links - send both existing and new videos
+      content.videos.forEach((video, index) => {
+        formData.append(`videoLinks[${index}][url]`, video.url);
+      });
+
+      // Add overall dimension data
+      formData.append(
+        "overallDimension",
+        JSON.stringify({
+          overall: content.overallDimension.overall,
+          sustainabilityScore: content.overallDimension.sustainabilityScore,
+        })
+      );
+
+      // Add overall dimension graph images
+      content.overallDimension.graphImages.forEach((image, index) => {
+        if (image.file) {
+          formData.append(`overallDimensionGraphImages[${index}]`, image.file);
+          formData.append(
+            `overallDimensionGraphImagesAlt[${index}]`,
+            image.alt
+          );
+        } else if (image.preview) {
+          formData.append(
+            `overallDimensionExistingGraphImages[${index}]`,
+            image.preview
+          );
+          formData.append(
+            `overallDimensionGraphImagesAlt[${index}]`,
+            image.alt
+          );
+        }
+      });
+
+      console.log("Submitting form data:");
+      for (let [key, value] of formData.entries()) {
+        console.log(key, value);
+      }
 
       const response = await axios.put(`/api/content/${params.id}`, formData, {
         headers: {
@@ -328,11 +408,9 @@ export default function EditContentPage() {
       setSubmitResponse({
         success: true,
         message: `Content successfully ${
-          status === "DRAFT" ? "saved as draft" : "published"
+          status === "DRAFT" ? "saved as draft" : "sent to review"
         }!`,
       });
-
-      router.push("/admin/dashboard/content");
     } catch (error) {
       console.error("Error updating content:", error);
       setSubmitResponse({
@@ -375,17 +453,14 @@ export default function EditContentPage() {
   const addSupportingDocument = () => {
     setContent((prev) => ({
       ...prev,
-      supportingDocuments: [
-        ...prev.supportingDocuments,
-        { name: "", file: null },
-      ],
+      supportingDocs: [...prev.supportingDocs, { file: null, name: "" }],
     }));
   };
 
   const addMap = () => {
     setContent((prev) => ({
       ...prev,
-      maps: [...prev.maps, { file: null, alt: "" }],
+      maps: [...prev.maps, { file: null, alt: "", filePath: "" }],
     }));
   };
 
@@ -399,7 +474,7 @@ export default function EditContentPage() {
   const addVideo = () => {
     setContent((prev) => ({
       ...prev,
-      videos: [...prev.videos, { url: "", title: "" }],
+      videos: [...prev.videos, { url: "" }],
     }));
   };
 
@@ -431,9 +506,7 @@ export default function EditContentPage() {
   const removeSupportingDocument = (index: number) => {
     setContent((prev) => ({
       ...prev,
-      supportingDocuments: prev.supportingDocuments.filter(
-        (_, i) => i !== index
-      ),
+      supportingDocs: prev.supportingDocs.filter((_, i) => i !== index),
     }));
   };
 
@@ -489,6 +562,135 @@ export default function EditContentPage() {
     }));
   };
 
+  // Update handler untuk existing condition fields
+  const handleExistingConditionChange = (
+    index: number,
+    field: "title" | "description",
+    value: string
+  ) => {
+    setContent((prev) => ({
+      ...prev,
+      existingConditions: prev.existingConditions.map((condition, i) =>
+        i === index
+          ? {
+              ...condition,
+              [field]: value,
+            }
+          : condition
+      ),
+    }));
+  };
+
+  // Handler functions
+  const handleSupportingDocChange = (
+    index: number,
+    field: "file" | "name",
+    value: File | string
+  ) => {
+    setContent((prev) => ({
+      ...prev,
+      supportingDocs: prev.supportingDocs.map((doc, i) => {
+        if (i === index) {
+          if (field === "file") {
+            // If changing file, create preview URL
+            return {
+              ...doc,
+              file: value as File,
+              name: (value as File).name, // Auto-set name from file
+            };
+          }
+          // If changing name
+          return { ...doc, name: value as string };
+        }
+        return doc;
+      }),
+    }));
+  };
+
+  // Tambahkan cleanup effect
+  useEffect(() => {
+    return () => {
+      // Cleanup all preview URLs when component unmounts
+      if (content?.supportingDocs) {
+        content.supportingDocs.forEach((doc) => {
+          if (doc?.preview && !doc.filePath) {
+            try {
+              URL.revokeObjectURL(doc.preview);
+            } catch (error) {
+              console.error("Error revoking URL:", error);
+            }
+          }
+        });
+      }
+    };
+  }, []);
+
+  // Handler untuk maps
+  const handleMapFileChange = (
+    index: number,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (e.target.files?.[0]) {
+      const file = e.target.files[0];
+      setContent((prev) => ({
+        ...prev,
+        maps: prev.maps.map((map, i) =>
+          i === index
+            ? {
+                ...map,
+                file,
+                filePath: map.filePath || "",
+              }
+            : map
+        ),
+      }));
+    }
+  };
+
+  const handleMapAltChange = (index: number, value: string) => {
+    setContent((prev) => ({
+      ...prev,
+      maps: prev.maps.map((map, i) =>
+        i === index
+          ? {
+              ...map,
+              alt: value,
+            }
+          : map
+      ),
+    }));
+  };
+
+  const handleExistingConditionImageChange = (
+    conditionIndex: number,
+    imageIndex: number,
+    field: "file" | "alt",
+    value: File | string
+  ) => {
+    setContent((prev) => ({
+      ...prev,
+      existingConditions: prev.existingConditions.map((condition, i) =>
+        i === conditionIndex
+          ? {
+              ...condition,
+              images: condition.images.map((img, imgI) =>
+                imgI === imageIndex
+                  ? {
+                      ...img,
+                      [field]: value,
+                      preview:
+                        field === "file"
+                          ? URL.createObjectURL(value as File)
+                          : img.preview,
+                    }
+                  : img
+              ),
+            }
+          : condition
+      ),
+    }));
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Edit Content</h1>
@@ -538,10 +740,10 @@ export default function EditContentPage() {
               </div>
 
               <div>
-                <Label htmlFor="summary">Summary</Label>
+                <Label htmlFor="snippet">Summary</Label>
                 <Textarea
-                  id="summary"
-                  name="summary"
+                  id="snippet"
+                  name="snippet"
                   value={content.snippet}
                   onChange={handleInputChange}
                   className="mt-1"
@@ -612,122 +814,124 @@ export default function EditContentPage() {
               {content.existingConditions.map((condition, index) => (
                 <div key={index} className="border p-4 my-4 rounded">
                   <div>
-                    <Label htmlFor={`existingConditions[${index}][title]`}>
+                    <Label htmlFor={`existingConditions[${index}].title`}>
                       Title
                     </Label>
                     <Input
-                      id={`existingConditions[${index}][title]`}
-                      name={`existingConditions[${index}][title]`}
+                      id={`existingConditions[${index}].title`}
                       value={condition.title}
-                      onChange={handleInputChange}
+                      onChange={(e) =>
+                        handleExistingConditionChange(
+                          index,
+                          "title",
+                          e.target.value
+                        )
+                      }
                       className="mt-1"
                     />
                   </div>
 
                   <div>
-                    <Label
-                      htmlFor={`existingConditions[${index}][description]`}
-                    >
+                    <Label htmlFor={`existingConditions[${index}].description`}>
                       Description
                     </Label>
                     <Textarea
-                      id={`existingConditions[${index}][description]`}
-                      name={`existingConditions[${index}][description]`}
+                      id={`existingConditions[${index}].description`}
                       value={condition.description}
-                      onChange={handleInputChange}
+                      onChange={(e) =>
+                        handleExistingConditionChange(
+                          index,
+                          "description",
+                          e.target.value
+                        )
+                      }
                       className="mt-1"
                       rows={4}
                     />
                   </div>
 
-                  {condition.images.map((image, imgIndex) => (
-                    <div
-                      key={imgIndex}
-                      className="flex gap-2 mb-2 items-center"
-                    >
-                      <Label
-                        htmlFor={`existingConditions[${index}][images][${imgIndex}]`}
-                      >
-                        Image
-                      </Label>
-                      <Input
-                        id={`existingConditions[${index}][images][${imgIndex}]`}
-                        name={`existingConditions[${index}][images][${imgIndex}]`}
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            setContent((prev) => ({
-                              ...prev,
-                              existingConditions: prev.existingConditions.map(
-                                (c, i) =>
-                                  i === index
-                                    ? {
-                                        ...c,
-                                        images: c.images.map((img, imgI) =>
-                                          imgI === imgIndex
-                                            ? {
-                                                ...img,
-                                                file: file,
-                                                alt: img.alt,
-                                                preview: img.preview,
-                                              }
-                                            : img
-                                        ),
-                                      }
-                                    : c
-                              ),
-                            }));
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              setContent((prev) => ({
-                                ...prev,
-                                existingConditions: prev.existingConditions.map(
-                                  (c, i) =>
-                                    i === index
-                                      ? {
-                                          ...c,
-                                          images: c.images.map((img, imgI) =>
-                                            imgI === imgIndex
-                                              ? {
-                                                  ...img,
-                                                  alt: img.alt,
-                                                  preview:
-                                                    reader.result as string,
-                                                }
-                                              : img
-                                          ),
-                                        }
-                                      : c
-                                ),
-                              }));
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }}
-                        className="mt-1"
-                      />
-                      <Button
-                        type="button"
-                        onClick={() =>
-                          removeImageFromExistingCondition(index, imgIndex)
-                        }
-                        variant="destructive"
-                        size="sm"
-                      >
-                        Remove
-                      </Button>
+                  {/* Existing Conditions Images */}
+                  <div className="mt-4">
+                    <Label>Current Images</Label>
+                    <div className="flex flex-wrap gap-4 mt-2">
+                      {condition.images.map(
+                        (image, imgIndex) =>
+                          image.preview && (
+                            <div key={imgIndex} className="relative">
+                              <img
+                                src={image.preview}
+                                alt={image.alt}
+                                className="w-16 h-16 object-cover rounded"
+                              />
+                              <Button
+                                type="button"
+                                onClick={() =>
+                                  removeImageFromExistingCondition(
+                                    index,
+                                    imgIndex
+                                  )
+                                }
+                                variant="destructive"
+                                size="sm"
+                                className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )
+                      )}
                     </div>
-                  ))}
-                  <Button
-                    type="button"
-                    onClick={() => addImageToExistingCondition(index)}
-                    size="sm"
-                    className="mt-2"
-                  >
-                    Add Image
-                  </Button>
+
+                    {/* Input fields for new images */}
+                    {condition.images.map(
+                      (image, imgIndex) =>
+                        !image.preview && (
+                          <div
+                            key={imgIndex}
+                            className="flex gap-2 mb-2 items-center"
+                          >
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                if (e.target.files?.[0]) {
+                                  const file = e.target.files[0];
+                                  handleExistingConditionImageChange(
+                                    index,
+                                    imgIndex,
+                                    "file",
+                                    file
+                                  );
+                                }
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              onClick={() =>
+                                removeImageFromExistingCondition(
+                                  index,
+                                  imgIndex
+                                )
+                              }
+                              variant="destructive"
+                              size="sm"
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        )
+                    )}
+
+                    <Button
+                      type="button"
+                      onClick={() => addImageToExistingCondition(index)}
+                      size="sm"
+                      className="mt-2"
+                    >
+                      Add Image
+                    </Button>
+                  </div>
+
                   <Button
                     type="button"
                     onClick={() => removeExistingCondition(index)}
@@ -771,21 +975,6 @@ export default function EditContentPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor={`${dim}-title`}>Title</Label>
-                    <Input
-                      id={`${dim}-title`}
-                      value={dimensionData.title}
-                      onChange={(e) =>
-                        handleDimensionChange(
-                          dimensionKey,
-                          "title",
-                          e.target.value
-                        )
-                      }
-                    />
-                  </div>
-
                   <div>
                     <Label htmlFor={`${dim}-input-method`}>Input Method</Label>
                     <Input
@@ -892,9 +1081,9 @@ export default function EditContentPage() {
                   <div className="mt-4">
                     <Label>Dimension Graphs (Optional)</Label>
                     <div className="space-y-4">
-                      {[0, 1].map((graphIndex) => (
-                        <div key={graphIndex} className="space-y-2">
-                          <Label>Graph {graphIndex + 1}</Label>
+                      {dimensionData.graphImages.map((image, index) => (
+                        <div key={index} className="space-y-2">
+                          <Label>Graph {index + 1}</Label>
                           <div className="flex gap-2">
                             <Input
                               type="file"
@@ -904,8 +1093,8 @@ export default function EditContentPage() {
                                   const newGraphImages = [
                                     ...dimensionData.graphImages,
                                   ];
-                                  newGraphImages[graphIndex] = {
-                                    ...newGraphImages[graphIndex],
+                                  newGraphImages[index] = {
+                                    ...newGraphImages[index],
                                     file: e.target.files[0],
                                   };
                                   handleDimensionChange(
@@ -918,15 +1107,13 @@ export default function EditContentPage() {
                             />
                             <Input
                               placeholder="Graph alt text"
-                              value={
-                                dimensionData.graphImages[graphIndex]?.alt || ""
-                              }
+                              value={image.alt || ""}
                               onChange={(e) => {
                                 const newGraphImages = [
                                   ...dimensionData.graphImages,
                                 ];
-                                newGraphImages[graphIndex] = {
-                                  ...newGraphImages[graphIndex],
+                                newGraphImages[index] = {
+                                  ...newGraphImages[index],
                                   alt: e.target.value,
                                 };
                                 handleDimensionChange(
@@ -936,13 +1123,11 @@ export default function EditContentPage() {
                                 );
                               }}
                             />
-                            {dimensionData.graphImages[graphIndex]?.preview && (
+                            {image.preview && (
                               <img
-                                src={
-                                  dimensionData.graphImages[graphIndex].preview
-                                }
-                                alt={dimensionData.graphImages[graphIndex].alt}
-                                className="w-16 h-16 object-cover"
+                                src={image.preview}
+                                alt={image.alt}
+                                className="w-16 h-16 object-cover rounded"
                               />
                             )}
                           </div>
@@ -957,90 +1142,156 @@ export default function EditContentPage() {
 
           <Card>
             <CardHeader>
+              <CardTitle>Overall Dimension</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="overall">Conclusion</Label>
+                <Textarea
+                  id="overall"
+                  value={content.overallDimension.overall}
+                  onChange={(e) =>
+                    setContent((prev) => ({
+                      ...prev,
+                      overallDimension: {
+                        ...prev.overallDimension,
+                        overall: e.target.value,
+                      },
+                    }))
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="overallScore">
+                  Overall Sustainability Score
+                </Label>
+                <Input
+                  id="overallScore"
+                  type="number"
+                  value={content.overallDimension.sustainabilityScore}
+                  onChange={(e) =>
+                    setContent((prev) => ({
+                      ...prev,
+                      overallDimension: {
+                        ...prev.overallDimension,
+                        sustainabilityScore: parseFloat(e.target.value),
+                      },
+                    }))
+                  }
+                />
+              </div>
+              <div className="mt-4">
+                <Label>Overall Graphs</Label>
+                <div className="space-y-4">
+                  {content.overallDimension.graphImages.map((image, index) => (
+                    <div key={index} className="space-y-2">
+                      <Label>Graph {index + 1}</Label>
+                      <div className="flex gap-2 items-center">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            if (e.target.files?.[0]) {
+                              const newGraphImages = [
+                                ...content.overallDimension.graphImages,
+                              ];
+                              newGraphImages[index] = {
+                                file: e.target.files[0],
+                                alt: e.target.files[0].name,
+                              };
+                              setContent((prev) => ({
+                                ...prev,
+                                overallDimension: {
+                                  ...prev.overallDimension,
+                                  graphImages: newGraphImages,
+                                },
+                              }));
+                            }
+                          }}
+                        />
+                        {image.preview && (
+                          <img
+                            src={image.preview}
+                            alt={image.alt}
+                            className="w-16 h-16 object-cover rounded"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle>Supporting Documents</CardTitle>
             </CardHeader>
             <CardContent>
-              {content.supportingDocuments.map((doc, index) => (
+              {content.supportingDocs.map((doc, index) => (
                 <div key={index} className="flex gap-2 mb-2 items-center">
-                  <Label htmlFor={`supportingDocuments[${index}][name]`}>
-                    Name
-                  </Label>
-                  <Input
-                    id={`supportingDocuments[${index}][name]`}
-                    name={`supportingDocuments[${index}][name]`}
-                    value={doc.name}
-                    onChange={(e) => {
-                      setContent((prev) => ({
-                        ...prev,
-                        supportingDocuments: prev.supportingDocuments.map(
-                          (d, i) =>
-                            i === index
-                              ? {
-                                  ...d,
-                                  name: e.target.value,
-                                }
-                              : d
-                        ),
-                      }));
-                    }}
-                    className="mt-1"
-                  />
-                  <Label htmlFor={`supportingDocuments[${index}][file]`}>
-                    File
-                  </Label>
-                  <Input
-                    id={`supportingDocuments[${index}][file]`}
-                    name={`supportingDocuments[${index}][file]`}
-                    type="file"
-                    accept="application/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setContent((prev) => ({
-                          ...prev,
-                          supportingDocuments: prev.supportingDocuments.map(
-                            (d, i) =>
-                              i === index
-                                ? {
-                                    ...d,
-                                    file: file,
-                                    preview: d.preview,
-                                  }
-                                : d
-                          ),
-                        }));
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          setContent((prev) => ({
-                            ...prev,
-                            supportingDocuments: prev.supportingDocuments.map(
-                              (d, i) =>
-                                i === index
-                                  ? {
-                                      ...d,
-                                      preview: reader.result as string,
-                                    }
-                                  : d
-                            ),
-                          }));
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }}
-                    className="mt-1"
-                  />
+                  {/* For existing documents */}
+                  {doc.filePath ? (
+                    <div className="flex items-center gap-2 bg-gray-100 p-2 rounded-md flex-grow">
+                      <FileIcon className="h-4 w-4" />
+                      <span className="text-sm">{doc.name}</span>
+                      <a
+                        href={doc.filePath}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:text-blue-700 text-sm ml-auto"
+                      >
+                        View Document
+                      </a>
+                    </div>
+                  ) : (
+                    /* For new documents */
+                    <>
+                      <div className="flex-grow">
+                        <Input
+                          type="file"
+                          accept=".pdf,.doc,.docx"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handleSupportingDocChange(index, "file", file);
+                            }
+                          }}
+                        />
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder="Document name"
+                        value={doc.name}
+                        onChange={(e) =>
+                          handleSupportingDocChange(
+                            index,
+                            "name",
+                            e.target.value
+                          )
+                        }
+                        className="w-1/3"
+                      />
+                    </>
+                  )}
                   <Button
                     type="button"
                     onClick={() => removeSupportingDocument(index)}
                     variant="destructive"
                     size="sm"
                   >
-                    Remove
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               ))}
-              <Button type="button" onClick={addSupportingDocument}>
-                Add Supporting Document
+              <Button
+                type="button"
+                onClick={addSupportingDocument}
+                className="mt-2"
+              >
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Add Document
               </Button>
             </CardContent>
           </Card>
@@ -1050,80 +1301,63 @@ export default function EditContentPage() {
               <CardTitle>Maps</CardTitle>
             </CardHeader>
             <CardContent>
-              {content.maps.map((map, index) => (
-                <div key={index} className="flex gap-2 mb-2 items-center">
-                  <Label htmlFor={`maps[${index}][file]`}>File</Label>
-                  <Input
-                    id={`maps[${index}][file]`}
-                    name={`maps[${index}][file]`}
-                    type="file"
-                    accept="application/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setContent((prev) => ({
-                          ...prev,
-                          maps: prev.maps.map((m, i) =>
-                            i === index
-                              ? {
-                                  ...m,
-                                  file: file,
-                                  alt: m.alt,
-                                  preview: m.preview,
-                                }
-                              : m
-                          ),
-                        }));
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          setContent((prev) => ({
-                            ...prev,
-                            maps: prev.maps.map((m, i) =>
-                              i === index
-                                ? {
-                                    ...m,
-                                    alt: m.alt,
-                                    preview: reader.result as string,
-                                  }
-                                : m
-                            ),
-                          }));
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }}
-                    className="mt-1"
-                  />
-                  <Label htmlFor={`maps[${index}][alt]`}>Alt</Label>
-                  <Input
-                    id={`maps[${index}][alt]`}
-                    name={`maps[${index}][alt]`}
-                    value={map.alt}
-                    onChange={(e) => {
-                      setContent((prev) => ({
-                        ...prev,
-                        maps: prev.maps.map((m, i) =>
-                          i === index
-                            ? {
-                                ...m,
-                                alt: e.target.value,
-                              }
-                            : m
-                        ),
-                      }));
-                    }}
-                    className="mt-1"
-                  />
-                  <Button
-                    type="button"
-                    onClick={() => removeMap(index)}
-                    variant="destructive"
-                    size="sm"
-                  >
-                    Remove
-                  </Button>
+              {/* Maps Preview */}
+              <div className="mt-4">
+                <Label>Current Maps</Label>
+                <div className="flex flex-wrap gap-4 mt-2">
+                  {content.maps.map(
+                    (map, index) =>
+                      map.filePath && (
+                        <div key={index} className="relative">
+                          <img
+                            src={map.filePath}
+                            alt={map.alt}
+                            className="w-16 h-16 object-cover rounded"
+                          />
+                          <Button
+                            type="button"
+                            onClick={() => removeMap(index)}
+                            variant="destructive"
+                            size="sm"
+                            className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )
+                  )}
                 </div>
-              ))}
+              </div>
+
+              {/* Input fields for new maps */}
+              {content.maps.map(
+                (map, index) =>
+                  !map.filePath && (
+                    <div key={index} className="flex gap-2 mb-2 items-center">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleMapFileChange(index, e)}
+                      />
+                      <Input
+                        placeholder="Map Alt Text"
+                        value={map.alt}
+                        onChange={(e) =>
+                          handleMapAltChange(index, e.target.value)
+                        }
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => removeMap(index)}
+                        variant="destructive"
+                        size="sm"
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  )
+              )}
+
               <Button type="button" onClick={addMap}>
                 Add Map
               </Button>
@@ -1135,80 +1369,86 @@ export default function EditContentPage() {
               <CardTitle>Gallery</CardTitle>
             </CardHeader>
             <CardContent>
-              {content.gallery.map((image, index) => (
-                <div key={index} className="flex gap-2 mb-2 items-center">
-                  <Label htmlFor={`gallery[${index}][file]`}>File</Label>
-                  <Input
-                    id={`gallery[${index}][file]`}
-                    name={`gallery[${index}][file]`}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setContent((prev) => ({
-                          ...prev,
-                          gallery: prev.gallery.map((img, i) =>
-                            i === index
-                              ? {
-                                  ...img,
-                                  file: file,
-                                  alt: img.alt,
-                                  preview: img.preview,
-                                }
-                              : img
-                          ),
-                        }));
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
+              {/* Gallery Images Preview */}
+              <div className="mt-4">
+                <Label>Current Gallery Images</Label>
+                <div className="flex flex-wrap gap-4 mt-2">
+                  {content.gallery.map(
+                    (image, index) =>
+                      image.preview && (
+                        <div key={index} className="relative">
+                          <img
+                            src={image.preview}
+                            alt={image.alt}
+                            className="w-16 h-16 object-cover rounded"
+                          />
+                          <Button
+                            type="button"
+                            onClick={() => removeGalleryImage(index)}
+                            variant="destructive"
+                            size="sm"
+                            className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )
+                  )}
+                </div>
+              </div>
+
+              {/* Input fields for new gallery images */}
+              {content.gallery.map(
+                (image, index) =>
+                  !image.preview && (
+                    <div key={index} className="flex gap-2 mb-2 items-center">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) {
+                            const file = e.target.files[0];
+                            setContent((prev) => ({
+                              ...prev,
+                              gallery: prev.gallery.map((img, i) =>
+                                i === index
+                                  ? {
+                                      ...img,
+                                      file,
+                                      preview: URL.createObjectURL(file),
+                                    }
+                                  : img
+                              ),
+                            }));
+                          }
+                        }}
+                      />
+                      <Input
+                        placeholder="Image Alt Text"
+                        value={image.alt}
+                        onChange={(e) =>
                           setContent((prev) => ({
                             ...prev,
                             gallery: prev.gallery.map((img, i) =>
                               i === index
-                                ? {
-                                    ...img,
-                                    alt: img.alt,
-                                    preview: reader.result as string,
-                                  }
+                                ? { ...img, alt: e.target.value }
                                 : img
                             ),
-                          }));
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }}
-                    className="mt-1"
-                  />
-                  <Label htmlFor={`gallery[${index}][alt]`}>Alt</Label>
-                  <Input
-                    id={`gallery[${index}][alt]`}
-                    name={`gallery[${index}][alt]`}
-                    value={image.alt}
-                    onChange={(e) => {
-                      setContent((prev) => ({
-                        ...prev,
-                        gallery: prev.gallery.map((img, i) =>
-                          i === index
-                            ? {
-                                ...img,
-                                alt: e.target.value,
-                              }
-                            : img
-                        ),
-                      }));
-                    }}
-                    className="mt-1"
-                  />
-                  <Button
-                    type="button"
-                    onClick={() => removeGalleryImage(index)}
-                    variant="destructive"
-                    size="sm"
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ))}
+                          }))
+                        }
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => removeGalleryImage(index)}
+                        variant="destructive"
+                        size="sm"
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  )
+              )}
+
               <Button type="button" onClick={addGalleryImage}>
                 Add Gallery Image
               </Button>
@@ -1222,57 +1462,39 @@ export default function EditContentPage() {
             <CardContent>
               {content.videos.map((video, index) => (
                 <div key={index} className="flex gap-2 mb-2 items-center">
-                  <Label htmlFor={`videos[${index}][url]`}>URL</Label>
-                  <Input
-                    id={`videos[${index}][url]`}
-                    name={`videos[${index}][url]`}
-                    value={video.url}
-                    onChange={(e) => {
-                      setContent((prev) => ({
-                        ...prev,
-                        videos: prev.videos.map((v, i) =>
-                          i === index
-                            ? {
-                                ...v,
-                                url: e.target.value,
-                              }
-                            : v
-                        ),
-                      }));
-                    }}
-                    className="mt-1"
-                  />
-                  <Label htmlFor={`videos[${index}][title]`}>Title</Label>
-                  <Input
-                    id={`videos[${index}][title]`}
-                    name={`videos[${index}][title]`}
-                    value={video.title}
-                    onChange={(e) => {
-                      setContent((prev) => ({
-                        ...prev,
-                        videos: prev.videos.map((v, i) =>
-                          i === index
-                            ? {
-                                ...v,
-                                title: e.target.value,
-                              }
-                            : v
-                        ),
-                      }));
-                    }}
-                    className="mt-1"
-                  />
+                  {video.preview ? (
+                    // Preview/existing video URL - readonly
+                    <div className="flex-grow bg-gray-100 p-2 rounded-md">
+                      <span className="text-sm">{video.url}</span>
+                    </div>
+                  ) : (
+                    // New video URL input
+                    <Input
+                      value={video.url}
+                      onChange={(e) => {
+                        setContent((prev) => ({
+                          ...prev,
+                          videos: prev.videos.map((v, i) =>
+                            i === index ? { url: e.target.value } : v
+                          ),
+                        }));
+                      }}
+                      placeholder="Video URL"
+                      className="flex-grow"
+                    />
+                  )}
                   <Button
                     type="button"
                     onClick={() => removeVideo(index)}
                     variant="destructive"
                     size="sm"
                   >
-                    Remove
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               ))}
-              <Button type="button" onClick={addVideo}>
+              <Button type="button" onClick={addVideo} className="mt-2">
+                <PlusCircle className="h-4 w-4 mr-2" />
                 Add Video
               </Button>
             </CardContent>
@@ -1296,7 +1518,7 @@ export default function EditContentPage() {
             </Button>
             <Button
               type="button"
-              onClick={() => handleSubmit("PUBLISHED")}
+              onClick={() => handleSubmit("REVIEW")}
               disabled={isSubmitting}
             >
               {isSubmitting ? (

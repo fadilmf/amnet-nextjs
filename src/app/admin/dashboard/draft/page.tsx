@@ -67,6 +67,33 @@ export default function AdminDraftPage() {
     return a.title.localeCompare(b.title);
   });
 
+  const handleDelete = () => {
+    // Refresh drafts list after deletion
+    const fetchDrafts = async () => {
+      try {
+        const response = await axios.get("/api/admin/draft");
+        setDrafts(response.data);
+      } catch (err) {
+        setError("Failed to fetch drafts");
+        console.error("Error fetching drafts:", err);
+      }
+    };
+    fetchDrafts();
+  };
+
+  const handlePublish = async (id: string) => {
+    try {
+      // Implement your publish logic here
+      await axios.patch(`/api/content/${id}`, { status: "PUBLISHED" });
+      // Refresh the drafts list
+      const response = await axios.get("/api/admin/draft");
+      setDrafts(response.data);
+    } catch (err) {
+      console.error("Error publishing content:", err);
+      // Handle error appropriately
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -119,7 +146,7 @@ export default function AdminDraftPage() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {sortedDrafts.map((draft) => (
-              <div key={draft.id} className="relative">
+              <div key={draft.id}>
                 <ArticleCard
                   id={draft.id.toString()}
                   title={draft.title}
@@ -128,13 +155,9 @@ export default function AdminDraftPage() {
                   date={draft.date}
                   keywords={draft.keywords}
                   imageUrl={draft.cover}
+                  onDelete={handleDelete}
+                  onPublish={() => handlePublish(draft.id.toString())}
                 />
-                <Link
-                  href={`/admin/dashboard/content/edit/${draft.id}`}
-                  className="absolute top-2 right-2 bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600 transition"
-                >
-                  Edit
-                </Link>
               </div>
             ))}
           </div>

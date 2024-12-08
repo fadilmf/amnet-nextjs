@@ -103,6 +103,10 @@ export default function AdminContentPage() {
     fetchArticles();
   };
 
+  const handleDelete = () => {
+    fetchArticles(); // Refresh the list after deletion
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -196,6 +200,7 @@ export default function AdminContentPage() {
               keywords={article.keywords}
               imageUrl={article.cover}
               onDraftCreated={handleDraftCreated}
+              onDelete={handleDelete}
             />
           ))}
         </div>

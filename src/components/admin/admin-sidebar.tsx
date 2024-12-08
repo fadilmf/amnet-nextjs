@@ -49,6 +49,12 @@ const sidebarLinks = [
     label: "Draft",
   },
   {
+    href: "/admin/dashboard/review",
+    icon: <FileText size={20} />,
+    label: "Review",
+    superAdminOnly: true,
+  },
+  {
     href: "/admin/dashboard/bookmark",
     icon: <BookmarkIcon size={20} />,
     label: "Bookmark",
@@ -82,11 +88,13 @@ export function AdminSidebar() {
   return (
     <aside className="w-64 bg-gray-200 rounded-lg shadow-md m-4 p-4">
       <nav className="space-y-2">
-        {sidebarLinks.map((link, index) => (
-          <SidebarLink key={link.href} href={link.href} icon={link.icon}>
-            {link.label}
-          </SidebarLink>
-        ))}
+        {sidebarLinks
+          .filter((link) => !link.superAdminOnly || isSuperAdmin)
+          .map((link) => (
+            <SidebarLink key={link.href} href={link.href} icon={link.icon}>
+              {link.label}
+            </SidebarLink>
+          ))}
         {isSuperAdmin && (
           <Collapsible open={isMasterOpen} onOpenChange={setIsMasterOpen}>
             <CollapsibleTrigger asChild>

@@ -42,11 +42,12 @@ model User {
   countryId Int? // Menyimpan ID negara
 
   // Relations
-  country       Country?       @relation(fields: [countryId], references: [id]) // Relasi dengan model Country
-  notifications Notification[] // One user can have multiple notifications
-  contents      Content[] // One user can create multiple content items
-  bookmarks     Bookmark[] // One user can bookmark multiple contents
-  comment       Comment[]
+  country          Country?       @relation(fields: [countryId], references: [id]) // Relasi dengan model Country
+  notifications    Notification[] // One user can have multiple notifications
+  contents         Content[] // One user can create multiple content items
+  bookmarks        Bookmark[] // One user can bookmark multiple contents
+  comment          Comment[]
+  reviewedContents Content[]      @relation("ReviewedContent")
 }
 
 model VisitorHistory {
@@ -223,9 +224,12 @@ model Content {
 
   views Int? @default(0)
 
-  createdAt                 DateTime @default(now())
-  updatedAt                 DateTime @updatedAt
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
   sustainabilityDimensionId String?
+  reviewedAt                DateTime?
+  reviewedBy                String?
+  reviewer                  User?     @relation("ReviewedContent", fields: [reviewedBy], references: [id], onDelete: Cascade)
 }
 
 model Comment {
@@ -248,7 +252,7 @@ model ExistingCondition {
   title       String
   description String
   images      Image[]
-  content     Content @relation(fields: [contentId], references: [id])
+  content     Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
   contentId   Int
 }
 
@@ -259,7 +263,7 @@ model EcologyDimension {
   significantAspects  String[]
   sustainabilityScore Float
   graphImages         Image[]
-  content             Content  @relation(fields: [contentId], references: [id])
+  content             Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
   contentId           Int      @unique
 }
 
@@ -270,7 +274,7 @@ model SocialDimension {
   significantAspects  String[]
   sustainabilityScore Float
   graphImages         Image[]
-  content             Content  @relation(fields: [contentId], references: [id])
+  content             Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
   contentId           Int      @unique
 }
 
@@ -281,7 +285,7 @@ model EconomyDimension {
   significantAspects  String[]
   sustainabilityScore Float
   graphImages         Image[]
-  content             Content  @relation(fields: [contentId], references: [id])
+  content             Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
   contentId           Int      @unique
 }
 
@@ -292,7 +296,7 @@ model InstitutionalDimension {
   significantAspects  String[]
   sustainabilityScore Float
   graphImages         Image[]
-  content             Content  @relation(fields: [contentId], references: [id])
+  content             Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
   contentId           Int      @unique
 }
 
@@ -303,7 +307,7 @@ model TechnologyDimension {
   significantAspects  String[]
   sustainabilityScore Float
   graphImages         Image[]
-  content             Content  @relation(fields: [contentId], references: [id])
+  content             Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
   contentId           Int      @unique
 }
 
@@ -312,7 +316,7 @@ model OverallDimension {
   overall             String
   sustainabilityScore Float
   graphImages         Image[]
-  content             Content @relation(fields: [contentId], references: [id])
+  content             Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
   contentId           Int     @unique
 }
 
@@ -320,7 +324,7 @@ model SupportingDoc {
   id        Int     @id @default(autoincrement())
   name      String?
   filePath  String?
-  content   Content @relation(fields: [contentId], references: [id])
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
   contentId Int
 }
 
@@ -343,7 +347,7 @@ model Map {
   id        String  @id @default(cuid())
   filePath  String?
   alt       String?
-  content   Content @relation(fields: [contentId], references: [id])
+  content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
   contentId Int
 }
 
@@ -378,21 +382,22 @@ model Image {
   existingCondition   ExistingCondition? @relation(fields: [existingConditionId], references: [id])
   existingConditionId String?
 
-  ecologyDimension         EcologyDimension?       @relation(fields: [ecologyDimensionId], references: [id])
+  ecologyDimension         EcologyDimension?       @relation(fields: [ecologyDimensionId], references: [id], onDelete: Cascade)
   ecologyDimensionId       String?
-  socialDimension          SocialDimension?        @relation(fields: [socialDimensionId], references: [id])
+  socialDimension          SocialDimension?        @relation(fields: [socialDimensionId], references: [id], onDelete: Cascade)
   socialDimensionId        String?
-  economyDimension         EconomyDimension?       @relation(fields: [economyDimensionId], references: [id])
+  economyDimension         EconomyDimension?       @relation(fields: [economyDimensionId], references: [id], onDelete: Cascade)
   economyDimensionId       String?
-  institutionalDimension   InstitutionalDimension? @relation(fields: [institutionalDimensionId], references: [id])
+  institutionalDimension   InstitutionalDimension? @relation(fields: [institutionalDimensionId], references: [id], onDelete: Cascade)
   institutionalDimensionId String?
-  technologyDimension      TechnologyDimension?    @relation(fields: [technologyDimensionId], references: [id])
+  technologyDimension      TechnologyDimension?    @relation(fields: [technologyDimensionId], references: [id], onDelete: Cascade)
   technologyDimensionId    String?
-  overallDimension         OverallDimension?       @relation(fields: [overallDimensionId], references: [id])
+  overallDimension         OverallDimension?       @relation(fields: [overallDimensionId], references: [id], onDelete: Cascade)
   overallDimensionId       String?
 }
 
 enum ContentStatus {
   DRAFT
+  REVIEW
   PUBLISHED
 }

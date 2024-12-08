@@ -86,6 +86,7 @@ const DimensionCard = ({
     isOverall?: boolean;
     conclusion?: string;
     spiderGraph?: string;
+    tableImage?: string;
     tableData?: Array<{
       dimension: string;
       score: number;
@@ -162,7 +163,7 @@ const DimensionCard = ({
                   color={dimension.color}
                 /> */}
                 <Image
-                  src={dimension.spiderGraph}
+                  src={dimension.spiderGraph || ""}
                   alt="Sustainability Dimensions Spider Graph"
                   width={400}
                   height={400}
@@ -179,18 +180,20 @@ const DimensionCard = ({
                 </p>
               </div>
 
-              <div>
-                <h3 className="text-xl font-semibold mb-3 text-gray-800">
-                  Dimension Analysis
-                </h3>
-                <Image
-                  src="/kesimpulan_table.png"
-                  alt="Dimension Analysis Table"
-                  width={500}
-                  height={300}
-                  className="w-full max-w-md mx-auto"
-                />
-              </div>
+              {dimension.tableImage && (
+                <div>
+                  <h3 className="text-xl font-semibold mb-3 text-gray-800">
+                    Dimension Analysis
+                  </h3>
+                  <Image
+                    src={dimension.tableImage || ""}
+                    alt="Dimension Analysis Table"
+                    width={500}
+                    height={300}
+                    className="w-full max-w-md mx-auto"
+                  />
+                </div>
+              )}
             </>
           ) : (
             <>
@@ -584,9 +587,11 @@ export default function ArticleDetail() {
                       id: "overall",
                       // sustainabilityScore: 75.6,
                       isOverall: true,
-                      conclusion:
-                        "The sustainability analysis uses a Multi-Dimensional Scaling (MDS) approach adapted from the RAPFISH (Rapid Appraisal for Fisheries) method, which has been modified into RAPMANGROVE (Rapid Appraisal for Mangrove). This approach is developed using five evaluation categories: ecology, economy, social, institutional, and technology. The analysis is conducted through several stages: 1) reviewing the attributes within each sustainability dimension and defining these attributes through field observations and literature studies; 2) assigning scores based on the results of field observations and stakeholder opinions according to the defined attributes; 3) analyzing the assigned scores to determine the sustainability status of mangrove ecosystem management, as shown in Table 1 below. Based on the sustainability status analysis of the mangrove ecosystem area in Sidoarjo Regency, covering the dimensions of Ecology, Economy, Social, Institutional, and Technology, the average management of the mangrove ecosystem area in Sidoarjo shows a relatively sustainable result. This is evident from the RAP-MANGROVE score produced, where out of the five dimensions of sustainability status assessment, only the Social Dimension has a less sustainable value with a score of 47.23 (25 < SIR ≤ 50). Figure 11 below shows the sustainability status of the mangrove ecosystem in Sidoarjo Regency.",
-                      spiderGraph: "/kesimpulan.png",
+                      conclusion: content.overallDimension.overall,
+                      spiderGraph:
+                        content.overallDimension.graphImages?.[0]?.file,
+                      tableImage:
+                        content.overallDimension.graphImages?.[1]?.file,
                       tableData: [
                         {
                           dimension: "Ecology",

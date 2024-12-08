@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Header } from "@/components/header";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { Loader2 } from "lucide-react";
 import "../globals.css";
 
 export default function AdminLayout({
@@ -11,21 +12,32 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    console.log("ini user di admin user: ", user);
-    // Redirect ke sign-in jika user belum login atau bukan admin
-    // if (!user) {
-    //   router.push("/");
-    // } else if (user.role !== "ADMIN") {
-    //   router.push("/"); // atau halaman lain yang sesuai
-    // }
-  }, [user, router]);
+    if (!isLoading && !user) {
+      router.push("/sign-in");
+    } else if (
+      !isLoading &&
+      user &&
+      !["ADMIN", "SUPER_ADMIN"].includes(user.role)
+    ) {
+      router.push("/");
+    }
+  }, [user, isLoading, router]);
 
-  // Tampilkan loading atau null saat mengecek auth
-  if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
+  // Tampilkan loading spinner saat mengecek auth
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    );
+  }
+
+  // Jangan render layout jika user tidak valid
+  if (!user || !["ADMIN", "SUPER_ADMIN"].includes(user.role)) {
     return null;
   }
 

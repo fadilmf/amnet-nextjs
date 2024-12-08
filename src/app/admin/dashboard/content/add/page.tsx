@@ -15,6 +15,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { compressImage } from "@/lib/imageCompression";
 
 interface ExistingCondition {
   title: string;
@@ -191,43 +192,60 @@ export default function AddContentPage() {
     }));
   };
 
-  const handleExistingConditionImageChange = (
+  const handleExistingConditionImageChange = async (
     conditionIndex: number,
     imageIndex: number,
     field: "file" | "alt",
     value: File | string
   ) => {
-    console.log(
-      `Updating image for condition ${conditionIndex}, image ${imageIndex}:`,
-      {
-        field,
-        value: field === "file" ? (value as File).name : value,
-      }
-    );
-
-    setContent((prev) => {
-      const newContent = {
+    if (field === "file" && value instanceof File) {
+      const compressedFile = await compressImage(value);
+      setContent((prev) => ({
         ...prev,
         existingConditions: prev.existingConditions.map((condition, i) =>
           i === conditionIndex
             ? {
                 ...condition,
                 images: condition.images.map((img, imgI) =>
-                  imgI === imageIndex ? { ...img, [field]: value } : img
+                  imgI === imageIndex ? { ...img, file: compressedFile } : img
                 ),
               }
             : condition
         ),
-      };
-
-      // Verifikasi perubahan
+      }));
+    } else {
       console.log(
-        `Updated condition ${conditionIndex} images:`,
-        newContent.existingConditions[conditionIndex].images
+        `Updating image for condition ${conditionIndex}, image ${imageIndex}:`,
+        {
+          field,
+          value: field === "file" ? (value as File).name : value,
+        }
       );
 
-      return newContent;
-    });
+      setContent((prev) => {
+        const newContent = {
+          ...prev,
+          existingConditions: prev.existingConditions.map((condition, i) =>
+            i === conditionIndex
+              ? {
+                  ...condition,
+                  images: condition.images.map((img, imgI) =>
+                    imgI === imageIndex ? { ...img, [field]: value } : img
+                  ),
+                }
+              : condition
+          ),
+        };
+
+        // Verifikasi perubahan
+        console.log(
+          `Updated condition ${conditionIndex} images:`,
+          newContent.existingConditions[conditionIndex].images
+        );
+
+        return newContent;
+      });
+    }
   };
 
   const addImageToExistingCondition = (conditionIndex: number) => {
@@ -352,12 +370,20 @@ export default function AddContentPage() {
     }));
   };
 
-  const handleFileInput = (
+  const handleFileInput = async (
     e: React.ChangeEvent<HTMLInputElement>,
     updateFunction: (file: File) => void
   ) => {
     if (e.target.files && e.target.files[0]) {
-      updateFunction(e.target.files[0]);
+      const file = e.target.files[0];
+
+      // Kompresi hanya untuk file gambar
+      if (file.type.startsWith("image/")) {
+        const compressedFile = await compressImage(file);
+        updateFunction(compressedFile);
+      } else {
+        updateFunction(file);
+      }
     }
   };
 
@@ -484,6 +510,26 @@ export default function AddContentPage() {
       // Add videos
       formData.append("videoLinks", JSON.stringify(content.videos));
 
+      // Add overall dimension data
+      formData.append(
+        "overallDimension",
+        JSON.stringify({
+          overall: content.overallDimension.overall,
+          sustainabilityScore: content.overallDimension.sustainabilityScore,
+        })
+      );
+
+      // Add overall dimension graph images
+      content.overallDimension.graphImages.forEach((image, index) => {
+        if (image.file) {
+          formData.append(`overallDimensionGraphImages[${index}]`, image.file);
+          formData.append(
+            `overallDimensionGraphImagesAlt[${index}]`,
+            image.alt
+          );
+        }
+      });
+
       // Log FormData untuk debugging
       console.log("=== Data yang akan dikirim ===");
       for (const [key, value] of formData.entries()) {
@@ -504,7 +550,7 @@ export default function AddContentPage() {
             status === "DRAFT" ? "saved as draft" : "published"
           }!`,
         });
-        router.push("/admin/dashboard/content");
+        // router.push("/admin/dashboard/content");
       } else {
         setSubmitResponse({
           success: false,
@@ -684,18 +730,6 @@ export default function AddContentPage() {
                       }}
                       className="mb-2"
                     />
-                    <Input
-                      value={image.alt}
-                      onChange={(e) =>
-                        handleExistingConditionImageChange(
-                          index,
-                          imgIndex,
-                          "alt",
-                          e.target.value
-                        )
-                      }
-                      placeholder="Image alt text"
-                    />
                     <Button
                       type="button"
                       onClick={() =>
@@ -760,20 +794,6 @@ export default function AddContentPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor={`${dim}-title`}>Title</Label>
-                  <Input
-                    id={`${dim}-title`}
-                    value={dimensionData.title}
-                    onChange={(e) =>
-                      handleDimensionChange(
-                        dimensionKey,
-                        "title",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-                <div>
                   <Label htmlFor={`${dim}-input-method`}>Input Method</Label>
                   <Input
                     id={`${dim}-input-method`}
@@ -835,6 +855,7 @@ export default function AddContentPage() {
                           newImages[index] = {
                             ...newImages[index],
                             file: e.target.files[0],
+                            alt: e.target.files[0].name,
                           };
                           handleDimensionChange(
                             dimensionKey,
@@ -844,23 +865,6 @@ export default function AddContentPage() {
                         }
                       }}
                     />
-                    <Input
-                      id={`${dim}-image-${index}-alt`}
-                      value={image.alt}
-                      onChange={(e) => {
-                        const newImages = [...dimensionData.images];
-                        newImages[index] = {
-                          ...newImages[index],
-                          alt: e.target.value,
-                        };
-                        handleDimensionChange(
-                          dimensionKey,
-                          "images",
-                          newImages
-                        );
-                      }}
-                      placeholder="Image alt text"
-                    />
                   </div>
                 ))}
                 <div className="mt-4">
@@ -869,48 +873,26 @@ export default function AddContentPage() {
                     {[0, 1].map((graphIndex) => (
                       <div key={graphIndex} className="space-y-2">
                         <Label>Graph {graphIndex + 1}</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              if (e.target.files?.[0]) {
-                                const newGraphImages = [
-                                  ...dimensionData.graphImages,
-                                ];
-                                newGraphImages[graphIndex] = {
-                                  ...newGraphImages[graphIndex],
-                                  file: e.target.files[0],
-                                };
-                                handleDimensionChange(
-                                  dimensionKey,
-                                  "graphImages",
-                                  newGraphImages
-                                );
-                              }
-                            }}
-                          />
-                          <Input
-                            placeholder="Graph alt text"
-                            value={
-                              dimensionData.graphImages[graphIndex]?.alt || ""
-                            }
-                            onChange={(e) => {
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            if (e.target.files?.[0]) {
                               const newGraphImages = [
                                 ...dimensionData.graphImages,
                               ];
                               newGraphImages[graphIndex] = {
-                                ...newGraphImages[graphIndex],
-                                alt: e.target.value,
+                                file: e.target.files[0],
+                                alt: e.target.files[0].name,
                               };
                               handleDimensionChange(
                                 dimensionKey,
                                 "graphImages",
                                 newGraphImages
                               );
-                            }}
-                          />
-                        </div>
+                            }
+                          }}
+                        />
                       </div>
                     ))}
                   </div>
@@ -926,7 +908,7 @@ export default function AddContentPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="overall">Overall Assessment</Label>
+              <Label htmlFor="overall">Conclusion</Label>
               <Textarea
                 id="overall"
                 value={content.overallDimension.overall}
@@ -941,67 +923,24 @@ export default function AddContentPage() {
                 }
               />
             </div>
-            <div>
-              <Label htmlFor="overall-score">
-                Overall Sustainability Score
-              </Label>
-              <Input
-                id="overall-score"
-                type="number"
-                value={content.overallDimension.sustainabilityScore}
-                onChange={(e) =>
-                  setContent((prev) => ({
-                    ...prev,
-                    overallDimension: {
-                      ...prev.overallDimension,
-                      sustainabilityScore: parseFloat(e.target.value),
-                    },
-                  }))
-                }
-              />
-            </div>
             <div className="mt-4">
               <Label>Overall Graphs (Optional)</Label>
               <div className="space-y-4">
-                {[0, 1].map((graphIndex) => (
-                  <div key={graphIndex} className="space-y-2">
-                    <Label>Graph {graphIndex + 1}</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          if (e.target.files?.[0]) {
-                            const newGraphImages = [
-                              ...content.overallDimension.graphImages,
-                            ];
-                            newGraphImages[graphIndex] = {
-                              ...newGraphImages[graphIndex],
-                              file: e.target.files[0],
-                            };
-                            setContent((prev) => ({
-                              ...prev,
-                              overallDimension: {
-                                ...prev.overallDimension,
-                                graphImages: newGraphImages,
-                              },
-                            }));
-                          }
-                        }}
-                      />
-                      <Input
-                        placeholder="Graph alt text"
-                        value={
-                          content.overallDimension.graphImages[graphIndex]
-                            ?.alt || ""
-                        }
-                        onChange={(e) => {
+                <div className="space-y-2">
+                  <Label>Spider Graph</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
                           const newGraphImages = [
                             ...content.overallDimension.graphImages,
                           ];
-                          newGraphImages[graphIndex] = {
-                            ...newGraphImages[graphIndex],
-                            alt: e.target.value,
+                          newGraphImages[0] = {
+                            ...newGraphImages[0],
+                            file: e.target.files[0],
+                            alt: e.target.files[0].name,
                           };
                           setContent((prev) => ({
                             ...prev,
@@ -1010,11 +949,55 @@ export default function AddContentPage() {
                               graphImages: newGraphImages,
                             },
                           }));
-                        }}
-                      />
-                    </div>
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => removeMap(0)}
+                      variant="destructive"
+                      size="sm"
+                    >
+                      Remove
+                    </Button>
                   </div>
-                ))}
+                </div>
+                <div className="space-y-2">
+                  <Label>Table Dimension Analysis</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files?.[0]) {
+                          const newGraphImages = [
+                            ...content.overallDimension.graphImages,
+                          ];
+                          newGraphImages[1] = {
+                            ...newGraphImages[1],
+                            file: e.target.files[0],
+                            alt: e.target.files[0].name,
+                          };
+                          setContent((prev) => ({
+                            ...prev,
+                            overallDimension: {
+                              ...prev.overallDimension,
+                              graphImages: newGraphImages,
+                            },
+                          }));
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => removeMap(1)}
+                      variant="destructive"
+                      size="sm"
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -1085,22 +1068,10 @@ export default function AddContentPage() {
                       setContent((prev) => ({
                         ...prev,
                         maps: prev.maps.map((m, i) =>
-                          i === index ? { ...m, file } : m
+                          i === index ? { file, alt: file.name } : m
                         ),
                       }))
                     )
-                  }
-                />
-                <Input
-                  placeholder="Map Alt Text"
-                  value={map.alt}
-                  onChange={(e) =>
-                    setContent((prev) => ({
-                      ...prev,
-                      maps: prev.maps.map((m, i) =>
-                        i === index ? { ...m, alt: e.target.value } : m
-                      ),
-                    }))
                   }
                 />
                 <Button
@@ -1134,22 +1105,10 @@ export default function AddContentPage() {
                       setContent((prev) => ({
                         ...prev,
                         gallery: prev.gallery.map((img, i) =>
-                          i === index ? { ...img, file } : img
+                          i === index ? { file, alt: file.name } : img
                         ),
                       }))
                     )
-                  }
-                />
-                <Input
-                  placeholder="Image Alt Text"
-                  value={image.alt}
-                  onChange={(e) =>
-                    setContent((prev) => ({
-                      ...prev,
-                      gallery: prev.gallery.map((img, i) =>
-                        i === index ? { ...img, alt: e.target.value } : img
-                      ),
-                    }))
                   }
                 />
                 <Button
@@ -1182,19 +1141,9 @@ export default function AddContentPage() {
                     setContent((prev) => ({
                       ...prev,
                       videos: prev.videos.map((v, i) =>
-                        i === index ? { ...v, url: e.target.value } : v
-                      ),
-                    }))
-                  }
-                />
-                <Input
-                  placeholder="Video Title"
-                  value={video.title}
-                  onChange={(e) =>
-                    setContent((prev) => ({
-                      ...prev,
-                      videos: prev.videos.map((v, i) =>
-                        i === index ? { ...v, title: e.target.value } : v
+                        i === index
+                          ? { url: e.target.value, title: e.target.value }
+                          : v
                       ),
                     }))
                   }
@@ -1233,7 +1182,7 @@ export default function AddContentPage() {
           </Button>
           <Button
             type="button"
-            onClick={() => handleSubmit("PUBLISHED")}
+            onClick={() => handleSubmit("REVIEW")}
             disabled={isSubmitting}
           >
             {isSubmitting ? (

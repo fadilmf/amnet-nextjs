@@ -18,7 +18,6 @@ export async function GET() {
         createdAt: "desc",
       },
     });
-    console.log("ini contents: ", contents);
 
     return NextResponse.json(contents);
   } catch (error) {

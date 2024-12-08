@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { ArticleCard } from "@/components/article-card";
+import { PublicArticleCard } from "@/components/public-article-card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -106,11 +106,14 @@ export default function ArticlesPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredAndSortedArticles.map((article) => (
-            <ArticleCard
+            <PublicArticleCard
               key={article.id}
-              {...article}
-              imageUrl={article.cover}
+              id={article.id}
+              title={article.title}
               summary={article.snippet}
+              imageUrl={article.cover}
+              author={article.author}
+              date={article.date}
               keywords={Array.isArray(article.keywords) ? article.keywords : []}
             />
           ))}

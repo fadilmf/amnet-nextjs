@@ -5,6 +5,19 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import axios from "axios";
+import { Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useRouter } from "next/navigation";
 
 interface PublishedArticleCardProps {
   id: string;
@@ -15,6 +28,7 @@ interface PublishedArticleCardProps {
   keywords: string[];
   imageUrl: string;
   onDraftCreated?: () => void;
+  onDelete?: () => void;
 }
 
 export function PublishedArticleCard({
@@ -26,10 +40,17 @@ export function PublishedArticleCard({
   keywords,
   imageUrl,
   onDraftCreated,
+  onDelete,
 }: PublishedArticleCardProps) {
+  const router = useRouter();
   const [isCreatingDraft, setIsCreatingDraft] = useState(false);
 
-  const handleCreateDraft = async () => {
+  const handleCardClick = () => {
+    router.push(`/content/detail/${id}`);
+  };
+
+  const handleCreateDraft = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     setIsCreatingDraft(true);
     try {
       const response = await axios.post(`/api/content/${id}/draft`);
@@ -43,8 +64,20 @@ export function PublishedArticleCard({
     }
   };
 
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const response = await axios.delete(`/api/content/${id}`);
+      if (response.status === 200) {
+        onDelete?.();
+      }
+    } catch (error) {
+      console.error("Error deleting content:", error);
+    }
+  };
+
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden cursor-pointer">
       <div className="relative h-48">
         <img
           src={imageUrl}
@@ -54,10 +87,11 @@ export function PublishedArticleCard({
         <Badge className="absolute top-2 right-2 bg-green-500">Published</Badge>
       </div>
       <CardContent className="p-4">
-        <Link href={`/admin/dashboard/content/edit/${id}`}>
-          <h3 className="text-lg font-semibold hover:text-yellow-600 line-clamp-2">
-            {title}
-          </h3>
+        <Link
+          href={`/admin/dashboard/content/edit/${id}`}
+          className="text-lg font-semibold hover:text-yellow-600 line-clamp-2"
+        >
+          {title}
         </Link>
         <p className="text-sm text-gray-500 mt-2">
           By {author} • {new Date(date).toLocaleDateString()}
@@ -76,11 +110,11 @@ export function PublishedArticleCard({
           )}
         </div>
       </CardContent>
-      <CardFooter className="p-4 pt-0">
+      <CardFooter className="p-4 pt-0 flex gap-2">
         <Button
           onClick={handleCreateDraft}
           disabled={isCreatingDraft}
-          className="w-full"
+          className="flex-1"
           variant="outline"
         >
           {isCreatingDraft ? (
@@ -92,6 +126,33 @@ export function PublishedArticleCard({
             "Add to Draft"
           )}
         </Button>
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="destructive"
+              size="icon"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the
+                content.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete}>
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardFooter>
     </Card>
   );
