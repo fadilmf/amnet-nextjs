@@ -322,12 +322,14 @@ export default function EditContentPage() {
         });
       });
 
-      // Handle maps
+      // Handle maps - now including existing maps
       content.maps.forEach((map, index) => {
         if (map.file) {
           // New map
           formData.append(`maps[${index}][file]`, map.file);
-          formData.append(`maps[${index}][filePath]`, map.filePath);
+        } else if (map.filePath) {
+          // Existing map
+          formData.append(`maps[${index}][existingFile]`, map.filePath);
         }
       });
 
