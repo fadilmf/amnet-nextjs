@@ -300,6 +300,56 @@ export default function EditContentPage() {
       formData.append("userId", user?.id || "");
       formData.append("countryId", user?.countryId.toString() || "");
 
+      // Add dimensions data
+      const dimensions = [
+        "ecologyDimension",
+        "socialDimension",
+        "economyDimension",
+        "institutionalDimension",
+        "technologyDimension",
+      ];
+
+      dimensions.forEach((dim) => {
+        const dimension = content[dim as keyof Content];
+
+        // Add dimension data
+        formData.append(
+          dim,
+          JSON.stringify({
+            dimensionType: dimension.dimensionType,
+            inputMethod: dimension.inputMethod,
+            significantAspects: dimension.significantAspects,
+            sustainabilityScore: dimension.sustainabilityScore,
+          })
+        );
+
+        // Add dimension images
+        if (dimension.images) {
+          dimension.images.forEach((image, index) => {
+            if (image.file) {
+              formData.append(`${dim}Images[${index}]`, image.file);
+              formData.append(`${dim}ImagesAlt[${index}]`, image.alt);
+            }
+          });
+        }
+
+        // Add dimension graph images
+        if (dimension.graphImages) {
+          dimension.graphImages.forEach((image, index) => {
+            if (image.file) {
+              formData.append(`${dim}GraphImages[${index}]`, image.file);
+              formData.append(`${dim}GraphImagesAlt[${index}]`, image.alt);
+            } else if (image.preview) {
+              formData.append(
+                `${dim}ExistingGraphImages[${index}]`,
+                image.preview
+              );
+              formData.append(`${dim}GraphImagesAlt[${index}]`, image.alt);
+            }
+          });
+        }
+      });
+
       // Handle existing conditions dengan format yang sama seperti AddContentPage
       content.existingConditions.forEach((condition, index) => {
         formData.append(`existingConditions[${index}][title]`, condition.title);
