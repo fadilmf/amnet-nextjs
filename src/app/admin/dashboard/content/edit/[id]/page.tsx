@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
+import { compressImage } from "@/lib/imageCompression";
 
 interface ExistingCondition {
   title: string;
@@ -711,34 +712,98 @@ export default function EditContentPage() {
     }
   };
 
-  const handleExistingConditionImageChange = (
+  const handleExistingConditionImageChange = async (
     conditionIndex: number,
     imageIndex: number,
     field: "file" | "alt",
     value: File | string
   ) => {
-    setContent((prev) => ({
-      ...prev,
-      existingConditions: prev.existingConditions.map((condition, i) =>
-        i === conditionIndex
-          ? {
-              ...condition,
-              images: condition.images.map((img, imgI) =>
-                imgI === imageIndex
-                  ? {
-                      ...img,
-                      [field]: value,
-                      preview:
-                        field === "file"
-                          ? URL.createObjectURL(value as File)
-                          : img.preview,
-                    }
-                  : img
-              ),
-            }
-          : condition
-      ),
-    }));
+    if (field === "file" && value instanceof File) {
+      const compressedFile = await compressImage(value);
+      setContent((prev) => ({
+        ...prev,
+        existingConditions: prev.existingConditions.map((condition, i) =>
+          i === conditionIndex
+            ? {
+                ...condition,
+                images: condition.images.map((img, imgI) =>
+                  imgI === imageIndex ? { ...img, file: compressedFile } : img
+                ),
+              }
+            : condition
+        ),
+      }));
+    } else {
+      setContent((prev) => ({
+        ...prev,
+        existingConditions: prev.existingConditions.map((condition, i) =>
+          i === conditionIndex
+            ? {
+                ...condition,
+                images: condition.images.map((img, imgI) =>
+                  imgI === imageIndex ? { ...img, [field]: value } : img
+                ),
+              }
+            : condition
+        ),
+      }));
+    }
+  };
+
+  // Update dimension image handling
+  const handleDimensionImageChange = async (
+    dimension: DimensionKey,
+    imageIndex: number,
+    file: File
+  ) => {
+    if (file.type.startsWith("image/")) {
+      const compressedFile = await compressImage(file);
+      const newImages = [...content[dimension].images];
+      newImages[imageIndex] = {
+        file: compressedFile,
+        alt: compressedFile.name,
+      };
+      handleDimensionChange(dimension, "images", newImages);
+    }
+  };
+
+  // Update dimension graph image handling
+  const handleDimensionGraphImageChange = async (
+    dimension: DimensionKey,
+    graphIndex: number,
+    file: File
+  ) => {
+    if (file.type.startsWith("image/")) {
+      const compressedFile = await compressImage(file);
+      const newGraphImages = [...content[dimension].graphImages];
+      newGraphImages[graphIndex] = {
+        file: compressedFile,
+        alt: compressedFile.name,
+      };
+      handleDimensionChange(dimension, "graphImages", newGraphImages);
+    }
+  };
+
+  // Update overall dimension graph image handling
+  const handleOverallGraphImageChange = async (
+    graphIndex: number,
+    file: File
+  ) => {
+    if (file.type.startsWith("image/")) {
+      const compressedFile = await compressImage(file);
+      const newGraphImages = [...content.overallDimension.graphImages];
+      newGraphImages[graphIndex] = {
+        file: compressedFile,
+        alt: compressedFile.name,
+      };
+      setContent((prev) => ({
+        ...prev,
+        overallDimension: {
+          ...prev.overallDimension,
+          graphImages: newGraphImages,
+        },
+      }));
+    }
   };
 
   return (
@@ -1092,15 +1157,10 @@ export default function EditContentPage() {
                           accept="image/*"
                           onChange={(e) => {
                             if (e.target.files?.[0]) {
-                              const newImages = [...dimensionData.images];
-                              newImages[index] = {
-                                ...newImages[index],
-                                file: e.target.files[0],
-                              };
-                              handleDimensionChange(
+                              handleDimensionImageChange(
                                 dimensionKey,
-                                "images",
-                                newImages
+                                index,
+                                e.target.files[0]
                               );
                             }
                           }}
@@ -1146,17 +1206,10 @@ export default function EditContentPage() {
                             accept="image/*"
                             onChange={(e) => {
                               if (e.target.files?.[0]) {
-                                const newGraphImages = [
-                                  ...dimensionData.graphImages,
-                                ];
-                                newGraphImages[0] = {
-                                  file: e.target.files[0],
-                                  alt: e.target.files[0].name,
-                                };
-                                handleDimensionChange(
+                                handleDimensionGraphImageChange(
                                   dimensionKey,
-                                  "graphImages",
-                                  newGraphImages
+                                  0,
+                                  e.target.files[0]
                                 );
                               }
                             }}
@@ -1189,17 +1242,10 @@ export default function EditContentPage() {
                             accept="image/*"
                             onChange={(e) => {
                               if (e.target.files?.[0]) {
-                                const newGraphImages = [
-                                  ...dimensionData.graphImages,
-                                ];
-                                newGraphImages[1] = {
-                                  file: e.target.files[0],
-                                  alt: e.target.files[0].name,
-                                };
-                                handleDimensionChange(
+                                handleDimensionGraphImageChange(
                                   dimensionKey,
-                                  "graphImages",
-                                  newGraphImages
+                                  1,
+                                  e.target.files[0]
                                 );
                               }
                             }}
@@ -1263,20 +1309,7 @@ export default function EditContentPage() {
                         accept="image/*"
                         onChange={(e) => {
                           if (e.target.files?.[0]) {
-                            const newGraphImages = [
-                              ...content.overallDimension.graphImages,
-                            ];
-                            newGraphImages[0] = {
-                              file: e.target.files[0],
-                              alt: e.target.files[0].name,
-                            };
-                            setContent((prev) => ({
-                              ...prev,
-                              overallDimension: {
-                                ...prev.overallDimension,
-                                graphImages: newGraphImages,
-                              },
-                            }));
+                            handleOverallGraphImageChange(0, e.target.files[0]);
                           }
                         }}
                       />
@@ -1310,20 +1343,7 @@ export default function EditContentPage() {
                         accept="image/*"
                         onChange={(e) => {
                           if (e.target.files?.[0]) {
-                            const newGraphImages = [
-                              ...content.overallDimension.graphImages,
-                            ];
-                            newGraphImages[1] = {
-                              file: e.target.files[0],
-                              alt: e.target.files[0].name,
-                            };
-                            setContent((prev) => ({
-                              ...prev,
-                              overallDimension: {
-                                ...prev.overallDimension,
-                                graphImages: newGraphImages,
-                              },
-                            }));
+                            handleOverallGraphImageChange(1, e.target.files[0]);
                           }
                         }}
                       />
