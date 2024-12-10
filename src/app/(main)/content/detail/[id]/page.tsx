@@ -22,6 +22,7 @@ import { ParallaxSection } from "@/components/parallax-section";
 import { ExistingConditionAccordion } from "@/components/existing-condition-accordion";
 // import { DimensionCard } from "@/components/dimension-card";
 import { useParams } from "next/navigation";
+import BytesImage from "@/components/BytesImage";
 
 const CircularScore = ({ score, color }: { score: number; color: string }) => (
   <motion.div
@@ -160,14 +161,16 @@ const DimensionCard = ({
           {dimension.isOverall ? (
             <>
               <div className="flex justify-between items-center gap-8">
-                <Image
-                  src={dimension.spiderGraph || ""}
-                  alt="Sustainability Dimensions Spider Graph"
-                  width={400}
-                  height={400}
-                  className="flex-1 cursor-pointer"
-                  onClick={() => onImageClick(dimension.spiderGraph || "")}
-                />
+                {dimension.spiderGraph && (
+                  <BytesImage
+                    bytes={dimension.spiderGraph}
+                    alt="Sustainability Dimensions Spider Graph"
+                    width={400}
+                    height={400}
+                    className="flex-1 cursor-pointer"
+                    onClick={() => onImageClick(dimension.spiderGraph)}
+                  />
+                )}
               </div>
 
               <div>
@@ -183,14 +186,16 @@ const DimensionCard = ({
                 <h3 className="text-xl font-semibold mb-3 text-gray-800">
                   Dimension Analysis
                 </h3>
-                <Image
-                  src={dimension?.tableImage || ""}
-                  alt="Dimension Analysis Table"
-                  width={800}
-                  height={480}
-                  className="w-full max-w-2xl mx-auto cursor-pointer"
-                  onClick={() => onImageClick(dimension.tableImage || "")}
-                />
+                {dimension.tableImage && (
+                  <BytesImage
+                    bytes={dimension.tableImage}
+                    alt="Dimension Analysis Table"
+                    width={800}
+                    height={480}
+                    className="w-full max-w-2xl mx-auto cursor-pointer"
+                    onClick={() => onImageClick(dimension.tableImage)}
+                  />
+                )}
               </div>
             </>
           ) : (
@@ -223,11 +228,11 @@ const DimensionCard = ({
                 </ul>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                {dimension.graphImages?.map((image, index) => (
+                {dimension.graphImages?.map((image) => (
                   <div key={image.id}>
-                    <Image
-                      src={image.file}
-                      alt={image.alt || `${dimension.name} Graph ${index + 1}`}
+                    <BytesImage
+                      bytes={image.file}
+                      alt={image.alt || `${dimension.name} Graph`}
                       width={500}
                       height={300}
                       className="w-full cursor-pointer"
@@ -475,9 +480,8 @@ export default function ArticleDetail() {
               transition={{ duration: 0.5 }}
               className="w-full mb-8 flex items-center justify-center sticky top-0 z-10"
             >
-              <Image
-                // src={`data:image/jpeg;base64,${content.cover}`}
-                src={content.cover}
+              <BytesImage
+                bytes={content.cover}
                 alt={content.title}
                 width={1000}
                 height={600}
@@ -725,10 +729,11 @@ export default function ArticleDetail() {
                     onClick={() => openModal(item.file)}
                   >
                     <div className="aspect-square relative bg-gray-200 rounded-md overflow-hidden">
-                      <Image
-                        src={item.file}
+                      <BytesImage
+                        bytes={item.file}
                         alt={item.alt}
-                        fill
+                        width={400}
+                        height={400}
                         className="object-cover rounded-md transition-transform group-hover:scale-105"
                       />
                       <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-2">
@@ -750,10 +755,11 @@ export default function ArticleDetail() {
                     onClick={() => openModal(item.image)}
                   >
                     <div className="aspect-square relative bg-gray-200 rounded-md overflow-hidden">
-                      <Image
-                        src={item.image}
+                      <BytesImage
+                        bytes={item.image}
                         alt={item.alt}
-                        fill
+                        width={400}
+                        height={400}
                         className="object-cover rounded-md transition-transform group-hover:scale-105"
                       />
                       <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-2">
@@ -782,10 +788,11 @@ export default function ArticleDetail() {
                     &times;
                   </button>
                   <div className="relative w-full h-[80vh]">
-                    <Image
-                      src={selectedImage}
+                    <BytesImage
+                      bytes={selectedImage}
                       alt="Selected"
-                      fill
+                      width={1920}
+                      height={1080}
                       className="rounded-lg shadow-lg object-contain"
                     />
                   </div>

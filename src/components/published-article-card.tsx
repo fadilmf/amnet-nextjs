@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import BytesImage from "@/components/BytesImage";
 
 interface PublishedArticleCardProps {
   id: string;
@@ -27,7 +28,10 @@ interface PublishedArticleCardProps {
   author: string;
   date: string;
   keywords: string[];
-  imageUrl: string;
+  imageUrl: {
+    type: string;
+    data: number[];
+  } | null;
   onDraftCreated?: () => void;
   onDelete?: () => void;
 }
@@ -80,7 +84,13 @@ export function PublishedArticleCard({
   return (
     <Card className="overflow-hidden cursor-pointer">
       <div className="relative h-48">
-        <Image src={imageUrl} alt={title} fill className="object-cover" />
+        <BytesImage
+          bytes={imageUrl}
+          alt={title}
+          width={400}
+          height={192}
+          className="object-cover"
+        />
         <Badge className="absolute top-2 right-2 bg-green-500">Published</Badge>
       </div>
       <CardContent className="p-4">

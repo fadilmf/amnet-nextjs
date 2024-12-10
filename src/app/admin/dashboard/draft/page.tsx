@@ -154,7 +154,8 @@ export default function AdminDraftPage() {
                   author={draft.author}
                   date={draft.date}
                   keywords={draft.keywords}
-                  imageUrl={draft.cover}
+                  // imageUrl={draft.cover}
+                  cover={draft.cover}
                   onDelete={handleDelete}
                   onPublish={() => handlePublish(draft.id.toString())}
                 />

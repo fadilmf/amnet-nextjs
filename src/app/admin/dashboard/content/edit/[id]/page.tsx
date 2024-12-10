@@ -15,10 +15,12 @@ import {
   XCircle,
   Loader2,
   FileIcon,
+  FileText,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
 import { compressImage } from "@/lib/imageCompression";
+import BytesImage from "@/components/BytesImage";
 
 interface ExistingCondition {
   title: string;
@@ -40,8 +42,14 @@ interface SustainabilityDimension {
   inputMethod: string;
   significantAspects: string[];
   sustainabilityScore: number;
-  images: { file: File | null; alt: string }[];
-  graphImages: { file: File | null; alt: string }[];
+  graphImages: { file: File | null; alt: string; preview?: string }[];
+}
+
+interface SupportingDoc {
+  file: File | null;
+  name: string;
+  preview?: { type: string; data: number[] } | null;
+  isExisting: boolean;
 }
 
 interface Content {
@@ -50,9 +58,19 @@ interface Content {
   author: string;
   date: string;
   cover: File | null;
-  coverPreview?: string;
+  // coverPreview?: string;
+  coverPreview?: string | { type: string; data: number[] };
   keywords: string[];
-  existingConditions: ExistingCondition[];
+  // existingConditions: ExistingCondition[];
+  existingConditions: {
+    title: string;
+    description: string;
+    images: {
+      file: File | null;
+      alt: string;
+      preview?: string | { type: string; data: number[] };
+    }[];
+  }[];
   ecologyDimension: SustainabilityDimension;
   socialDimension: SustainabilityDimension;
   economyDimension: SustainabilityDimension;
@@ -61,15 +79,17 @@ interface Content {
   supportingDocs: {
     file: File | null;
     name: string;
-    preview?: string;
-    filePath?: string;
+    preview?: { type: string; data: number[] } | null;
+    isExisting: boolean;
   }[];
   maps: {
     file: File | null;
-    filePath: string;
-    preview?: string;
+    preview?: string | { type: string; data: number[] };
   }[];
-  gallery: { file: File | null }[];
+  gallery: {
+    file: File | null;
+    preview?: string | { type: string; data: number[] };
+  }[];
   videos: { url: string; preview?: boolean }[];
   status: "DRAFT" | "REVIEW";
   overallDimension: {
@@ -86,7 +106,6 @@ const initialDimensionState = (
   inputMethod: "",
   significantAspects: ["", "", ""],
   sustainabilityScore: 0,
-  images: [],
   graphImages: [],
 });
 
@@ -131,9 +150,7 @@ export default function EditContentPage() {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await axios.get(`/api/content/${params.id}`);
-        const data = response.data;
-
+        const { data } = await axios.get(`/api/content/${params.id}`);
         setContent({
           title: data.title || "",
           snippet: data.summary || "",
@@ -152,8 +169,8 @@ export default function EditContentPage() {
                 condition.images?.map((img: any) => ({
                   file: null,
                   alt: img.alt || "",
-                  preview: img.file || "",
-                  filePath: img.file || "",
+                  preview: img.file, // Data Bytes dari API
+                  existingFile: img.file, // Simpan data Bytes asli
                 })) || [],
             })) || [],
           ecologyDimension: {
@@ -209,20 +226,22 @@ export default function EditContentPage() {
           supportingDocs:
             data.supportingDocs?.map((doc: any) => ({
               file: null,
-              name: doc.name || "",
-              preview: doc.filePath || "",
-              filePath: doc.filePath || "",
+              name: doc.name,
+              preview: {
+                type: "application/pdf",
+                data: doc.file, // Data Bytes dari API
+              },
+              isExisting: true, // Tambahkan flag isExisting
             })) || [],
           maps:
             data.maps?.map((map: any) => ({
               file: null,
-              filePath: map.file || "",
               preview: map.file || "",
             })) || [],
           gallery:
-            data.galleries?.map((gallery: any) => ({
+            data.galleries?.map((img: any) => ({
               file: null,
-              preview: gallery.image,
+              preview: img.image, // Data Bytes dari API
             })) || [],
           videos:
             data.videoLinks?.map((video: any) => ({
@@ -308,53 +327,122 @@ export default function EditContentPage() {
 
       // Add dimensions data
       const dimensions = [
-        "ecologyDimension",
-        "socialDimension",
-        "economyDimension",
-        "institutionalDimension",
-        "technologyDimension",
+        "ecology",
+        "social",
+        "economy",
+        "institutional",
+        "technology",
       ];
 
       dimensions.forEach((dim) => {
-        const dimension = content[dim as keyof Content];
+        const dimensionKey = `${dim}Dimension` as keyof Content;
+        const dimensionData = content[dimensionKey];
 
-        // Add dimension data
+        if (dimensionData) {
+          formData.append(
+            `${dim}Dimension`,
+            JSON.stringify({
+              dimensionType: dimensionData.dimensionType || dim.toUpperCase(),
+              inputMethod: dimensionData.inputMethod || "",
+              significantAspects: dimensionData.significantAspects || [],
+              sustainabilityScore: dimensionData.sustainabilityScore || 0,
+            })
+          );
+
+          if (dimensionData.graphImages) {
+            dimensionData.graphImages.forEach((image, index) => {
+              console.log(`Processing ${dim} graph image ${index}:`, {
+                hasFile: !!image.file,
+                hasPreview: !!image.preview,
+                alt: image.alt,
+              });
+
+              if (image.file instanceof File) {
+                console.log(
+                  `Adding new graph file for ${dim}:`,
+                  image.file.name
+                );
+                formData.append(`${dim}DimensionImages[${index}]`, image.file);
+                formData.append(
+                  `${dim}DimensionImagesAlt[${index}]`,
+                  image.alt || ""
+                );
+              } else if (image.preview) {
+                console.log(`Adding existing graph image for ${dim}`);
+                formData.append(
+                  `${dim}DimensionExistingGraphImages[${index}]`,
+                  JSON.stringify({
+                    data: image.preview,
+                    alt: image.alt || "",
+                  })
+                );
+              }
+            });
+          }
+        } else {
+          formData.append(
+            `${dim}Dimension`,
+            JSON.stringify({
+              dimensionType: dim.toUpperCase(),
+              inputMethod: "",
+              significantAspects: ["", "", ""],
+              sustainabilityScore: 0,
+            })
+          );
+        }
+      });
+
+      // Handle overall dimension separately
+      if (content.overallDimension) {
         formData.append(
-          dim,
+          "overallDimension",
           JSON.stringify({
-            dimensionType: dimension.dimensionType,
-            inputMethod: dimension.inputMethod,
-            significantAspects: dimension.significantAspects,
-            sustainabilityScore: dimension.sustainabilityScore,
+            overall: content.overallDimension.overall || "",
+            sustainabilityScore:
+              content.overallDimension.sustainabilityScore || 0,
           })
         );
 
-        // Add dimension images
-        if (dimension.images) {
-          dimension.images.forEach((image, index) => {
-            if (image.file) {
-              formData.append(`${dim}Images[${index}]`, image.file);
-              formData.append(`${dim}ImagesAlt[${index}]`, image.alt);
-            }
+        // Handle overall dimension graph images
+        content.overallDimension.graphImages.forEach((image, index) => {
+          console.log(`Processing overall dimension graph image ${index}:`, {
+            hasFile: !!image.file,
+            hasPreview: !!image.preview,
+            alt: image.alt,
           });
-        }
 
-        // Add dimension graph images
-        if (dimension.graphImages) {
-          dimension.graphImages.forEach((image, index) => {
-            if (image.file) {
-              formData.append(`${dim}GraphImages[${index}]`, image.file);
-              formData.append(`${dim}GraphImagesAlt[${index}]`, image.alt);
-            } else if (image.preview) {
-              formData.append(
-                `${dim}ExistingGraphImages[${index}]`,
-                image.preview
-              );
-              formData.append(`${dim}GraphImagesAlt[${index}]`, image.alt);
-            }
-          });
+          if (image.file instanceof File) {
+            console.log(`Adding new graph file for overall:`, image.file.name);
+            formData.append(
+              `overallDimensionGraphImages[${index}]`,
+              image.file
+            );
+            formData.append(
+              `overallDimensionGraphImagesAlt[${index}]`,
+              image.alt || ""
+            );
+          } else if (image.preview) {
+            console.log(`Adding existing graph image for overall`);
+            formData.append(
+              `overallDimensionExistingGraphImages[${index}]`,
+              JSON.stringify({
+                data: image.preview,
+                alt: image.alt || "",
+              })
+            );
+          }
+        });
+      }
+
+      // Log semua entries di FormData untuk debugging
+      console.log("\n=== FORM DATA ENTRIES ===");
+      for (const [key, value] of formData.entries()) {
+        if (value instanceof File) {
+          console.log(key, "File:", value.name);
+        } else {
+          console.log(key, value);
         }
-      });
+      }
 
       // Handle existing conditions dengan format yang sama seperti AddContentPage
       content.existingConditions.forEach((condition, index) => {
@@ -364,55 +452,97 @@ export default function EditContentPage() {
           condition.description
         );
 
-        condition.images.forEach((image) => {
+        condition.images.forEach((image, imageIndex) => {
           if (image.file) {
             // New image
-            formData.append(`existingConditions[${index}][images]`, image.file);
-          } else if (image.filePath) {
-            // Existing image
             formData.append(
-              `existingConditions[${index}][existingImages]`,
-              image.filePath
+              `existingConditions[${index}][images][${imageIndex}]`,
+              image.file
+            );
+          } else if (image.existingFile) {
+            // Existing image with Bytes data
+            formData.append(
+              `existingConditions[${index}][existingImages][${imageIndex}]`,
+              JSON.stringify({
+                data: image.existingFile,
+                alt: image.alt || "",
+              })
             );
           }
         });
       });
 
-      // Handle maps - now including existing maps
+      // Handle maps
       content.maps.forEach((map, index) => {
-        if (map.file) {
-          // New map
+        if (map.file instanceof File) {
+          // New map file
           formData.append(`maps[${index}][file]`, map.file);
-        } else if (map.filePath) {
+        } else if (map.preview) {
           // Existing map
-          formData.append(`maps[${index}][existingFile]`, map.filePath);
+          formData.append(
+            `maps[${index}][existingImages]`,
+            JSON.stringify({
+              data: map.preview,
+            })
+          );
         }
       });
 
-      // Handle gallery images
-      content.gallery.forEach((image, index) => {
-        if (image.file) {
-          // New gallery image
-          formData.append(`galleries[${index}][file]`, image.file);
-        } else if (image.preview) {
-          // Existing gallery image
-          formData.append(`galleries[${index}][existingFile]`, image.preview);
-        }
-      });
+      // Debug log untuk melihat state saat ini
+      console.log(
+        "Current supportingDocs state:",
+        content.supportingDocs.map((doc) => ({
+          name: doc.name,
+          isNewFile: doc.file instanceof File,
+          hasExistingFile: !!doc.existingFile,
+          existingFileSize: doc.existingFile ? doc.existingFile.length : 0,
+        }))
+      );
 
-      // Handle supporting documents
+      // Kirim supporting docs dengan format yang jelas
       content.supportingDocs.forEach((doc, index) => {
-        if (doc.file) {
-          // New document
+        if (doc.isExisting && doc.preview) {
+          // Kirim existing doc dengan data Bytes
+          formData.append(
+            `supportingDocsExisting[${index}]`,
+            JSON.stringify({
+              name: doc.name,
+              data: doc.preview.data,
+            })
+          );
+        } else if (doc.file) {
+          // Kirim new doc
           formData.append(`supportingDocs[${index}][file]`, doc.file);
           formData.append(`supportingDocs[${index}][name]`, doc.name);
-        } else if (doc.preview) {
-          // Existing document
-          formData.append(
-            `supportingDocs[${index}][existingFile]`,
-            doc.preview
-          );
-          formData.append(`supportingDocs[${index}][name]`, doc.name);
+        }
+      });
+
+      // Debug log untuk FormData
+      console.log("\n=== SUPPORTING DOCS IN FORM DATA ===");
+      const supportingDocsEntries = Array.from(formData.entries()).filter(
+        ([key]) =>
+          key.includes("supportingDocs") ||
+          key.includes("supportingDocsExisting")
+      );
+
+      supportingDocsEntries.forEach(([key, value]) => {
+        if (value instanceof File) {
+          console.log(`${key}:`, {
+            type: "File",
+            name: value.name,
+            size: value.size,
+          });
+        } else {
+          try {
+            const parsed = JSON.parse(value.toString());
+            console.log(`${key}:`, {
+              type: "Existing",
+              name: parsed.name,
+              dataSize: parsed.data ? parsed.data.length : 0,
+            });
+          } catch (e) {
+            console.log(`${key}:`, value);
+          }
         }
       });
 
@@ -421,39 +551,52 @@ export default function EditContentPage() {
         formData.append(`videoLinks[${index}][url]`, video.url);
       });
 
-      // Add overall dimension data
-      formData.append(
-        "overallDimension",
-        JSON.stringify({
-          overall: content.overallDimension.overall,
-          sustainabilityScore: content.overallDimension.sustainabilityScore,
-        })
-      );
-
-      // Add overall dimension graph images
-      content.overallDimension.graphImages.forEach((image, index) => {
-        if (image.file) {
-          formData.append(`overallDimensionGraphImages[${index}]`, image.file);
-          formData.append(
-            `overallDimensionGraphImagesAlt[${index}]`,
-            image.alt
-          );
-        } else if (image.preview) {
-          formData.append(
-            `overallDimensionExistingGraphImages[${index}]`,
-            image.preview
-          );
-          formData.append(
-            `overallDimensionGraphImagesAlt[${index}]`,
-            image.alt
-          );
-        }
-      });
-
       console.log("Submitting form data:");
       for (let [key, value] of formData.entries()) {
         console.log(key, value);
       }
+
+      // Handle gallery images
+      content.gallery.forEach((image, index) => {
+        if (image.file instanceof File) {
+          // New gallery image
+          formData.append(`galleries[${index}][file]`, image.file);
+        } else if (image.preview) {
+          // Existing gallery image
+          formData.append(
+            `galleries[${index}][existingImages]`,
+            JSON.stringify({
+              data: image.preview,
+            })
+          );
+        }
+      });
+
+      // Debug log untuk gallery
+      console.log("\n=== GALLERY IN FORM DATA ===");
+      const galleryEntries = Array.from(formData.entries()).filter(([key]) =>
+        key.includes("galleries")
+      );
+
+      galleryEntries.forEach(([key, value]) => {
+        if (value instanceof File) {
+          console.log(`${key}:`, {
+            type: "File",
+            name: value.name,
+            size: value.size,
+          });
+        } else {
+          try {
+            const parsed = JSON.parse(value.toString());
+            console.log(`${key}:`, {
+              type: "Existing",
+              dataSize: parsed.data ? parsed.data.length : 0,
+            });
+          } catch (e) {
+            console.log(`${key}:`, value);
+          }
+        }
+      });
 
       const response = await axios.put(`/api/content/${params.id}`, formData, {
         headers: {
@@ -469,13 +612,12 @@ export default function EditContentPage() {
       });
 
       // Add redirect after successful submission
-      setTimeout(() => {
-        if (status === "DRAFT") {
-          router.push("/admin/dashboard/draft");
-        } else {
-          router.push("/admin/dashboard/content");
-        }
-      }, 1500); // Short delay to show success message
+
+      if (status === "DRAFT") {
+        router.push("/admin/dashboard/draft");
+      } else {
+        router.push("/admin/dashboard/content");
+      }
     } catch (error) {
       console.error("Error updating content:", error);
       setSubmitResponse({
@@ -515,24 +657,27 @@ export default function EditContentPage() {
     }));
   };
 
-  const addSupportingDocument = () => {
+  const addSupportingDoc = () => {
     setContent((prev) => ({
       ...prev,
-      supportingDocs: [...prev.supportingDocs, { file: null, name: "" }],
+      supportingDocs: [
+        ...prev.supportingDocs,
+        { file: null, name: "", preview: null },
+      ],
     }));
   };
 
   const addMap = () => {
     setContent((prev) => ({
       ...prev,
-      maps: [...prev.maps, { file: null, filePath: "" }],
+      maps: [...prev.maps, { file: null, preview: null }],
     }));
   };
 
   const addGalleryImage = () => {
     setContent((prev) => ({
       ...prev,
-      gallery: [...prev.gallery, { file: null }],
+      gallery: [...prev.gallery, { file: null, preview: null }],
     }));
   };
 
@@ -568,7 +713,7 @@ export default function EditContentPage() {
     }));
   };
 
-  const removeSupportingDocument = (index: number) => {
+  const removeSupportingDoc = (index: number) => {
     setContent((prev) => ({
       ...prev,
       supportingDocs: prev.supportingDocs.filter((_, i) => i !== index),
@@ -646,30 +791,39 @@ export default function EditContentPage() {
     }));
   };
 
-  // Handler functions
-  const handleSupportingDocChange = (
+  // Handle supporting docs change
+  const handleSupportingDocChange = async (
     index: number,
     field: "file" | "name",
     value: File | string
   ) => {
-    setContent((prev) => ({
-      ...prev,
-      supportingDocs: prev.supportingDocs.map((doc, i) => {
-        if (i === index) {
-          if (field === "file") {
-            // If changing file, create preview URL
-            return {
-              ...doc,
-              file: value as File,
-              name: (value as File).name, // Auto-set name from file
-            };
-          }
-          // If changing name
-          return { ...doc, name: value as string };
-        }
-        return doc;
-      }),
-    }));
+    if (field === "file" && value instanceof File) {
+      setContent((prev) => ({
+        ...prev,
+        supportingDocs: prev.supportingDocs.map((doc, i) =>
+          i === index
+            ? {
+                file: value,
+                name: value.name,
+                preview: null,
+                isExisting: false,
+              }
+            : doc
+        ),
+      }));
+    } else if (field === "name" && !value.isExisting) {
+      setContent((prev) => ({
+        ...prev,
+        supportingDocs: prev.supportingDocs.map((doc, i) =>
+          i === index
+            ? {
+                ...doc,
+                name: value as string,
+              }
+            : doc
+        ),
+      }));
+    }
   };
 
   // Tambahkan cleanup effect
@@ -690,26 +844,21 @@ export default function EditContentPage() {
     };
   }, []);
 
-  // Handler untuk maps
-  const handleMapFileChange = (
-    index: number,
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    if (e.target.files?.[0]) {
-      const file = e.target.files[0];
-      setContent((prev) => ({
-        ...prev,
-        maps: prev.maps.map((map, i) =>
-          i === index
-            ? {
-                ...map,
-                file,
-                preview: URL.createObjectURL(file),
-              }
-            : map
-        ),
-      }));
-    }
+  // Update handler untuk maps
+  const handleMapChange = async (index: number, file: File) => {
+    const compressedFile = await compressImage(file);
+    setContent((prev) => ({
+      ...prev,
+      maps: prev.maps.map((map, i) =>
+        i === index
+          ? {
+              ...map,
+              file: compressedFile,
+              preview: URL.createObjectURL(compressedFile),
+            }
+          : map
+      ),
+    }));
   };
 
   const handleExistingConditionImageChange = async (
@@ -804,6 +953,33 @@ export default function EditContentPage() {
         },
       }));
     }
+  };
+
+  // Cleanup URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      content?.supportingDocs?.forEach((doc) => {
+        if (doc.preview) {
+          URL.revokeObjectURL(doc.preview);
+        }
+      });
+    };
+  }, []);
+
+  const handleGalleryChange = async (index: number, file: File) => {
+    const compressedFile = await compressImage(file);
+    setContent((prev) => ({
+      ...prev,
+      gallery: prev.gallery.map((img, i) =>
+        i === index
+          ? {
+              ...img,
+              file: compressedFile,
+              preview: URL.createObjectURL(compressedFile),
+            }
+          : img
+      ),
+    }));
   };
 
   return (
@@ -911,14 +1087,24 @@ export default function EditContentPage() {
                   className="mt-1"
                 />
                 {content.coverPreview && (
-                  <Image
-                    src={content.coverPreview}
-                    alt="Cover preview"
-                    width={320}
-                    height={240}
-                    className="mt-2 rounded"
-                    style={{ objectFit: "cover" }}
-                  />
+                  <div className="mt-2 relative">
+                    <BytesImage
+                      bytes={
+                        typeof content.coverPreview === "string"
+                          ? null
+                          : content.coverPreview
+                      }
+                      preview={
+                        typeof content.coverPreview === "string"
+                          ? content.coverPreview
+                          : undefined
+                      }
+                      alt="Cover preview"
+                      width={320}
+                      height={240}
+                      className="rounded object-cover"
+                    />
+                  </div>
                 )}
               </div>
             </CardContent>
@@ -972,13 +1158,14 @@ export default function EditContentPage() {
                   <div className="mt-4">
                     <Label>Current Images</Label>
                     <div className="flex flex-wrap gap-4 mt-2">
-                      {condition.images.map(
-                        (image, imgIndex) =>
-                          image.preview && (
-                            <div key={imgIndex} className="relative">
-                              <Image
-                                src={image.preview}
-                                alt={image.alt}
+                      {condition.images.map((image, imgIndex) => (
+                        <div key={imgIndex} className="relative">
+                          {/* Show existing images from database */}
+                          {(image.preview || image.existingFile) && (
+                            <div className="relative w-16 h-16">
+                              <BytesImage
+                                bytes={image.existingFile || image.preview}
+                                alt={image.alt || "Condition image"}
                                 width={64}
                                 height={64}
                                 className="object-cover rounded"
@@ -998,56 +1185,53 @@ export default function EditContentPage() {
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
-                          )
-                      )}
+                          )}
+
+                          {/* Input fields for new images */}
+                          {!image.preview && !image.existingFile && (
+                            <div className="flex gap-2 mb-2 items-center">
+                              <Input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  if (e.target.files?.[0]) {
+                                    const file = e.target.files[0];
+                                    handleExistingConditionImageChange(
+                                      index,
+                                      imgIndex,
+                                      "file",
+                                      file
+                                    );
+                                  }
+                                }}
+                              />
+                              <Button
+                                type="button"
+                                onClick={() =>
+                                  removeImageFromExistingCondition(
+                                    index,
+                                    imgIndex
+                                  )
+                                }
+                                variant="destructive"
+                                size="sm"
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
 
-                    {/* Input fields for new images */}
-                    {condition.images.map(
-                      (image, imgIndex) =>
-                        !image.preview && (
-                          <div
-                            key={imgIndex}
-                            className="flex gap-2 mb-2 items-center"
-                          >
-                            <Input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => {
-                                if (e.target.files?.[0]) {
-                                  const file = e.target.files[0];
-                                  handleExistingConditionImageChange(
-                                    index,
-                                    imgIndex,
-                                    "file",
-                                    file
-                                  );
-                                }
-                              }}
-                            />
-                            <Button
-                              type="button"
-                              onClick={() =>
-                                removeImageFromExistingCondition(
-                                  index,
-                                  imgIndex
-                                )
-                              }
-                              variant="destructive"
-                              size="sm"
-                            >
-                              Remove
-                            </Button>
-                          </div>
-                        )
-                    )}
-
+                    {/* Add Image button */}
                     <Button
                       type="button"
                       onClick={() => addImageToExistingCondition(index)}
                       size="sm"
                       className="mt-2"
                     >
+                      <PlusCircle className="h-4 w-4 mr-2" />
                       Add Image
                     </Button>
                   </div>
@@ -1145,132 +1329,109 @@ export default function EditContentPage() {
                     />
                   </div>
 
-                  {dimensionData.images.map((image, index) => (
-                    <div key={index} className="space-y-2">
-                      <Label htmlFor={`${dim}-image-${index}-file`}>
-                        Image {index + 1}
-                      </Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id={`${dim}-image-${index}-file`}
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            if (e.target.files?.[0]) {
-                              handleDimensionImageChange(
-                                dimensionKey,
-                                index,
-                                e.target.files[0]
-                              );
-                            }
-                          }}
-                        />
-                        <Input
-                          id={`${dim}-image-${index}-alt`}
-                          value={image.alt}
-                          onChange={(e) => {
-                            const newImages = [...dimensionData.images];
-                            newImages[index] = {
-                              ...newImages[index],
-                              alt: e.target.value,
-                            };
-                            handleDimensionChange(
-                              dimensionKey,
-                              "images",
-                              newImages
-                            );
-                          }}
-                          placeholder="Image alt text"
-                        />
-                        {image.preview && (
-                          <Image
-                            src={image.preview}
-                            alt={image.alt}
-                            width={64}
-                            height={64}
-                            className="object-cover rounded"
-                          />
-                        )}
-                      </div>
-                    </div>
-                  ))}
-
+                  {/* Graph Images */}
                   <div className="mt-4">
-                    <Label>Dimension Graphs (Optional)</Label>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label>Graph 1</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              if (e.target.files?.[0]) {
-                                handleDimensionGraphImageChange(
-                                  dimensionKey,
-                                  0,
-                                  e.target.files[0]
-                                );
-                              }
-                            }}
-                          />
-                          <Button
-                            type="button"
-                            onClick={() => {
-                              const newGraphImages = [
-                                ...dimensionData.graphImages,
-                              ];
-                              newGraphImages[0] = { file: null, alt: "" };
-                              handleDimensionChange(
-                                dimensionKey,
-                                "graphImages",
-                                newGraphImages
-                              );
-                            }}
-                            variant="destructive"
-                            size="sm"
-                          >
-                            Remove
-                          </Button>
+                    <Label>Graph Images</Label>
+                    <div className="flex flex-wrap gap-4 mt-2">
+                      {dimensionData.graphImages.map((image, index) => (
+                        <div key={index} className="relative">
+                          {/* Show existing/preview graph images */}
+                          {(image.preview || image.file) && (
+                            <div className="relative w-16 h-16">
+                              <BytesImage
+                                bytes={image.preview}
+                                preview={
+                                  image.file
+                                    ? URL.createObjectURL(image.file)
+                                    : undefined
+                                }
+                                alt={image.alt || "Graph image"}
+                                width={64}
+                                height={64}
+                                className="object-cover rounded"
+                              />
+                              <Button
+                                type="button"
+                                onClick={() => {
+                                  const newGraphImages = [
+                                    ...dimensionData.graphImages,
+                                  ];
+                                  newGraphImages.splice(index, 1);
+                                  handleDimensionChange(
+                                    dimensionKey,
+                                    "graphImages",
+                                    newGraphImages
+                                  );
+                                }}
+                                variant="destructive"
+                                size="sm"
+                                className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+
+                          {/* Input fields for new graph images */}
+                          {!image.preview && !image.file && (
+                            <div className="flex gap-2 mb-2 items-center">
+                              <Input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  if (e.target.files?.[0]) {
+                                    handleDimensionGraphImageChange(
+                                      dimensionKey,
+                                      index,
+                                      e.target.files[0]
+                                    );
+                                  }
+                                }}
+                              />
+                              <Input
+                                value={image.alt}
+                                onChange={(e) => {
+                                  const newGraphImages = [
+                                    ...dimensionData.graphImages,
+                                  ];
+                                  newGraphImages[index] = {
+                                    ...newGraphImages[index],
+                                    alt: e.target.value,
+                                  };
+                                  handleDimensionChange(
+                                    dimensionKey,
+                                    "graphImages",
+                                    newGraphImages
+                                  );
+                                }}
+                                placeholder="Graph alt text"
+                              />
+                            </div>
+                          )}
                         </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Graph 2</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              if (e.target.files?.[0]) {
-                                handleDimensionGraphImageChange(
-                                  dimensionKey,
-                                  1,
-                                  e.target.files[0]
-                                );
-                              }
-                            }}
-                          />
-                          <Button
-                            type="button"
-                            onClick={() => {
-                              const newGraphImages = [
-                                ...dimensionData.graphImages,
-                              ];
-                              newGraphImages[1] = { file: null, alt: "" };
-                              handleDimensionChange(
-                                dimensionKey,
-                                "graphImages",
-                                newGraphImages
-                              );
-                            }}
-                            variant="destructive"
-                            size="sm"
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      </div>
+                      ))}
                     </div>
+                    {dimensionData.graphImages.length < 2 && (
+                      <Button
+                        type="button"
+                        onClick={() => {
+                          const newGraphImages = [
+                            ...dimensionData.graphImages,
+                            { file: null, alt: "" },
+                          ];
+                          handleDimensionChange(
+                            dimensionKey,
+                            "graphImages",
+                            newGraphImages
+                          );
+                        }}
+                        size="sm"
+                        className="mt-2"
+                      >
+                        <PlusCircle className="h-4 w-4 mr-2" />
+                        Add Graph
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -1299,77 +1460,112 @@ export default function EditContentPage() {
                 />
               </div>
               <div className="mt-4">
-                <Label>Overall Graphs (Optional)</Label>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Spider Graph</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          if (e.target.files?.[0]) {
-                            handleOverallGraphImageChange(0, e.target.files[0]);
-                          }
-                        }}
-                      />
-                      <Button
-                        type="button"
-                        onClick={() => {
-                          const newGraphImages = [
-                            ...content.overallDimension.graphImages,
-                          ];
-                          newGraphImages[0] = { file: null, alt: "" };
-                          setContent((prev) => ({
-                            ...prev,
-                            overallDimension: {
-                              ...prev.overallDimension,
-                              graphImages: newGraphImages,
-                            },
-                          }));
-                        }}
-                        variant="destructive"
-                        size="sm"
-                      >
-                        Remove
-                      </Button>
+                <Label>Overall Graphs</Label>
+                <div className="flex flex-wrap gap-4 mt-2">
+                  {content.overallDimension.graphImages.map((image, index) => (
+                    <div key={index} className="relative">
+                      {/* Show existing/preview graph images */}
+                      {(image.preview || image.file) && (
+                        <div className="relative w-16 h-16">
+                          <BytesImage
+                            bytes={image.preview}
+                            preview={
+                              image.file
+                                ? URL.createObjectURL(image.file)
+                                : undefined
+                            }
+                            alt={image.alt || "Overall graph"}
+                            width={64}
+                            height={64}
+                            className="object-cover rounded"
+                          />
+                          <Button
+                            type="button"
+                            onClick={() => {
+                              const newGraphImages = [
+                                ...content.overallDimension.graphImages,
+                              ];
+                              newGraphImages.splice(index, 1);
+                              setContent((prev) => ({
+                                ...prev,
+                                overallDimension: {
+                                  ...prev.overallDimension,
+                                  graphImages: newGraphImages,
+                                },
+                              }));
+                            }}
+                            variant="destructive"
+                            size="sm"
+                            className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+
+                      {/* Input fields for new graph images */}
+                      {!image.preview && !image.file && (
+                        <div className="flex gap-2 mb-2 items-center">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              if (e.target.files?.[0]) {
+                                handleOverallGraphImageChange(
+                                  index,
+                                  e.target.files[0]
+                                );
+                              }
+                            }}
+                          />
+                          <Input
+                            value={image.alt}
+                            onChange={(e) => {
+                              const newGraphImages = [
+                                ...content.overallDimension.graphImages,
+                              ];
+                              newGraphImages[index] = {
+                                ...newGraphImages[index],
+                                alt: e.target.value,
+                              };
+                              setContent((prev) => ({
+                                ...prev,
+                                overallDimension: {
+                                  ...prev.overallDimension,
+                                  graphImages: newGraphImages,
+                                },
+                              }));
+                            }}
+                            placeholder="Graph alt text"
+                          />
+                        </div>
+                      )}
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Table Dimension Analysis</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          if (e.target.files?.[0]) {
-                            handleOverallGraphImageChange(1, e.target.files[0]);
-                          }
-                        }}
-                      />
-                      <Button
-                        type="button"
-                        onClick={() => {
-                          const newGraphImages = [
-                            ...content.overallDimension.graphImages,
-                          ];
-                          newGraphImages[1] = { file: null, alt: "" };
-                          setContent((prev) => ({
-                            ...prev,
-                            overallDimension: {
-                              ...prev.overallDimension,
-                              graphImages: newGraphImages,
-                            },
-                          }));
-                        }}
-                        variant="destructive"
-                        size="sm"
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  </div>
+                  ))}
                 </div>
+                {content.overallDimension.graphImages.length < 2 && (
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      const newGraphImages = [
+                        ...content.overallDimension.graphImages,
+                        { file: null, alt: "" },
+                      ];
+                      setContent((prev) => ({
+                        ...prev,
+                        overallDimension: {
+                          ...prev.overallDimension,
+                          graphImages: newGraphImages,
+                        },
+                      }));
+                    }}
+                    size="sm"
+                    className="mt-2"
+                  >
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    Add Graph
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -1379,69 +1575,83 @@ export default function EditContentPage() {
               <CardTitle>Supporting Documents</CardTitle>
             </CardHeader>
             <CardContent>
-              {content.supportingDocs.map((doc, index) => (
-                <div key={index} className="flex gap-2 mb-2 items-center">
-                  {/* For existing documents */}
-                  {doc.filePath ? (
-                    <div className="flex items-center gap-2 bg-gray-100 p-2 rounded-md flex-grow">
-                      <FileIcon className="h-4 w-4" />
-                      <span className="text-sm">{doc.name}</span>
-                      <a
-                        href={doc.filePath}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 hover:text-blue-700 text-sm ml-auto"
-                      >
-                        View Document
-                      </a>
-                    </div>
-                  ) : (
-                    /* For new documents */
-                    <>
-                      <div className="flex-grow">
-                        <Input
-                          type="file"
-                          accept=".pdf,.doc,.docx"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              handleSupportingDocChange(index, "file", file);
+              <div className="space-y-4">
+                {content.supportingDocs.map((doc, index) => (
+                  <div key={index} className="flex items-center gap-4">
+                    <div className="flex-1">
+                      {doc.isExisting ? (
+                        // Existing document - show name only with icon
+                        <div className="flex items-center gap-2 py-2">
+                          <FileText className="h-5 w-5 text-blue-500" />
+                          <span className="text-sm font-medium">
+                            {doc.name}
+                          </span>
+                        </div>
+                      ) : (
+                        // New document - show input fields
+                        <>
+                          <Input
+                            type="text"
+                            placeholder="Document name"
+                            value={doc.name}
+                            onChange={(e) =>
+                              handleSupportingDocChange(
+                                index,
+                                "name",
+                                e.target.value
+                              )
                             }
-                          }}
-                        />
-                      </div>
-                      <Input
-                        type="text"
-                        placeholder="Document name"
-                        value={doc.name}
-                        onChange={(e) =>
-                          handleSupportingDocChange(
-                            index,
-                            "name",
-                            e.target.value
-                          )
-                        }
-                        className="w-1/3"
-                      />
-                    </>
-                  )}
-                  <Button
-                    type="button"
-                    onClick={() => removeSupportingDocument(index)}
-                    variant="destructive"
-                    size="sm"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
+                            className="mb-2"
+                          />
+                          <Input
+                            type="file"
+                            accept=".pdf,.doc,.docx"
+                            onChange={(e) => {
+                              if (e.target.files?.[0]) {
+                                handleSupportingDocChange(
+                                  index,
+                                  "file",
+                                  e.target.files[0]
+                                );
+                              }
+                            }}
+                          />
+                        </>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      onClick={() => removeSupportingDoc(index)}
+                      className="flex-shrink-0"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
               <Button
                 type="button"
-                onClick={addSupportingDocument}
-                className="mt-2"
+                onClick={() => {
+                  setContent((prev) => ({
+                    ...prev,
+                    supportingDocs: [
+                      ...prev.supportingDocs,
+                      {
+                        file: null,
+                        name: "",
+                        preview: null,
+                        isExisting: false,
+                      },
+                    ],
+                  }));
+                }}
+                size="sm"
+                className="mt-4"
               >
                 <PlusCircle className="h-4 w-4 mr-2" />
-                Add Document
+                Add Supporting Document
               </Button>
             </CardContent>
           </Card>
@@ -1451,16 +1661,21 @@ export default function EditContentPage() {
               <CardTitle>Maps</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* Maps Preview */}
               <div className="mt-4">
-                <Label>Current Maps</Label>
+                <Label>Maps</Label>
                 <div className="flex flex-wrap gap-4 mt-2">
                   {content.maps.map((map, index) => (
                     <div key={index} className="relative">
-                      {(map.preview || map.filePath) && (
-                        <>
-                          <Image
-                            src={map.preview || map.filePath}
+                      {/* Show existing/preview map */}
+                      {(map.preview || map.file) && (
+                        <div className="relative w-16 h-16">
+                          <BytesImage
+                            bytes={map.preview}
+                            preview={
+                              map.file
+                                ? URL.createObjectURL(map.file)
+                                : undefined
+                            }
                             alt="Map"
                             width={64}
                             height={64}
@@ -1475,34 +1690,41 @@ export default function EditContentPage() {
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
-                        </>
+                        </div>
                       )}
-                      {!map.preview && !map.filePath && (
+
+                      {/* Input field for new map */}
+                      {!map.preview && !map.file && (
                         <div className="flex gap-2 mb-2 items-center">
                           <Input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => handleMapFileChange(index, e)}
+                            onChange={(e) => {
+                              if (e.target.files?.[0]) {
+                                handleMapChange(index, e.target.files[0]);
+                              }
+                            }}
                           />
-                          <Button
-                            type="button"
-                            onClick={() => removeMap(index)}
-                            variant="destructive"
-                            size="sm"
-                          >
-                            Remove
-                          </Button>
                         </div>
                       )}
                     </div>
                   ))}
                 </div>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setContent((prev) => ({
+                      ...prev,
+                      maps: [...prev.maps, { file: null, preview: null }],
+                    }));
+                  }}
+                  size="sm"
+                  className="mt-2"
+                >
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  Add Map
+                </Button>
               </div>
-
-              <Button type="button" onClick={addMap} className="mt-4">
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Add Map
-              </Button>
             </CardContent>
           </Card>
 
@@ -1511,75 +1733,65 @@ export default function EditContentPage() {
               <CardTitle>Gallery</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* Gallery Images Preview */}
-              <div className="mt-4">
-                <Label>Current Gallery Images</Label>
-                <div className="flex flex-wrap gap-4 mt-2">
-                  {content.gallery.map(
-                    (image, index) =>
-                      image.preview && (
-                        <div key={index} className="relative">
-                          <Image
-                            src={image.preview}
-                            alt="Gallery image"
-                            width={64}
-                            height={64}
-                            className="object-cover rounded"
-                          />
-                          <Button
-                            type="button"
-                            onClick={() => removeGalleryImage(index)}
-                            variant="destructive"
-                            size="sm"
-                            className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )
-                  )}
-                </div>
-              </div>
-
-              {/* Input fields for new gallery images */}
-              {content.gallery.map(
-                (image, index) =>
-                  !image.preview && (
-                    <div key={index} className="flex gap-2 mb-2 items-center">
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          if (e.target.files?.[0]) {
-                            const file = e.target.files[0];
-                            setContent((prev) => ({
-                              ...prev,
-                              gallery: prev.gallery.map((img, i) =>
-                                i === index
-                                  ? {
-                                      ...img,
-                                      file,
-                                      preview: URL.createObjectURL(file),
-                                    }
-                                  : img
-                              ),
-                            }));
+              <div className="flex flex-wrap gap-4 mt-2">
+                {content.gallery.map((image, index) => (
+                  <div key={index} className="relative">
+                    {/* Show existing/preview gallery image */}
+                    {(image.preview || image.file) && (
+                      <div className="relative w-16 h-16">
+                        <BytesImage
+                          bytes={image.preview}
+                          preview={
+                            image.file
+                              ? URL.createObjectURL(image.file)
+                              : undefined
                           }
-                        }}
-                      />
-                      <Button
-                        type="button"
-                        onClick={() => removeGalleryImage(index)}
-                        variant="destructive"
-                        size="sm"
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  )
-              )}
+                          alt="Gallery image"
+                          width={64}
+                          height={64}
+                          className="object-cover rounded"
+                        />
+                        <Button
+                          type="button"
+                          onClick={() => removeGalleryImage(index)}
+                          variant="destructive"
+                          size="sm"
+                          className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
 
-              <Button type="button" onClick={addGalleryImage}>
+                    {/* Input field for new gallery image */}
+                    {!image.preview && !image.file && (
+                      <div className="flex gap-2 mb-2 items-center">
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            if (e.target.files?.[0]) {
+                              handleGalleryChange(index, e.target.files[0]);
+                            }
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <Button
+                type="button"
+                onClick={() => {
+                  setContent((prev) => ({
+                    ...prev,
+                    gallery: [...prev.gallery, { file: null, preview: null }],
+                  }));
+                }}
+                size="sm"
+                className="mt-2"
+              >
+                <PlusCircle className="h-4 w-4 mr-2" />
                 Add Gallery Image
               </Button>
             </CardContent>

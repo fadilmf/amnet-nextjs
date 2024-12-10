@@ -1,4 +1,4 @@
-import Image from "next/image";
+import BytesImage from "@/components/BytesImage";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { ImageIcon, Trash2, Edit, Send } from "lucide-react";
@@ -23,7 +23,10 @@ interface ArticleCardProps {
   author: string;
   date: string;
   keywords: string[];
-  imageUrl?: string;
+  cover: {
+    type: string;
+    data: number[];
+  } | null;
   onDelete?: () => void;
   onPublish?: () => void;
 }
@@ -35,7 +38,7 @@ export function ArticleCard({
   author,
   date,
   keywords,
-  imageUrl,
+  cover,
   onDelete,
   onPublish,
 }: ArticleCardProps) {
@@ -58,17 +61,23 @@ export function ArticleCard({
     }
   };
 
+  console.log("Cover data:", cover); // Debug log
+
   return (
     <Card className="overflow-hidden">
       <div className="relative h-48">
-        {imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt={title || "Article cover"}
-            className="object-cover"
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
+        {cover ? (
+          <>
+            <BytesImage
+              bytes={cover}
+              alt={title || "Article cover"}
+              width={400}
+              height={192}
+              className="object-cover w-full h-full"
+            />
+            {console.log("Rendering BytesImage with cover data")}{" "}
+            {/* Debug log */}
+          </>
         ) : (
           <div className="w-full h-full bg-gray-100 flex items-center justify-center">
             <ImageIcon className="w-12 h-12 text-gray-400" />

@@ -1,8 +1,8 @@
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ImageIcon } from "lucide-react";
 import Link from "next/link";
+import BytesImage from "@/components/BytesImage";
 
 interface PublicArticleCardProps {
   id: string;
@@ -11,7 +11,10 @@ interface PublicArticleCardProps {
   author: string;
   date: string;
   keywords: string[];
-  imageUrl?: string;
+  imageUrl: {
+    type: string;
+    data: number[];
+  } | null;
 }
 
 export function PublicArticleCard({
@@ -28,12 +31,12 @@ export function PublicArticleCard({
       <Card className="overflow-hidden hover:shadow-lg transition-shadow">
         <div className="relative h-48">
           {imageUrl ? (
-            <Image
-              src={imageUrl}
+            <BytesImage
+              bytes={imageUrl}
               alt={title || "Article cover"}
+              width={400}
+              height={192}
               className="object-cover"
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           ) : (
             <div className="w-full h-full bg-gray-100 flex items-center justify-center">

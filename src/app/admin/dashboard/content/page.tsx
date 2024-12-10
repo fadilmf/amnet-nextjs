@@ -52,7 +52,7 @@ export default function AdminContentPage() {
         author: item.author || "",
         date: item.date ? new Date(item.date).toISOString() : null,
         keywords: item.keywords || [],
-        cover: item.cover || "", // base64 string from API
+        cover: item.cover,
         status: item.status,
         createdAt: item.createdAt,
         updatedAt: item.updatedAt,

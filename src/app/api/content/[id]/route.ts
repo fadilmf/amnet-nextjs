@@ -77,7 +77,8 @@ export async function GET(request: Request, { params }: any) {
         ...condition,
         images: condition.images.map((img) => ({
           ...img,
-          file: img.filePath, // Use filePath instead of binary data
+          file: img.file,
+          alt: img.alt,
         })),
       })),
 
@@ -87,7 +88,8 @@ export async function GET(request: Request, { params }: any) {
             ...content.ecologyDimension,
             graphImages: content.ecologyDimension.graphImages.map((img) => ({
               ...img,
-              file: img.filePath,
+              file: img.file,
+              alt: img.alt,
             })),
           }
         : null,
@@ -97,7 +99,8 @@ export async function GET(request: Request, { params }: any) {
             ...content.socialDimension,
             graphImages: content.socialDimension.graphImages.map((img) => ({
               ...img,
-              file: img.filePath,
+              file: img.file,
+              alt: img.alt,
             })),
           }
         : null,
@@ -107,7 +110,8 @@ export async function GET(request: Request, { params }: any) {
             ...content.economyDimension,
             graphImages: content.economyDimension.graphImages.map((img) => ({
               ...img,
-              file: img.filePath,
+              file: img.file,
+              alt: img.alt,
             })),
           }
         : null,
@@ -118,7 +122,8 @@ export async function GET(request: Request, { params }: any) {
             graphImages: content.institutionalDimension.graphImages.map(
               (img) => ({
                 ...img,
-                file: img.filePath,
+                file: img.file,
+                alt: img.alt,
               })
             ),
           }
@@ -129,7 +134,8 @@ export async function GET(request: Request, { params }: any) {
             ...content.technologyDimension,
             graphImages: content.technologyDimension.graphImages.map((img) => ({
               ...img,
-              file: img.filePath,
+              file: img.file,
+              alt: img.alt,
             })),
           }
         : null,
@@ -139,27 +145,37 @@ export async function GET(request: Request, { params }: any) {
             ...content.overallDimension,
             graphImages: content.overallDimension.graphImages.map((img) => ({
               ...img,
-              file: img.filePath,
+              file: img.file,
+              alt: img.alt,
+              preview: img.file,
             })),
           }
         : null,
 
       // Transform supporting documents
       supportingDocs: content.supportingDocs.map((doc) => ({
-        ...doc,
-        file: doc.filePath,
+        file: null,
+        name: doc.name || "",
+        preview: doc.file
+          ? {
+              type: "application/pdf",
+              data: Array.from(doc.file),
+            }
+          : null,
+        isExisting: true,
       })),
 
       // Transform galleries
       galleries: content.galleries.map((gallery) => ({
         ...gallery,
-        image: gallery.imagePath,
+        image: gallery.image,
       })),
 
       // Transform maps
       maps: content.maps.map((map) => ({
         ...map,
-        file: map.filePath,
+        file: map.file,
+        alt: map.alt || "",
       })),
     };
 
@@ -201,7 +217,18 @@ export async function PUT(
     // Debug log
     console.log("Received FormData entries:");
     for (const [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
+      // Skip logging untuk data Bytes/Binary
+      if (
+        key.includes("file") ||
+        key.includes("image") ||
+        key.includes("existingImages") ||
+        value instanceof File ||
+        (typeof value === "string" && value.length > 1000) // Skip string panjang yang mungkin berisi data binary
+      ) {
+        console.log(`${key}: [Binary Data]`);
+      } else {
+        console.log(`${key}:`, value);
+      }
 
       if (key.startsWith("existingConditions[")) {
         const matches = key.match(/\[(\d+)\]\[(\w+)\]/);
@@ -238,9 +265,27 @@ export async function PUT(
           const idx = parseInt(index);
 
           if (!mapsData[idx]) {
-            mapsData[idx] = {};
+            mapsData[idx] = {
+              file: null,
+              alt: "",
+              existingImage: null,
+            };
           }
-          mapsData[idx][field] = value;
+
+          if (field === "file" && value instanceof File) {
+            // Handle new map file
+            mapsData[idx].file = value;
+          } else if (field === "existingImages") {
+            // Handle existing map - parse JSON string
+            try {
+              const existingImage = JSON.parse(value as string);
+              mapsData[idx].existingImage = existingImage;
+            } catch (e) {
+              console.error("Error parsing existing map data:", e);
+            }
+          } else if (field === "alt") {
+            mapsData[idx].alt = value;
+          }
         }
       }
 
@@ -252,9 +297,24 @@ export async function PUT(
           const idx = parseInt(index);
 
           if (!galleriesData[idx]) {
-            galleriesData[idx] = {};
+            galleriesData[idx] = {
+              file: null,
+              existingImage: null,
+            };
           }
-          galleriesData[idx][field] = value;
+
+          if (field === "file" && value instanceof File) {
+            // Handle new gallery image
+            galleriesData[idx].file = value;
+          } else if (field === "existingImages") {
+            // Handle existing gallery image
+            try {
+              const existingImage = JSON.parse(value as string);
+              galleriesData[idx].existingImage = existingImage.data;
+            } catch (e) {
+              console.error("Error processing existing gallery image:", e);
+            }
+          }
         }
       }
 
@@ -296,25 +356,54 @@ export async function PUT(
     const overallDimensionData = JSON.parse(
       formData.get("overallDimension") as string
     );
-    const overallDimensionGraphImages = [];
+    const overallGraphImages = [];
 
-    // Process overall dimension graph images
+    // Process new overall dimension images
     for (let i = 0; i < 2; i++) {
-      const graphImage = formData.get(
-        `overallDimensionGraphImages[${i}]`
-      ) as File;
-      const graphAlt = formData.get(
+      const image = formData.get(`overallDimensionGraphImages[${i}]`) as File;
+      const imageAlt = formData.get(
         `overallDimensionGraphImagesAlt[${i}]`
       ) as string;
 
-      if (graphImage && graphImage instanceof File) {
-        const filepath = await saveFile(graphImage);
-        overallDimensionGraphImages.push({
-          filePath: filepath,
-          alt: graphAlt || "",
+      if (image && image instanceof File) {
+        const imageBytes = await saveFileAsBytes(image);
+        overallGraphImages.push({
+          file: imageBytes,
+          alt: imageAlt || "",
         });
       }
     }
+
+    // Process existing overall dimension images
+    for (let i = 0; i < 2; i++) {
+      const existingImageStr = formData.get(
+        `overallDimensionExistingGraphImages[${i}]`
+      );
+
+      if (existingImageStr) {
+        try {
+          const existingImage = JSON.parse(existingImageStr as string);
+          overallGraphImages.push({
+            file: Buffer.from(existingImage.data),
+            alt: existingImage.alt || "",
+          });
+        } catch (error) {
+          console.error(
+            `Error processing existing overall dimension image:`,
+            error
+          );
+        }
+      }
+    }
+
+    console.log(
+      "overall dimension graphImages:",
+      overallGraphImages.map((img) => ({
+        hasFile: !!img.file,
+        fileSize: img.file ? img.file.length : 0,
+        alt: img.alt,
+      }))
+    );
 
     // Process dimensions data
     const dimensions = [
@@ -333,54 +422,77 @@ export async function PUT(
       );
       const graphImages = [];
 
-      // Process graph images for each dimension
+      // Process new dimension images
       for (let i = 0; i < 2; i++) {
-        const graphImage = formData.get(
-          `${dim}DimensionGraphImages[${i}]`
-        ) as File;
-        const graphAlt = formData.get(
-          `${dim}DimensionGraphImagesAlt[${i}]`
-        ) as string;
-        const existingGraphImage = formData.get(
-          `${dim}DimensionExistingGraphImages[${i}]`
+        const image = formData.get(`${dim}DimensionImages[${i}]`) as File;
+        const imageAlt = formData.get(
+          `${dim}DimensionImagesAlt[${i}]`
         ) as string;
 
-        if (graphImage && graphImage instanceof File) {
-          // Handle new uploaded image
-          const filepath = await saveFile(graphImage);
+        if (image && image instanceof File) {
+          const imageBytes = await saveFileAsBytes(image);
           graphImages.push({
-            filePath: filepath,
-            alt: graphAlt || "",
-          });
-        } else if (existingGraphImage) {
-          // Handle existing image
-          graphImages.push({
-            filePath: existingGraphImage,
-            alt: graphAlt || "",
+            file: imageBytes,
+            alt: imageAlt || "",
           });
         }
       }
+
+      // Process existing dimension images
+      for (let i = 0; i < 2; i++) {
+        const existingImageStr = formData.get(
+          `${dim}DimensionExistingGraphImages[${i}]`
+        );
+
+        if (existingImageStr) {
+          try {
+            const existingImage = JSON.parse(existingImageStr as string);
+            graphImages.push({
+              file: Buffer.from(existingImage.data),
+              alt: existingImage.alt || "",
+            });
+          } catch (error) {
+            console.error(`Error processing existing image for ${dim}:`, error);
+          }
+        }
+      }
+
+      // Debug log untuk melihat hasil graphImages
+      console.log(
+        `${dim} dimension graphImages:`,
+        graphImages.map((img) => ({
+          hasFile: !!img.file,
+          fileSize: img.file ? img.file.length : 0,
+          alt: img.alt,
+        }))
+      );
 
       // Create dimension update object
       dimensionUpdates[`${dim}Dimension`] = {
         upsert: {
           create: {
-            title: dim.toUpperCase(),
+            title: dimensionData.dimensionType || dim.toUpperCase(),
             inputMethod: dimensionData.inputMethod || "",
             significantAspects: dimensionData.significantAspects || [],
             sustainabilityScore: dimensionData.sustainabilityScore || 0,
             graphImages: {
-              create: graphImages,
+              create: graphImages.map((img) => ({
+                file: img.file,
+                alt: img.alt,
+              })),
             },
           },
           update: {
-            title: dim.toUpperCase(),
+            title: dimensionData.dimensionType || dim.toUpperCase(),
             inputMethod: dimensionData.inputMethod || "",
             significantAspects: dimensionData.significantAspects || [],
             sustainabilityScore: dimensionData.sustainabilityScore || 0,
             graphImages: {
               deleteMany: {},
-              create: graphImages,
+              create: graphImages.map((img) => ({
+                file: img.file,
+                alt: img.alt,
+              })),
             },
           },
         },
@@ -388,11 +500,104 @@ export async function PUT(
     }
 
     // Handle cover image
-    let coverPath;
+    let coverBytes;
     const coverFile = formData.get("cover") as File;
     if (coverFile && coverFile instanceof File) {
-      coverPath = await saveFile(coverFile);
+      coverBytes = await saveFileAsBytes(coverFile);
     }
+
+    // Process supporting docs data
+    const supportingDocs = [];
+
+    // Debug log untuk melihat semua entries yang berkaitan dengan supporting docs
+    console.log("\n=== CHECKING SUPPORTING DOCS ENTRIES ===");
+    for (const [key, value] of formData.entries()) {
+      if (
+        key.includes("supportingDocs") ||
+        key.includes("supportingDocsExisting")
+      ) {
+        console.log(`Found entry: ${key}`, {
+          type: value instanceof Blob ? "Blob" : typeof value,
+          size: value instanceof Blob ? value.size : undefined,
+          value: value instanceof Blob ? "[Binary]" : value,
+        });
+      }
+    }
+
+    // Handle existing supporting docs
+    const existingDocsEntries = Array.from(formData.entries()).filter(([key]) =>
+      key.startsWith("supportingDocsExisting")
+    );
+
+    console.log("Existing docs entries found:", existingDocsEntries.length);
+
+    for (const [key, docData] of existingDocsEntries) {
+      try {
+        if (docData instanceof Blob || docData instanceof File) {
+          // Handle as binary data
+          const buffer = Buffer.from(await docData.arrayBuffer());
+          const name =
+            formData.get(
+              `supportingDocsExistingName[${supportingDocs.length}]`
+            ) || "document.pdf";
+
+          supportingDocs.push({
+            name: name,
+            file: buffer,
+          });
+        } else if (typeof docData === "string") {
+          // Handle as string (might be binary data encoded as string)
+          try {
+            const buffer = Buffer.from(docData, "binary");
+            const name =
+              formData.get(
+                `supportingDocsExistingName[${supportingDocs.length}]`
+              ) || "document.pdf";
+
+            console.log("Processing existing doc from string:", {
+              key,
+              bufferSize: buffer.length,
+              name,
+            });
+
+            supportingDocs.push({
+              name: name,
+              file: buffer,
+            });
+          } catch (e) {
+            console.error("Error processing existing doc string:", e);
+          }
+        }
+      } catch (error) {
+        console.error(`Error processing existing doc [${key}]:`, error);
+      }
+    }
+
+    // Handle new supporting docs
+    for (const [key, value] of formData.entries()) {
+      if (key.startsWith("supportingDocs[")) {
+        const matches = key.match(/\[(\d+)\]\[file\]/);
+        if (matches) {
+          const index = parseInt(matches[1]);
+          const name = formData.get(`supportingDocs[${index}][name]`) as string;
+          const buffer = await fileToBytes(value);
+          supportingDocs.push({
+            name: name || value.name,
+            file: buffer,
+          });
+        }
+      }
+    }
+
+    // Debug log untuk melihat hasil processing
+    console.log(
+      "Final processed supporting docs:",
+      supportingDocs.map((doc) => ({
+        hasFile: !!doc.file,
+        fileSize: doc.file ? doc.file.length : 0,
+        name: doc.name,
+      }))
+    );
 
     // Update in database
     const updatedContent = await prisma.content.update({
@@ -409,7 +614,7 @@ export async function PUT(
         userId: formData.get("userId") as string,
         countryId: parseInt(formData.get("countryId") as string),
         // Add cover update only if new file is uploaded
-        ...(coverPath && { cover: coverPath }),
+        ...(coverBytes && { cover: coverBytes }),
         ...dimensionUpdates,
         existingConditions: {
           deleteMany: {},
@@ -419,15 +624,23 @@ export async function PUT(
               description: condition.description,
               images: {
                 create: [
-                  // Existing images
-                  ...(condition.existingImages || []).map((path) => ({
-                    filePath: path,
-                    alt: "",
-                  })),
-                  // New images
+                  // Handle existing images yang dikirim sebagai Bytes
+                  ...(condition.existingImages || []).map((existingImage) => {
+                    // Parse string JSON menjadi object jika masih dalam bentuk string
+                    const imageData =
+                      typeof existingImage === "string"
+                        ? JSON.parse(existingImage)
+                        : existingImage;
+
+                    return {
+                      file: imageData.data ? Buffer.from(imageData.data) : null, // Convert Bytes data ke Buffer
+                      alt: imageData.alt || "",
+                    };
+                  }),
+                  // Handle new images
                   ...(await Promise.all(
                     (condition.images || []).map(async (image: File) => ({
-                      filePath: await saveFile(image),
+                      file: await saveFileAsBytes(image),
                       alt: "",
                     }))
                   )),
@@ -439,74 +652,93 @@ export async function PUT(
 
         // Update maps
         maps: {
-          deleteMany: {}, // Clear existing relations but not the files
+          deleteMany: {},
           create: await Promise.all(
             mapsData
               .map(async (map) => {
-                if (map.file) {
-                  // New map
+                if (map.file instanceof File) {
+                  // Handle new map file
                   return {
-                    filePath: await saveFile(map.file),
+                    file: await saveFileAsBytes(map.file),
                     alt: map.alt || "",
                   };
-                } else if (map.existingFile) {
-                  // Existing map
+                } else if (map.existingImage?.data) {
+                  // Handle existing map
                   return {
-                    filePath: map.existingFile,
-                    alt: map.alt || "",
+                    file: Buffer.from(map.existingImage.data),
+                    alt: map.existingImage.alt || map.alt || "",
                   };
                 }
+                return null;
               })
               .filter(Boolean)
-          ), // Remove undefined entries
+          ),
         },
 
         // Update galleries
         galleries: {
-          deleteMany: {}, // Clear existing relations but not the files
+          deleteMany: {},
           create: await Promise.all(
             galleriesData
               .map(async (gallery) => {
-                if (gallery.file) {
-                  // New gallery image
+                if (gallery.file instanceof File) {
+                  // Handle new gallery image
                   return {
-                    imagePath: await saveFile(gallery.file),
-                    alt: gallery.alt || "",
+                    image: await saveFileAsBytes(gallery.file),
                   };
-                } else if (gallery.existingFile) {
-                  // Existing gallery image
+                } else if (gallery.existingImage) {
+                  // Handle existing gallery image
                   return {
-                    imagePath: gallery.existingFile,
-                    alt: gallery.alt || "",
+                    image: Buffer.from(gallery.existingImage),
                   };
                 }
+                return null;
               })
               .filter(Boolean)
-          ), // Remove undefined entries
+          ),
         },
 
         // Update supporting docs
         supportingDocs: {
-          deleteMany: {}, // Clear existing relations but not the files
-          create: await Promise.all(
-            supportingDocsData
-              .map(async (doc) => {
-                if (doc.file) {
-                  // New document
-                  return {
-                    filePath: await saveFile(doc.file),
-                    name: doc.name || "",
-                  };
-                } else if (doc.existingFile) {
-                  // Existing document
-                  return {
-                    filePath: doc.existingFile,
-                    name: doc.name || "",
-                  };
-                }
-              })
-              .filter(Boolean)
-          ), // Remove undefined entries
+          deleteMany: {},
+          create: await Promise.all([
+            // Handle existing docs
+            ...existingDocsEntries.map(async ([key, value]) => {
+              try {
+                const parsed =
+                  typeof value === "string" ? JSON.parse(value) : value;
+                console.log("Processing existing doc:", {
+                  name: parsed.name,
+                  dataLength: parsed.data?.length,
+                });
+
+                return {
+                  name: parsed.name,
+                  file: Array.isArray(parsed.data)
+                    ? Buffer.from(parsed.data)
+                    : null,
+                };
+              } catch (error) {
+                console.error("Error processing existing doc:", error);
+                console.log("Raw value:", value);
+                return null;
+              }
+            }),
+            // Handle new docs
+            ...Array.from(formData.entries())
+              .filter(([key]) => key.match(/^supportingDocs\[\d+\]\[file\]/))
+              .map(async ([key, value]) => {
+                const index = key.match(/\[(\d+)\]/)?.[1];
+                const name = formData.get(
+                  `supportingDocs[${index}][name]`
+                ) as string;
+                const file = value as File;
+                return {
+                  name,
+                  file: await fileToBytes(file),
+                };
+              }),
+          ]).then((docs) => docs.filter(Boolean)),
         },
 
         // Update video links
@@ -526,7 +758,10 @@ export async function PUT(
               sustainabilityScore:
                 overallDimensionData.sustainabilityScore || 0,
               graphImages: {
-                create: overallDimensionGraphImages,
+                create: overallGraphImages.map((img) => ({
+                  file: img.file,
+                  alt: img.alt,
+                })),
               },
             },
             update: {
@@ -535,7 +770,10 @@ export async function PUT(
                 overallDimensionData.sustainabilityScore || 0,
               graphImages: {
                 deleteMany: {},
-                create: overallDimensionGraphImages,
+                create: overallGraphImages.map((img) => ({
+                  file: img.file,
+                  alt: img.alt,
+                })),
               },
             },
           },
@@ -573,6 +811,24 @@ export async function PUT(
     });
 
     console.log("Updated videoLinks:", updatedContent.videoLinks);
+    console.log(
+      "Processed supporting docs:",
+      supportingDocsData.map((doc) => ({
+        hasFile: !!doc.file,
+        fileSize: doc.file ? doc.file.length : 0,
+        name: doc.name,
+      }))
+    );
+
+    // Debug log
+    console.log(
+      "Supporting docs created:",
+      updatedContent.supportingDocs.map((doc) => ({
+        id: doc.id,
+        name: doc.name,
+        hasFile: !!doc.file,
+      }))
+    );
 
     return NextResponse.json({
       message: "Content updated successfully",
@@ -662,4 +918,14 @@ async function saveFile(file: File): Promise<string> {
 
   await writeFile(filepath, buffer);
   return `/uploads/${filename}`;
+}
+
+async function saveFileAsBytes(file: File): Promise<Buffer> {
+  const bytes = await file.arrayBuffer();
+  return Buffer.from(bytes);
+}
+
+async function fileToBytes(file: File): Promise<Buffer> {
+  const arrayBuffer = await file.arrayBuffer();
+  return Buffer.from(arrayBuffer);
 }

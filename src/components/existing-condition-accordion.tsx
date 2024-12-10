@@ -6,20 +6,27 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import Image from "next/image";
 import { Button } from "./ui/button";
 import { ImageIcon } from "lucide-react";
+import BytesImage from "@/components/BytesImage";
 
 interface Condition {
   title: string;
   description: string;
-  images?: string[];
+  images?: Array<{
+    id: string;
+    file: {
+      type: string;
+      data: number[];
+    };
+    alt?: string;
+  }>;
 }
 
 interface ExistingConditionAccordionProps {
   conditions: Condition[];
   scrollToGallery: () => void;
-  onImageClick: (file: string) => void;
+  onImageClick: (file: { type: string; data: number[] }) => void;
 }
 
 export function ExistingConditionAccordion({
@@ -48,14 +55,18 @@ export function ExistingConditionAccordion({
                   <div className="grid grid-cols-2 gap-2">
                     {condition.images.slice(0, 4).map((image, imageIndex) => (
                       <div
-                        key={imageIndex}
+                        key={image.id}
                         className="relative aspect-square cursor-pointer hover:opacity-80 transition-opacity"
                         onClick={() => onImageClick(image.file)}
                       >
-                        <Image
-                          src={image.file}
-                          alt={`${condition.title} image ${imageIndex + 1}`}
-                          fill
+                        <BytesImage
+                          bytes={image.file}
+                          alt={
+                            image.alt ||
+                            `${condition.title} image ${imageIndex + 1}`
+                          }
+                          width={400}
+                          height={400}
                           className="object-cover rounded-lg"
                         />
                       </div>

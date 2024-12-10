@@ -32,7 +32,7 @@ model User {
   handphone   String?
   institution String?
   position    String?
-  image       String?
+  image       Bytes?
   password    String?
   status      Status    @default(ACTIVE)
   createdAt   DateTime? @default(now())
@@ -195,7 +195,7 @@ model Content {
   summary   String?
   author    String?
   date      DateTime?
-  cover     String?
+  cover     Bytes?
   keywords  String[]
 
   existingConditions ExistingCondition[]
@@ -323,7 +323,7 @@ model OverallDimension {
 model SupportingDoc {
   id        Int     @id @default(autoincrement())
   name      String?
-  filePath  String?
+  file      Bytes?
   content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
   contentId Int
 }
@@ -331,7 +331,7 @@ model SupportingDoc {
 model Gallery {
   id        Int     @id @default(autoincrement())
   contentId Int
-  imagePath String?
+  image     Bytes?
   alt       String?
   content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 }
@@ -345,7 +345,7 @@ model VideoLink {
 
 model Map {
   id        String  @id @default(cuid())
-  filePath  String?
+  file      Bytes?
   alt       String?
   content   Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
   contentId Int
@@ -377,7 +377,7 @@ model Announcement {
 
 model Image {
   id                  String             @id @default(cuid())
-  filePath            String?
+  file                Bytes? // Changed from filePath String? to file Bytes?
   alt                 String?
   existingCondition   ExistingCondition? @relation(fields: [existingConditionId], references: [id])
   existingConditionId String?
