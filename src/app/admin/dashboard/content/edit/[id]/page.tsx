@@ -466,6 +466,15 @@ export default function EditContentPage() {
           status === "DRAFT" ? "saved as draft" : "sent to review"
         }!`,
       });
+
+      // Add redirect after successful submission
+      setTimeout(() => {
+        if (status === "DRAFT") {
+          router.push("/admin/dashboard/draft");
+        } else {
+          router.push("/admin/dashboard/content");
+        }
+      }, 1500); // Short delay to show success message
     } catch (error) {
       console.error("Error updating content:", error);
       setSubmitResponse({

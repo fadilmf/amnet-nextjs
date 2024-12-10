@@ -550,7 +550,12 @@ export default function AddContentPage() {
             status === "DRAFT" ? "saved as draft" : "published"
           }!`,
         });
-        // router.push("/admin/dashboard/content");
+        // Redirect based on content status
+        if (status === "DRAFT") {
+          router.push("/admin/dashboard/draft");
+        } else {
+          router.push("/admin/dashboard/content");
+        }
       } else {
         setSubmitResponse({
           success: false,
