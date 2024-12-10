@@ -17,10 +17,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <body className={inter.className}>
-      <Header />
-      <main>{children}</main>
-      <Footer />
-    </body>
+    <html lang="en">
+      <head>
+        <link rel="icon" href="/logo_amnet.png" type="image/png" />
+      </head>
+      <body className={inter.className}>
+        <Header />
+        <main>{children}</main>
+        <Footer />
+      </body>
+    </html>
   );
 }
