@@ -74,7 +74,7 @@ export default function LoginPage() {
           {/* Mobile Logo */}
           <div className="md:hidden flex justify-center mb-8">
             <Image
-              src="/amnet-logo.svg"
+              src="/logo_amnet.png"
               alt="AMNET - ASEAN MANGROVE NETWORK"
               width={200}
               height={200}
