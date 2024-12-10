@@ -154,7 +154,8 @@ export async function GET(request: Request, { params }: any) {
 
       // Transform supporting documents
       supportingDocs: content.supportingDocs.map((doc) => ({
-        file: null,
+        id: doc.id,
+        file: doc.file,
         name: doc.name || "",
         preview: doc.file
           ? {

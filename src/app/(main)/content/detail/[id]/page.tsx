@@ -696,24 +696,73 @@ export default function ArticleDetail() {
             {/* Documents Tab */}
             <TabsContent value="documents" className="mt-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {content.supportingDocs?.map((doc) => (
+                {content?.supportingDocs?.map((doc) => (
                   <div
                     key={doc.id}
                     className="bg-white p-4 rounded-lg shadow-md"
                   >
-                    <h3 className="text-lg font-semibold mb-2">{doc.name}</h3>
-                    <a
-                      href={`/api/download?file=${encodeURIComponent(
-                        doc.file
-                      )}`}
-                      download
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Button className="w-full bg-green-600 hover:bg-green-700">
-                        Download
+                    <h3 className="text-lg font-semibold mb-2">
+                      {doc.name || "Document"}
+                    </h3>
+                    {doc.file ? (
+                      <a
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          try {
+                            const response = await fetch(
+                              `/api/download?contentId=${content.id}&docId=${doc.id}`
+                            );
+
+                            // Cek Content-Type dari response
+                            const contentType =
+                              response.headers.get("Content-Type");
+
+                            if (!response.ok) {
+                              // Jika error, coba parse sebagai JSON
+                              if (contentType?.includes("application/json")) {
+                                const errorData = await response.json();
+                                throw new Error(
+                                  errorData.error || "Download failed"
+                                );
+                              } else {
+                                throw new Error("Download failed");
+                              }
+                            }
+
+                            // Jika sukses, proses sebagai blob
+                            if (contentType?.includes("application/pdf")) {
+                              const blob = await response.blob();
+                              const url = window.URL.createObjectURL(blob);
+                              const link = document.createElement("a");
+                              link.href = url;
+                              link.download = doc.name || "document.pdf";
+                              document.body.appendChild(link);
+                              link.click();
+                              link.remove();
+                              window.URL.revokeObjectURL(url);
+                            } else {
+                              throw new Error("Invalid file type received");
+                            }
+                          } catch (error) {
+                            console.error("Download error:", error);
+                            alert(
+                              error.message || "Failed to download document"
+                            );
+                          }
+                        }}
+                      >
+                        <Button className="w-full bg-green-600 hover:bg-green-700">
+                          Download
+                        </Button>
+                      </a>
+                    ) : (
+                      <Button
+                        className="w-full bg-gray-400 cursor-not-allowed"
+                        disabled
+                      >
+                        No file available
                       </Button>
-                    </a>
+                    )}
                   </div>
                 ))}
               </div>
