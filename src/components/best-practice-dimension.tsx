@@ -32,6 +32,7 @@ const dimensions: Dimension[] = [
       "h. Carbon management",
       "i. Coastal sedimentation",
       "j. Coastal abrasion",
+      "and several others",
     ],
     description:
       "The Ecological Dimension encompasses all data, information, or parameters that describe the ecological condition of the mangrove ecosystem in a given location.",
@@ -48,6 +49,7 @@ const dimensions: Dimension[] = [
       "f. Frequency of community meetings",
       "g. Implementation of legal sanctions on illegal logging activities",
       "h. Number of forest/aquaculture farmer groups",
+      "and several others",
     ],
     description:
       "The Social Dimension encompasses all data, information, or parameters that describe the social condition of the mangrove ecosystem in a given location.",
@@ -65,6 +67,7 @@ const dimensions: Dimension[] = [
       "g. Ownership of aquaculture land",
       "h. Feasibility of aquaculture business",
       "i. Contribution to Gross Regional Domestic Product (GRDP)",
+      "and several others",
     ],
     description:
       "The Economic Dimension encompasses all data, information, or parameters that describe the economic condition of the community within the mangrove ecosystem in a given location.",
@@ -80,6 +83,7 @@ const dimensions: Dimension[] = [
       "e. Intensity of mangrove aquaculture monitoring by Pandega (aquaculture guardians)",
       "f. Law enforcement",
       "g. Role of universities and academics",
+      "and several others",
     ],
     description:
       "The Institutional Dimension encompasses all data, information, or parameters that describe the institutional condition of mangrove ecosystem management at a given location.",
@@ -97,6 +101,7 @@ const dimensions: Dimension[] = [
       "g. Abrasion control technology",
       "h. Flood/tidal flood prevention technology",
       "i. Sedimentation prevention technology",
+      "and several others",
     ],
     description:
       "The Technological Dimension encompasses all data, information, or parameters that describe the technology used in the management of the mangrove ecosystem at a given location.",
