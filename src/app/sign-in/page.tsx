@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import axios from "axios"; // Import axios
+import axios from "axios";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff } from "lucide-react";
-import { useRouter } from "next/navigation"; // Import useRouter
-import Cookies from "js-cookie"; // Import js-cookie
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
@@ -15,42 +15,49 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState(""); // State untuk error
-  const router = useRouter(); // Inisialisasi router untuk redirect
-  const { setUser } = useAuth(); // Destructure setUser dari AuthContext
+  const [errorMessage, setErrorMessage] = useState("");
+  const router = useRouter();
+  const { user, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push("/");
+    }
+  }, [user, authLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    setErrorMessage(""); // Reset error message saat submit
+    setErrorMessage("");
 
     try {
-      // Kirim permintaan ke API login
       const response = await axios.post("/api/auth/login", {
         username,
         password,
       });
 
-      // Ambil token dan user dari respons
       const { token, user } = response.data;
-
-      console.log("ini response: ", response.data);
-
-      // Simpan token di cookies
-      Cookies.set("token", token, { expires: 1 }); // Token disimpan selama 1 hari
-
-      // Update user state di AuthContext
-      setUser(user);
-
-      // Redirect ke halaman utama setelah login berhasil
+      Cookies.set("token", token, { expires: 1 });
       router.push("/");
     } catch (error) {
       console.error("Login failed:", error);
-      setErrorMessage("Login failed. Please check your credentials."); // Set pesan error
+      setErrorMessage("Login failed. Please check your credentials.");
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen w-full flex">
