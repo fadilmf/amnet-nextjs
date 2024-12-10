@@ -260,21 +260,25 @@ function UserForm({ onSubmit, initialData }: UserFormProps) {
       email: "",
       handphone: null,
       institution: "",
-      position: "",
       status: "ACTIVE",
       role: "ADMIN",
-      password: "", // Tambahkan default state untuk password
+      password: "",
       country: "",
     }
   );
 
   const countries = [
-    { id: 1, name: "Indonesia" },
-    { id: 2, name: "Malaysia" },
-    { id: 3, name: "Singapore" },
-    { id: 4, name: "Thailand" },
-    { id: 5, name: "Vietnam" },
-    { id: 6, name: "Philippines" },
+    { id: 1, name: "Brunei Darussalam" },
+    { id: 2, name: "Cambodia" },
+    { id: 3, name: "Indonesia" },
+    { id: 4, name: "Laos" },
+    { id: 5, name: "Malaysia" },
+    { id: 6, name: "Myanmar" },
+    { id: 7, name: "Philippines" },
+    { id: 8, name: "Singapore" },
+    { id: 9, name: "Thailand" },
+    { id: 10, name: "Timor Leste" },
+    { id: 11, name: "Vietnam" },
     // Add more countries as needed
   ];
 
@@ -285,7 +289,10 @@ function UserForm({ onSubmit, initialData }: UserFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    const submitData = initialData
+      ? formData
+      : { ...formData, role: "ADMIN", status: "ACTIVE" };
+    onSubmit(submitData);
   };
 
   return (
@@ -393,20 +400,63 @@ function UserForm({ onSubmit, initialData }: UserFormProps) {
           onChange={handleChange}
         />
       </div>
-      <div>
-        <label
-          htmlFor="position"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Position
-        </label>
-        <Input
-          id="position"
-          name="position"
-          value={formData.position || ""}
-          onChange={handleChange}
-        />
-      </div>
+      {initialData && (
+        <>
+          <div>
+            <label
+              htmlFor="status"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Status
+            </label>
+            <Select
+              name="status"
+              value={formData.status}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  status: value as "ACTIVE" | "INACTIVE",
+                })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="INACTIVE">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="role"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Role
+            </label>
+            <Select
+              name="role"
+              value={formData.role}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  role: value as "ADMIN" | "SUPER_ADMIN",
+                })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ADMIN">Admin</SelectItem>
+                <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </>
+      )}
       <div>
         <label
           htmlFor="country"
@@ -430,55 +480,6 @@ function UserForm({ onSubmit, initialData }: UserFormProps) {
                 {country.name}
               </SelectItem>
             ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div>
-        <label
-          htmlFor="status"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Status
-        </label>
-        <Select
-          name="status"
-          value={formData.status}
-          onValueChange={(value) =>
-            setFormData({ ...formData, status: value as "ACTIVE" | "INACTIVE" })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ACTIVE">Active</SelectItem>
-            <SelectItem value="INACTIVE">Inactive</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div>
-        <label
-          htmlFor="role"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Role
-        </label>
-        <Select
-          name="role"
-          value={formData.role}
-          onValueChange={(value) =>
-            setFormData({
-              ...formData,
-              role: value as "ADMIN" | "SUPER_ADMIN",
-            })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select role" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ADMIN">Admin</SelectItem>
-            <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
           </SelectContent>
         </Select>
       </div>

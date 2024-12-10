@@ -72,6 +72,7 @@ const DimensionCard = ({
   isActive,
   onClick,
   onClose,
+  onImageClick,
 }: {
   dimension: {
     name: string;
@@ -96,6 +97,7 @@ const DimensionCard = ({
   isActive: boolean;
   onClick: () => void;
   onClose: () => void;
+  onImageClick: (imageUrl: string) => void;
 }) => {
   return (
     <motion.div
@@ -163,7 +165,8 @@ const DimensionCard = ({
                   alt="Sustainability Dimensions Spider Graph"
                   width={400}
                   height={400}
-                  className="flex-1"
+                  className="flex-1 cursor-pointer"
+                  onClick={() => onImageClick(dimension.spiderGraph || "")}
                 />
               </div>
 
@@ -185,7 +188,8 @@ const DimensionCard = ({
                   alt="Dimension Analysis Table"
                   width={800}
                   height={480}
-                  className="w-full max-w-2xl mx-auto"
+                  className="w-full max-w-2xl mx-auto cursor-pointer"
+                  onClick={() => onImageClick(dimension.tableImage || "")}
                 />
               </div>
             </>
@@ -226,7 +230,8 @@ const DimensionCard = ({
                       alt={image.alt || `${dimension.name} Graph ${index + 1}`}
                       width={500}
                       height={300}
-                      className="w-full"
+                      className="w-full cursor-pointer"
+                      onClick={() => onImageClick(image.file)}
                     />
                   </div>
                 ))}
@@ -402,6 +407,11 @@ export default function ArticleDetail() {
     },
   ];
 
+  const handleImageClick = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+    setIsModalOpen(true);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -521,6 +531,7 @@ export default function ArticleDetail() {
           <ExistingConditionAccordion
             conditions={content.existingConditions}
             scrollToGallery={scrollToGallery}
+            onImageClick={handleImageClick}
           />
         </div>
       </section>
@@ -635,6 +646,7 @@ export default function ArticleDetail() {
                       )
                     }
                     onClose={() => setActiveDimension(null)}
+                    onImageClick={handleImageClick}
                   />
                 ))}
             </AnimatePresence>

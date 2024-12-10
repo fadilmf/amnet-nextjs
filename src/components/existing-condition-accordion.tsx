@@ -19,11 +19,13 @@ interface Condition {
 interface ExistingConditionAccordionProps {
   conditions: Condition[];
   scrollToGallery: () => void;
+  onImageClick: (file: string) => void;
 }
 
 export function ExistingConditionAccordion({
   conditions,
   scrollToGallery,
+  onImageClick,
 }: ExistingConditionAccordionProps) {
   return (
     <Accordion type="single" collapsible className="w-full space-y-4">
@@ -48,10 +50,10 @@ export function ExistingConditionAccordion({
                       <div
                         key={imageIndex}
                         className="relative aspect-square cursor-pointer hover:opacity-80 transition-opacity"
-                        onClick={scrollToGallery}
+                        onClick={() => onImageClick(image.file)}
                       >
                         <Image
-                          src={image.filePath}
+                          src={image.file}
                           alt={`${condition.title} image ${imageIndex + 1}`}
                           fill
                           className="object-cover rounded-lg"
