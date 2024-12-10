@@ -300,6 +300,11 @@ export default function EditContentPage() {
       formData.append("userId", user?.id || "");
       formData.append("countryId", user?.countryId.toString() || "");
 
+      // Add cover image if it exists
+      if (content.cover) {
+        formData.append("cover", content.cover);
+      }
+
       // Add dimensions data
       const dimensions = [
         "ecologyDimension",

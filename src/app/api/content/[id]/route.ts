@@ -387,6 +387,13 @@ export async function PUT(
       };
     }
 
+    // Handle cover image
+    let coverPath;
+    const coverFile = formData.get("cover") as File;
+    if (coverFile && coverFile instanceof File) {
+      coverPath = await saveFile(coverFile);
+    }
+
     // Update in database
     const updatedContent = await prisma.content.update({
       where: { id },
@@ -401,6 +408,8 @@ export async function PUT(
         status: formData.get("status") as string,
         userId: formData.get("userId") as string,
         countryId: parseInt(formData.get("countryId") as string),
+        // Add cover update only if new file is uploaded
+        ...(coverPath && { cover: coverPath }),
         ...dimensionUpdates,
         existingConditions: {
           deleteMany: {},
