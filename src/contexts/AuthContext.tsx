@@ -1,113 +1,62 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
-import { useRouter } from "next/navigation";
+import { createContext, useContext, useState, useEffect } from "react";
 import Cookies from "js-cookie";
+import axios from "axios";
 
 interface User {
   id: string;
-  firstName: string;
-  lastName: string;
+  username: string;
   role: string;
-  country: {
-    countryName: string;
-  };
-  email: string;
-  avatarUrl?: string;
-  phoneNumber?: string;
-  address?: string;
-  createdAt: string;
-  updatedAt: string;
-  isActive: boolean;
-  lastLogin?: string;
+  countryId: number;
 }
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
   isLoading: boolean;
-  login: (token: string, userData: User) => void;
-  logout: () => void;
+  setUser: (user: User | null) => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  isLoading: true,
+  setUser: () => {},
+});
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
-
-  const login = (newToken: string, userData: User) => {
-    // Set token in cookies with expiry (e.g., 7 days)
-    Cookies.set("token", newToken, { expires: 7 });
-    setToken(newToken);
-    setUser(userData);
-  };
-
-  const logout = () => {
-    Cookies.remove("token");
-    setToken(null);
-    setUser(null);
-    router.push("/sign-in");
-  };
 
   useEffect(() => {
-    const fetchUserData = async (authToken: string) => {
-      try {
-        const response = await fetch("/api/auth/me", {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        });
+    const verifyAuth = async () => {
+      const token = Cookies.get("token");
 
-        if (!response.ok) {
-          logout();
-          return;
-        }
+      if (token) {
+        try {
+          const response = await axios.get("/api/auth/me", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
 
-        const data = await response.json();
-        if (data.data) {
-          setUser(data.data);
-        } else {
-          console.error("Invalid user data format:", data);
-          logout();
+          if (response.data.user) {
+            setUser(response.data.user);
+          }
+        } catch (error) {
+          console.error("Auth verification failed:", error);
+          Cookies.remove("token");
+          setUser(null);
         }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        logout();
-      } finally {
-        setIsLoading(false);
       }
+      setIsLoading(false);
     };
 
-    // Check token from cookies on initial load
-    const storedToken = Cookies.get("token");
-    if (storedToken && !user) {
-      setToken(storedToken);
-      fetchUserData(storedToken);
-    } else {
-      setIsLoading(false);
-    }
+    verifyAuth();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, setUser }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-}
+export const useAuth = () => useContext(AuthContext);

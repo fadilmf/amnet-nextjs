@@ -1,33 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export function middleware(req: NextRequest) {
-  const token = req.cookies.get("token"); // Mengambil token dari cookies
-  const currentPath = req.nextUrl.pathname; // Mendapatkan path saat ini
+  const token = req.cookies.get("token");
+  const currentPath = req.nextUrl.pathname;
 
-  // Tentukan apakah pengguna berada di halaman login atau halaman admin
+  // Izinkan akses ke API routes dan static files
+  if (
+    currentPath.startsWith("/api") ||
+    currentPath.startsWith("/_next") ||
+    currentPath.includes(".")
+  ) {
+    return NextResponse.next();
+  }
+
   const isLoginPage = currentPath === "/sign-in";
   const isAdminPage = currentPath.startsWith("/admin");
 
-  // Jika token ada dan pengguna berada di halaman login, redirect ke beranda
-
-  console.log("ini middleware");
-
+  // Redirect ke home jika sudah login tapi mencoba akses halaman login
   if (token && isLoginPage) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  // Jika tidak ada token dan pengguna mencoba mengakses halaman admin, arahkan ke halaman login
+  // Redirect ke login jika mencoba akses halaman admin tanpa token
   if (!token && isAdminPage) {
     return NextResponse.redirect(new URL("/sign-in", req.url));
   }
 
-  // Izinkan akses ke halaman lain
   return NextResponse.next();
 }
 
-// Konfigurasi rute mana saja yang akan dilindungi middleware
 export const config = {
-  matcher: [
-    "/((?!_next|api|_next/static|_next/image).*)", // Melindungi semua rute kecuali API, halaman login, dan aset statis
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

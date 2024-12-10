@@ -17,8 +17,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState(""); // State untuk error
   const router = useRouter(); // Inisialisasi router untuk redirect
-
-  const { login } = useAuth();
+  const { setUser } = useAuth(); // Destructure setUser dari AuthContext
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -32,17 +31,16 @@ export default function LoginPage() {
         password,
       });
 
-      // Ambil token dari respons
-      const { token } = response.data;
+      // Ambil token dan user dari respons
+      const { token, user } = response.data;
 
       console.log("ini response: ", response.data);
 
       // Simpan token di cookies
       Cookies.set("token", token, { expires: 1 }); // Token disimpan selama 1 hari
 
-      if (response.status === 200) {
-        login(token, response.data.user);
-      }
+      // Update user state di AuthContext
+      setUser(user);
 
       // Redirect ke halaman utama setelah login berhasil
       router.push("/");
