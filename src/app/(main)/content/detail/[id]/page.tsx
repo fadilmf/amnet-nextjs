@@ -13,6 +13,7 @@ import {
   DollarSign,
   Building2,
   Monitor,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +23,8 @@ import { ParallaxSection } from "@/components/parallax-section";
 import { ExistingConditionAccordion } from "@/components/existing-condition-accordion";
 // import { DimensionCard } from "@/components/dimension-card";
 import { useParams } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import Cookies from "js-cookie";
 
 const CircularScore = ({ score, color }: { score: number; color: string }) => (
   <motion.div
@@ -246,6 +249,7 @@ const DimensionCard = ({
 
 export default function ArticleDetail() {
   const params = useParams();
+  const { user } = useAuth();
   const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -336,6 +340,30 @@ export default function ArticleDetail() {
     } catch (err) {
       console.error("Error posting comment:", err);
       // You might want to show an error message to the user
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      const token = Cookies.get("token");
+      const response = await fetch(`/api/comments/${commentId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete comment");
+      }
+
+      // Refresh article data to update comments
+      const updatedArticle = await fetch(`/api/content/${params.id}`).then(
+        (res) => res.json()
+      );
+      setContent(updatedArticle);
+    } catch (err) {
+      console.error("Error deleting comment:", err);
     }
   };
 
@@ -863,9 +891,22 @@ export default function ArticleDetail() {
                   <span className="font-semibold text-lg">
                     {comment.name || "Anonymous"}
                   </span>
-                  <span className="text-gray-500">
-                    {new Date(comment.createdAt).toLocaleDateString()}
-                  </span>
+                  <div className="flex items-center gap-4">
+                    <span className="text-gray-500">
+                      {new Date(comment.createdAt).toLocaleDateString()}
+                    </span>
+                    {user?.role === "SUPER_ADMIN" && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleDeleteComment(comment.id)}
+                        title="Delete comment"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 <p className="text-gray-700">{comment.text}</p>
               </motion.div>
