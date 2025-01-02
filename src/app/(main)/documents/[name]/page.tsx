@@ -1,17 +1,7 @@
 "use client";
 
 import { notFound } from "next/navigation";
-import { Document, Page, pdfjs } from "react-pdf";
 import { useState } from "react";
-import "react-pdf/dist/esm/Page/TextLayer.css";
-import "react-pdf/dist/esm/Page/AnnotationLayer.css";
-
-// Set workerSrc for pdfjs
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js`;
-// pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-//   "pdfjs-dist/build/pdf.worker.min.js"
-//   //   import.meta.url
-// ).toString();
 
 const documents: any = {
   "asean-strategy-mangrove": {
