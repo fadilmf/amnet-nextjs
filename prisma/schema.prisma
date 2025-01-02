@@ -401,3 +401,12 @@ enum ContentStatus {
   REVIEW
   PUBLISHED
 }
+
+model Document {
+  id          Int       @id @default(autoincrement())
+  title       String?
+  description String?
+  fileUrl     String?
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @updatedAt
+}

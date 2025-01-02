@@ -50,7 +50,7 @@ export function Header() {
 
   return (
     <header className="border-b">
-      <nav className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <nav className="fixed bg-white border-b z-50 w-full mx-auto px-16 py-4 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
             <Image src="/logo_amnet.png" alt="Logo" width={40} height={40} />
@@ -89,6 +89,32 @@ export function Header() {
               <DropdownMenuItem asChild>
                 <Link href="/about-us" className="w-full">
                   About Amnet
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="link" className="hover:text-primary p-0">
+                Documents <ChevronDown className="ml-1 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenuItem asChild>
+                <Link
+                  href="/documents/asean-strategy-mangrove"
+                  className="w-full"
+                >
+                  ASEAN Strategy on Sustainable Mangrove Ecosystem Management
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link
+                  href="/documents/strategy-executive-summary"
+                  className="w-full"
+                >
+                  ASEAN Strategy on Sustainable Mangrove Ecosystem Management
+                  Executive Summary
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
