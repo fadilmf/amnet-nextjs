@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { UserRole, Status } from "@prisma/client";
+import bcrypt from "bcrypt";
 
 // GET /users/:id - Get user details
 export async function GET(req: Request, { params }: any) {
@@ -38,6 +39,13 @@ export async function PUT(request: Request, { params }: any) {
     }
 
     const body = await request.json();
+
+    let passwordData = {};
+    if (body.password && body.password.trim() !== "") {
+      const hashedPassword = await bcrypt.hash(body.password, 10);
+      passwordData = { password: hashedPassword };
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id }, // Use the awaited id
       data: {
@@ -50,6 +58,7 @@ export async function PUT(request: Request, { params }: any) {
         position: body.position,
         status: body.status,
         role: body.role,
+        ...passwordData,
       },
     });
     return NextResponse.json(updatedUser);

@@ -42,6 +42,7 @@ interface User {
   status: "ACTIVE" | "INACTIVE";
   role: "ADMIN" | "SUPER_ADMIN";
   country: string | null;
+  countryId?: number;
 }
 
 export default function UserManagement() {
@@ -206,29 +207,46 @@ export default function UserManagement() {
               <TableCell>{user.status}</TableCell>
               <TableCell>
                 <div className="flex space-x-2">
-                  <Dialog
-                    open={isEditDialogOpen}
-                    onOpenChange={setIsEditDialogOpen}
-                  >
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentUser(user)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Edit User</DialogTitle>
-                      </DialogHeader>
-                      <UserForm
-                        onSubmit={handleEditUser}
-                        initialData={currentUser}
-                      />
-                    </DialogContent>
-                  </Dialog>
+                  {currentUser && (
+                    <Dialog
+                      open={isEditDialogOpen}
+                      onOpenChange={setIsEditDialogOpen}
+                    >
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setCurrentUser(user);
+                            setIsEditDialogOpen(true);
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Edit User</DialogTitle>
+                        </DialogHeader>
+                        <UserForm
+                          onSubmit={handleEditUser}
+                          initialData={currentUser}
+                        />
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                  {!currentUser && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setCurrentUser(user);
+                        setIsEditDialogOpen(true);
+                      }}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button
                     variant="destructive"
                     size="sm"
@@ -253,18 +271,27 @@ interface UserFormProps {
 
 function UserForm({ onSubmit, initialData }: UserFormProps) {
   const [formData, setFormData] = useState<Partial<User>>(
-    initialData || {
-      username: "",
-      firstName: "",
-      lastName: "",
-      email: "",
-      handphone: null,
-      institution: "",
-      status: "ACTIVE",
-      role: "ADMIN",
-      password: "",
-      country: "",
-    }
+    initialData
+      ? {
+          ...initialData,
+          countryId:
+            initialData.countryId ??
+            (initialData.country ? parseInt(initialData.country) : undefined),
+          password: "", // Hide password value when editing
+        }
+      : {
+          username: "",
+          firstName: "",
+          lastName: "",
+          email: "",
+          handphone: null,
+          institution: "",
+          status: "ACTIVE",
+          role: "ADMIN",
+          password: "",
+          country: "",
+          countryId: undefined,
+        }
   );
 
   const countries = [
@@ -291,8 +318,18 @@ function UserForm({ onSubmit, initialData }: UserFormProps) {
     e.preventDefault();
     const submitData = initialData
       ? formData
-      : { ...formData, role: "ADMIN", status: "ACTIVE" };
-    onSubmit(submitData);
+      : {
+          ...formData,
+          role: "ADMIN" as "ADMIN",
+          status: "ACTIVE" as "ACTIVE" | "INACTIVE",
+        };
+    // Prevent sending empty password values by omitting the field from submission if unchanged
+    const { password, ...rest } = submitData;
+    if (initialData && !password) {
+      onSubmit(rest); // don't include password if it's empty during edit
+    } else {
+      onSubmit(submitData);
+    }
   };
 
   return (

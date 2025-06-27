@@ -20,15 +20,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="icon" href="/logo_amnet.png?v=1" type="image/png" />
-      </head>
-      <body className={inter.className}>
-        <Header />
-        <main className="pt-16">{children}</main>
-        <Footer />
-      </body>
-    </html>
+    <>
+      <Header />
+      <main className="pt-16">{children}</main>
+      <Footer />
+    </>
   );
 }

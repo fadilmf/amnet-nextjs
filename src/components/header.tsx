@@ -193,11 +193,8 @@ export function Header() {
         ) : (
           <div className="flex items-center gap-2">
             <Lock className="h-5 w-5 text-white" />
-            <Link
-              href="/sign-in"
-              className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 hover:scale-105"
-            >
-              Admin Log-In
+            <Link href="/sign-in">
+              <Button className="text-white rounded-xl">Sign In</Button>
             </Link>
           </div>
         )}
