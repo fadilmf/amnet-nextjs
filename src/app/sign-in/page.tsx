@@ -17,7 +17,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, setUser } = useAuth();
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -38,6 +38,7 @@ export default function LoginPage() {
 
       const { token, user } = response.data;
       Cookies.set("token", token, { expires: 1 });
+      setUser(user);
       router.push("/");
     } catch (error) {
       console.error("Login failed:", error);

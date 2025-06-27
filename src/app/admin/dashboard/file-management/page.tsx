@@ -29,6 +29,7 @@ export default function FileManagementPage() {
   const fetchDocuments = async () => {
     const response = await fetch("/api/minio/list");
     const data = await response.json();
+    console.log("ini data dokumen: ", data);
     setDocuments(data);
   };
 

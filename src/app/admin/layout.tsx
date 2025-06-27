@@ -16,18 +16,17 @@ export default function AdminLayout({
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    // Tunggu sampai isLoading selesai
+    if (isLoading) return;
+
+    if (!user) {
       router.push("/sign-in");
-    } else if (
-      !isLoading &&
-      user &&
-      !["ADMIN", "SUPER_ADMIN"].includes(user.role)
-    ) {
+    } else if (!["ADMIN", "SUPER_ADMIN"].includes(user.role)) {
       router.push("/");
     }
   }, [user, isLoading, router]);
 
-  // Tampilkan loading spinner saat mengecek auth
+  // Tambahan prevent render jika loading
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -36,10 +35,8 @@ export default function AdminLayout({
     );
   }
 
-  // Jangan render layout jika user tidak valid
-  if (!user || !["ADMIN", "SUPER_ADMIN"].includes(user.role)) {
-    return null;
-  }
+  // Tambahan prevent render kalau user belum selesai di-set
+  if (!user) return null;
 
   return (
     <div>

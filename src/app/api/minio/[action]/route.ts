@@ -103,31 +103,6 @@ export async function POST(req: Request) {
   }
 }
 
-// Handle list
-export async function GET() {
-  try {
-    const command = new ListObjectsV2Command({
-      Bucket: bucketName,
-      Prefix: "documents/", // Hanya file di folder 'documents/'
-    });
-    const response = await s3.send(command);
-
-    // Proses untuk menghapus prefix 'documents/' dari setiap Key
-    const files = (response.Contents || []).map((item) => ({
-      ...item,
-      Key: item.Key?.replace(/^documents\//, ""), // Hapus prefix 'documents/'
-    }));
-
-    return NextResponse.json(files);
-  } catch (error) {
-    console.error("List error:", error);
-    return NextResponse.json(
-      { error: "Failed to list files." },
-      { status: 500 }
-    );
-  }
-}
-
 // Handle delete
 export async function DELETE(req: Request) {
   const { fileName } = await req.json();
