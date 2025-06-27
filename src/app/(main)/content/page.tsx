@@ -15,7 +15,7 @@ import {
 interface Article {
   id: string;
   title: string;
-  snippet: string;
+  summary: string;
   author: string;
   date: string;
   cover: string;
@@ -37,7 +37,6 @@ export default function ArticlesPage() {
       try {
         const response = await axios.get("/api/content");
         setArticles(response.data);
-        console.log("repondata: ", response.data);
         setError(null);
       } catch (err) {
         console.error("Failed to fetch articles:", err);
@@ -110,7 +109,7 @@ export default function ArticlesPage() {
               key={article.id}
               id={article.id}
               title={article.title}
-              summary={article.snippet}
+              summary={article.summary}
               imageUrl={article.cover}
               author={article.author}
               date={article.date}

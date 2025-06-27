@@ -165,24 +165,6 @@ export default function AdminContentPage() {
             Add Content
           </Link>
         </div>
-        {/* {draftContent.length === 0 ? (
-          <p className="text-gray-500">No drafts available</p>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {draftContent.map((article) => (
-              <ArticleCard
-                key={article.id}
-                id={article.id.toString()}
-                title={article.title || "Untitled"}
-                summary={article.summary || "No summary available"}
-                author={article.author || "Unknown"}
-                date={article.date || article.createdAt}
-                keywords={article.keywords}
-                imageUrl={article.cover}
-              />
-            ))}
-          </div>
-        )} */}
       </div>
 
       {/* "Published Content" Section */}

@@ -50,7 +50,9 @@ export function PublicArticleCard({
             {date ? new Date(date).toLocaleDateString() : "No date"}
           </p>
           <p className="mt-2 text-gray-600 line-clamp-2">
-            {summary || "No summary available"}
+            {typeof summary === "string" && summary.trim().length > 0
+              ? summary
+              : "No summary available"}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {keywords && keywords.length > 0 ? (
