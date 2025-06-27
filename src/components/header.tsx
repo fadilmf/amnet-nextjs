@@ -16,6 +16,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Cookie from "js-cookie"; // Import js-cookie untuk mengakses cookies
 import { useAuth } from "@/contexts/AuthContext";
 
+const getFormattedRole = (role: string) => {
+  switch (role) {
+    case "SUPER_ADMIN":
+      return "Super Admin";
+    case "ADMIN":
+      return "Admin";
+    case "USER":
+      return "User";
+    default:
+      return role;
+  }
+};
+
 export function Header() {
   const [user, setUser] = useState<any>(null);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
@@ -159,7 +172,8 @@ export function Header() {
                   <div className="flex flex-col items-start">
                     <span className="text-sm font-medium">{`${user?.firstName} ${user?.lastName}`}</span>
                     <span className="text-xs text-muted-foreground">
-                      {user?.role} - {user?.country.countryName}
+                      {getFormattedRole(user?.role)} -{" "}
+                      {user?.country.countryName}
                     </span>
                   </div>
                   <ChevronDown className="ml-2 h-4 w-4" />
