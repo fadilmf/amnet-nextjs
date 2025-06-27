@@ -2,6 +2,7 @@
 const nextConfig = {
   images: {
     domains: ["flagcdn.com"],
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "http",
