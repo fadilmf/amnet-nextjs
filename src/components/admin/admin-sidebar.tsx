@@ -11,6 +11,7 @@ import {
   Settings,
   Users,
   Bell,
+  File,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -82,6 +83,11 @@ const masterLinks = [
     href: "/admin/dashboard/user-list",
     icon: <Settings size={20} />,
     label: "Admin Setting",
+  },
+  {
+    href: "/admin/dashboard/file-management",
+    icon: <File size={20} />,
+    label: "File Management",
   },
 ];
 
