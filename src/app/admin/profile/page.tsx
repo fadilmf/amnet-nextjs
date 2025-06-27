@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-// import Image from "next/image";
+// Removed unused import: Image from "next/image"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-// import { useToast } from "@/components/ui/use-toast";
+// Removed unused import: useToast from "@/components/ui/use-toast"
 import { useAuth } from "@/contexts/AuthContext";
 import axios from "axios";
 import Cookies from "js-cookie";
@@ -38,36 +38,46 @@ interface UserProfile {
   country: Country;
 }
 
-// Mock data - replace with real data in production
+// Add missing initial state for user and country profiles
 const initialUserProfile: UserProfile = {
-  avatarUrl: "/avatar.png",
-  name: "John Doe",
-  role: "Admin",
-  country: "Indonesia",
-  phoneNumber: "+62 123-456-7890",
-  email: "johndoe@example.com",
+  id: "",
+  username: "",
+  role: "",
+  handphone: "",
+  country: {
+    id: 0,
+    countryName: "",
+    latitude: 0,
+    longitude: 0,
+    landAreas: "",
+    forestAreas: "",
+    totalForestAreas: "",
+    mangroveAreas: "",
+    totalMangroveAreas: 0,
+    percentage: 0,
+    challenges: "",
+    recommendation: "",
+    programActivities: "",
+    policy: "",
+  },
 };
 
-const initialCountryProfile: CountryProfile = {
-  name: "Indonesia",
-  latitude: "-6.1751",
-  longitude: "106.8650",
-  landArea: "1.904 million km²",
-  totalLandArea: "1.9 million km²",
-  forestArea: "884,950 km²",
-  population: "273.5 million",
-};
+const initialCountryProfile: Country = initialUserProfile.country;
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [profileData, setProfileData] =
     useState<UserProfile>(initialUserProfile);
-  const [countryData, setCountryData] = useState<CountryProfile>(
+  const [countryData, setCountryData] = useState<Country>(
     initialCountryProfile
   );
   const [isLoading, setIsLoading] = useState(true);
   // const { toast } = useToast();
   const { user } = useAuth();
+
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   // Fetch profile data
   useEffect(() => {
@@ -130,6 +140,33 @@ export default function ProfilePage() {
     }
   };
 
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      alert("New passwords do not match.");
+      return;
+    }
+
+    try {
+      const token = Cookies.get("token");
+      await axios.post(
+        "/api/profile/change-password",
+        { currentPassword, newPassword },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      alert("Password changed successfully.");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      alert("Failed to change password.");
+    }
+  };
+
   // Handle input changes in the form fields
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -165,6 +202,7 @@ export default function ProfilePage() {
                     value={profileData.username}
                     onChange={handleInputChange}
                     className="w-full"
+                    disabled
                   />
                 </div>
                 <div>
@@ -191,6 +229,44 @@ export default function ProfilePage() {
                 <Button onClick={handleSubmit} className="mt-4 w-full">
                   Save
                 </Button>
+                <div className="mt-8 space-y-4 w-full">
+                  <h3 className="text-lg font-semibold">Change Password</h3>
+                  <div>
+                    <Label htmlFor="currentPassword">Current Password</Label>
+                    <Input
+                      id="currentPassword"
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="confirmPassword">
+                      Confirm New Password
+                    </Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+                  <Button onClick={handleChangePassword} className="w-full">
+                    Change Password
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="space-y-2 text-center">

@@ -39,30 +39,30 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// export async function PUT(req: NextRequest) {
-//   const token = req.headers.get("Authorization")?.split(" ")[1];
-//   if (!token) {
-//     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-//   }
+export async function PUT(req: NextRequest) {
+  const token = req.headers.get("Authorization")?.split(" ")[1];
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-//   try {
-//     const decoded = verifyToken(token) as { userId: string };
-//     const data = await req.json();
+  try {
+    const decoded = verifyToken(token) as { userId: string };
+    const data = await req.json();
 
-//     const updatedProfile = await prisma.user.update({
-//       where: { id: decoded.userId },
-//       data: {
-//         username: data.username,
-//         phoneNumber: data.phoneNumber,
-//         countryId: data.countryId,
-//       },
-//     });
+    const updatedProfile = await prisma.user.update({
+      where: { id: decoded.userId },
+      data: {
+        username: data.username,
+        handphone: data.phoneNumber,
+        countryId: data.countryId,
+      },
+    });
 
-//     return NextResponse.json({ user: updatedProfile });
-//   } catch (error) {
-//     return NextResponse.json(
-//       { error: "Failed to update profile" },
-//       { status: 500 }
-//     );
-//   }
-// }
+    return NextResponse.json({ user: updatedProfile });
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Failed to update profile" },
+      { status: 500 }
+    );
+  }
+}
