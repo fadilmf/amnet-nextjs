@@ -11,6 +11,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Cookie from "js-cookie"; // Import js-cookie untuk mengakses cookies
@@ -130,6 +133,97 @@ export function Header() {
                   Executive Summary
                 </Link>
               </DropdownMenuItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  ASEAN Strategy on Sustainable Mangrove Ecosystem Management
+                  Guidelines
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="w-56">
+                  <DropdownMenuItem asChild>
+                    <Link href="/documents/guidelines-01">
+                      Assessment of Mangrove Ecosystem Health Based on Spatial
+                      Approach
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/documents/guidelines-02">
+                      Mangrove Mapping
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/documents/guidelines-04">
+                      Mangrove Ecosystem Management
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/documents/guidelines-05">
+                      Mangrove Botanical Garden Development
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/documents/guidelines-06">
+                      World Mangrove Center
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/documents/guidelines-07">
+                      Mangrove Non-Timber Products
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/documents/guidelines-08">
+                      Mangrove Economic Valuation
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/documents/guidelines-09">
+                      Mediation of Tenurial Conflicts in Mangrove Ecosystems
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/documents/guidelines-10">
+                      Establishment of RAMSAR Site in Mangrove Ecosystems
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/documents/guidelines-11">
+                      Biophysical Characteristics Survey
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/documents/guidelines-12">
+                      Post-Harvest Management of Fishery Products
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/documents/guidelines-13">
+                      Silvofishery Development and Management
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/documents/guidelines-14">
+                      Mangrove Ecotourism Development
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/documents/guidelines-15">
+                      Mitigation and Adaptation Strategies for Mangrove
+                      Ecosystems
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/documents/guidelines-16">
+                      Development of MSME Sustainable Management of Mangrove
+                      Forest
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/documents/guidelines-17">
+                      Development of Mangrove Information and Training Center
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
